@@ -1,5 +1,7 @@
+import { Link } from "@tanstack/react-router";
 import { Menu } from "lucide-react";
 import { useState } from "react";
+
 
 const nav = [
   { label: "Vagas", href: "#vagas" },
@@ -37,18 +39,19 @@ export function SiteHeader() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2 md:ml-0">
-          <a
-            href="#vagas"
+          <Link
+            to="/painel"
             className="hidden rounded-full px-4 py-2 text-sm font-semibold text-ink-soft transition-colors hover:bg-secondary sm:inline-flex"
           >
             Entrar
-          </a>
-          <a
-            href="#vagas"
+          </Link>
+          <Link
+            to="/painel"
             className="inline-flex items-center rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground shadow-card transition-transform active:scale-[0.96]"
           >
             Criar perfil
-          </a>
+          </Link>
+
           <button
             type="button"
             aria-label="Abrir menu"
