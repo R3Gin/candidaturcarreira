@@ -1,5 +1,7 @@
+import { Link } from "@tanstack/react-router";
 import { Menu } from "lucide-react";
 import { useState } from "react";
+
 
 const nav = [
   { label: "Vagas", href: "#vagas" },
