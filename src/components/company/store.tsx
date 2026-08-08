@@ -565,6 +565,12 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
           };
         });
         log("Feedback enviado", `${name} recebeu retorno de reprovação.`);
+        const stage = state.candidates.find((c) => c.id === candidateId)?.stage;
+        notify(
+          "reprovado",
+          `${name} foi reprovada(o)`,
+          `Feedback enviado${stage ? ` na etapa ${stage}` : ""}.`,
+        );
       },
       restore: (candidateId) =>
         patchCandidate(candidateId, (c) => ({
