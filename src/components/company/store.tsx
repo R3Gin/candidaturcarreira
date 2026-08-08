@@ -353,6 +353,10 @@ type CompanyState = {
   interviews: Interview[];
   profile: CompanyProfile;
   logs: ActivityLog[];
+  notifications: CompanyNotification[];
+  unreadCount: number;
+  markNotificationsRead: () => void;
+  clearNotifications: () => void;
   members: Member[];
   currentMemberId: string;
   currentMember: Member;
