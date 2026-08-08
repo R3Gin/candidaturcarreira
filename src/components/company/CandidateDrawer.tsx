@@ -20,7 +20,11 @@ export function CandidateDrawer({
     addNote,
     setScorecard,
     scheduleInterview,
+    can,
   } = useCompanyStore();
+  const canMove = can("mover_candidato");
+  const canReject = can("reprovar_candidato");
+  const canSchedule = can("agendar_entrevista");
   const vacancy = vacancies.find((v) => v.id === candidate.vacancyId);
   const [note, setNote] = useState("");
   const [card, setCard] = useState(
