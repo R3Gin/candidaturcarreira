@@ -7,6 +7,19 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { toast } from "sonner";
+
+export type NotificationKind = "etapa" | "aprovado" | "reprovado" | "entrevista";
+
+export type CompanyNotification = {
+  id: string;
+  kind: NotificationKind;
+  title: string;
+  detail: string;
+  at: string;
+  read: boolean;
+};
+
 
 export const stages = [
   "Triagem",
@@ -340,6 +353,10 @@ type CompanyState = {
   interviews: Interview[];
   profile: CompanyProfile;
   logs: ActivityLog[];
+  notifications: CompanyNotification[];
+  unreadCount: number;
+  markNotificationsRead: () => void;
+  clearNotifications: () => void;
   members: Member[];
   currentMemberId: string;
   currentMember: Member;
@@ -373,6 +390,7 @@ type Persisted = {
   interviews: Interview[];
   profile: CompanyProfile;
   logs: ActivityLog[];
+  notifications: CompanyNotification[];
   members: Member[];
   currentMemberId: string;
 };
@@ -384,6 +402,7 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
     interviews: seedInterviews,
     profile: defaultProfile,
     logs: [],
+    notifications: [],
     members: seedMembers,
     currentMemberId: "m1",
   });
@@ -418,6 +437,24 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const notify = useCallback(
+    (kind: NotificationKind, title: string, detail: string) => {
+      setState((s) => ({
+        ...s,
+        notifications: [
+          { id: uid(), kind, title, detail, at: now(), read: false },
+          ...s.notifications,
+        ].slice(0, 40),
+      }));
+      if (kind === "reprovado") toast.error(title, { description: detail });
+      else if (kind === "aprovado") toast.success(title, { description: detail });
+      else toast(title, { description: detail });
+    },
+    [],
+  );
+
+
+
   const patchCandidate = useCallback(
     (id: string, fn: (c: Candidate) => Candidate) => {
       setState((s) => ({
@@ -430,17 +467,26 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<CompanyState>(() => {
     const moveStage = (candidateId: string, stage: Stage) => {
-      let name = "";
-      patchCandidate(candidateId, (c) => {
-        name = c.name;
-        return {
-          ...c,
-          stage,
-          rejected: false,
-          timeline: [{ id: uid(), label: `Movido para ${stage}`, at: now() }, ...c.timeline],
-        };
-      });
+      const before = state.candidates.find((c) => c.id === candidateId);
+      const name = before?.name ?? "Candidato";
+      const previous = before?.stage ?? null;
+      patchCandidate(candidateId, (c) => ({
+        ...c,
+        stage,
+        rejected: false,
+        timeline: [{ id: uid(), label: `Movido para ${stage}`, at: now() }, ...c.timeline],
+      }));
       log("Etapa atualizada", `${name} foi movida(o) para ${stage}.`);
+      const role = state.vacancies.find((v) => v.id === before?.vacancyId)?.role ?? "vaga";
+      if (stage === "Contratado") {
+        notify("aprovado", `${name} foi aprovada(o)! 🎉`, `Contratação confirmada para ${role}.`);
+      } else if (previous !== stage) {
+        notify(
+          "etapa",
+          `${name} avançou para ${stage}`,
+          `Processo de ${role}${previous ? ` · saiu de ${previous}` : ""}.`,
+        );
+      }
     };
 
     const currentMember =
@@ -452,6 +498,13 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
     return {
       ...state,
       currentMember,
+      unreadCount: state.notifications.filter((n) => !n.read).length,
+      markNotificationsRead: () =>
+        setState((s) => ({
+          ...s,
+          notifications: s.notifications.map((n) => ({ ...n, read: true })),
+        })),
+      clearNotifications: () => setState((s) => ({ ...s, notifications: [] })),
       can: (p) => allowed.includes(p),
       addMember: ({ name, email, role }) => {
         setState((s) => ({
@@ -495,19 +548,22 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
         moveStage(candidateId, next);
       },
       reject: (candidateId) => {
-        let name = "";
-        patchCandidate(candidateId, (c) => {
-          name = c.name;
-          return {
-            ...c,
-            rejected: true,
-            timeline: [
-              { id: uid(), label: "Reprovado com feedback enviado", at: now() },
-              ...c.timeline,
-            ],
-          };
-        });
+        const before = state.candidates.find((c) => c.id === candidateId);
+        const name = before?.name ?? "Candidato";
+        patchCandidate(candidateId, (c) => ({
+          ...c,
+          rejected: true,
+          timeline: [
+            { id: uid(), label: "Reprovado com feedback enviado", at: now() },
+            ...c.timeline,
+          ],
+        }));
         log("Feedback enviado", `${name} recebeu retorno de reprovação.`);
+        notify(
+          "reprovado",
+          `${name} foi reprovada(o)`,
+          `Feedback enviado${before ? ` na etapa ${before.stage}` : ""}.`,
+        );
       },
       restore: (candidateId) =>
         patchCandidate(candidateId, (c) => ({
@@ -535,6 +591,12 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
       scheduleInterview: (i) => {
         setState((s) => ({ ...s, interviews: [...s.interviews, { ...i, id: uid() }] }));
         log("Entrevista agendada", `${i.kind} em ${i.date} às ${i.time}.`);
+        const name = state.candidates.find((c) => c.id === i.candidateId)?.name ?? "Candidato";
+        notify(
+          "entrevista",
+          `Entrevista agendada com ${name}`,
+          `${i.kind} em ${new Date(`${i.date}T00:00:00`).toLocaleDateString("pt-BR")} às ${i.time} com ${i.interviewer}.`,
+        );
       },
       cancelInterview: (id) =>
         setState((s) => ({ ...s, interviews: s.interviews.filter((i) => i.id !== id) })),
@@ -566,7 +628,7 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
         log("Perfil da empresa", "Informações atualizadas.");
       },
     };
-  }, [state, patchCandidate, log]);
+  }, [state, patchCandidate, log, notify]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

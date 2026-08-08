@@ -1,18 +1,118 @@
 import { Link } from "@tanstack/react-router";
 import {
   BarChart3,
+  Bell,
   Briefcase,
   Building2,
   CalendarDays,
+  CheckCircle2,
   KanbanSquare,
   LogOut,
   Menu,
+  MoveRight,
   ShieldCheck,
   Users,
   X,
+  XCircle,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
-import { useCompanyStore, type Permission } from "./store";
+import { useCompanyStore, type NotificationKind, type Permission } from "./store";
+
+const notifIcon: Record<NotificationKind, typeof Bell> = {
+  etapa: MoveRight,
+  aprovado: CheckCircle2,
+  reprovado: XCircle,
+  entrevista: CalendarDays,
+};
+
+function NotificationBell() {
+  const { notifications, unreadCount, markNotificationsRead, clearNotifications } =
+    useCompanyStore();
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        aria-label={`Notificações${unreadCount ? ` (${unreadCount} não lidas)` : ""}`}
+        onClick={() => {
+          if (!open) markNotificationsRead();
+          setOpen((o) => !o);
+        }}
+        className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border text-ink hover:bg-secondary"
+      >
+        <Bell className="h-5 w-5" strokeWidth={1.9} />
+        {unreadCount > 0 && (
+          <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-primary-foreground">
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </span>
+        )}
+      </button>
+
+      {open && (
+        <>
+          <button
+            type="button"
+            aria-label="Fechar notificações"
+            onClick={() => setOpen(false)}
+            className="fixed inset-0 z-40 cursor-default"
+          />
+          <div className="absolute right-0 z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-border bg-card shadow-lift">
+            <div className="flex items-center justify-between border-b border-border px-4 py-3">
+              <p className="font-display text-sm font-bold text-ink">Notificações</p>
+              {notifications.length > 0 && (
+                <button
+                  type="button"
+                  onClick={clearNotifications}
+                  className="text-xs font-semibold text-brand hover:underline"
+                >
+                  Limpar
+                </button>
+              )}
+            </div>
+            <ul className="max-h-80 divide-y divide-border overflow-y-auto">
+              {notifications.map((n) => {
+                const Icon = notifIcon[n.kind];
+                return (
+                  <li key={n.id} className="flex gap-3 px-4 py-3">
+                    <Icon
+                      className={`mt-0.5 h-4.5 w-4.5 shrink-0 ${
+                        n.kind === "reprovado"
+                          ? "text-destructive"
+                          : n.kind === "aprovado"
+                            ? "text-brand-cyan"
+                            : "text-brand"
+                      }`}
+                      strokeWidth={2}
+                    />
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold leading-tight text-ink">{n.title}</p>
+                      <p className="mt-0.5 text-xs text-ink-soft">{n.detail}</p>
+                      <p className="mt-1 text-[11px] text-ink-soft">
+                        {new Date(n.at).toLocaleString("pt-BR", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    </div>
+                  </li>
+                );
+              })}
+              {notifications.length === 0 && (
+                <li className="px-4 py-8 text-center text-sm text-ink-soft">
+                  Nenhuma notificação por aqui. Mova alguém no pipeline para começar.
+                </li>
+              )}
+            </ul>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 
 export type CompanyView =
   | "visao"
@@ -85,6 +185,8 @@ export function CompanyShell({
           </div>
 
           <div className="flex items-center gap-2 sm:ml-3">
+            <NotificationBell />
+
             <div className="hidden text-right sm:block">
               <p className="text-sm font-semibold leading-tight text-ink">{currentMember.name}</p>
               <p className="text-[11px] text-ink-soft">
