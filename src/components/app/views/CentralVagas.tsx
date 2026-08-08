@@ -22,7 +22,13 @@ import {
 
 const flowSteps = ["Qualificações", "Dados", "Mensagem", "Revisão"];
 
-export function CentralVagas({ onGoToApplications }: { onGoToApplications: () => void }) {
+export function CentralVagas({
+  onGoToApplications,
+  onOpenJob,
+}: {
+  onGoToApplications: () => void;
+  onOpenJob: (jobId: string) => void;
+}) {
   const { savedJobs, toggleSaved, followed, toggleFollow, applyToJob, hasApplied } = useAppStore();
   const [filters, setFilters] = useState<JobFilterState>(emptyFilters);
 
@@ -69,7 +75,11 @@ export function CentralVagas({ onGoToApplications }: { onGoToApplications: () =>
                 key={job.company}
                 className="rounded-2xl border border-border bg-card p-4 shadow-card"
               >
-                <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => onOpenJob(job.id)}
+                  className="flex w-full items-center gap-3 text-left"
+                >
                   <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary font-display text-sm font-bold text-ink">
                     {job.company.slice(0, 2).toUpperCase()}
                   </span>
@@ -79,7 +89,7 @@ export function CentralVagas({ onGoToApplications }: { onGoToApplications: () =>
                     </p>
                     <p className="truncate text-[11px] text-ink-soft">{job.segment}</p>
                   </div>
-                </div>
+                </button>
                 <p className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-ink">
                   <Star className="h-3.5 w-3.5 fill-accent text-accent" />
                   {job.rating.toFixed(1)} · {count} {count === 1 ? "vaga aberta" : "vagas abertas"}
@@ -108,13 +118,10 @@ export function CentralVagas({ onGoToApplications }: { onGoToApplications: () =>
                   </button>
                   <button
                     type="button"
-                    onClick={() => {
-                      setFilters({ ...filters, mode: "vagas", query: job.company });
-                      setSelectedId(job.id);
-                    }}
+                    onClick={() => onOpenJob(job.id)}
                     className="text-xs font-semibold text-accent"
                   >
-                    Ver vagas
+                    Ver empresa e vagas
                   </button>
                 </div>
               </li>
@@ -196,6 +203,7 @@ export function CentralVagas({ onGoToApplications }: { onGoToApplications: () =>
               applied={hasApplied(selected.id)}
               onApply={(extra) => applyToJob(selected, extra)}
               onGoToApplications={onGoToApplications}
+              onOpenJob={onOpenJob}
             />
           )}
         </div>
@@ -214,6 +222,7 @@ function JobDetail({
   applied,
   onApply,
   onGoToApplications,
+  onOpenJob,
 }: {
   job: Job;
   saved: boolean;
@@ -223,6 +232,7 @@ function JobDetail({
   applied: boolean;
   onApply: (extra: { letter: string; qualifications: string[] }) => void;
   onGoToApplications: () => void;
+  onOpenJob: (jobId: string) => void;
 }) {
   const [step, setStep] = useState<number | null>(null);
   const { account, resume } = useAppStore();
@@ -242,7 +252,13 @@ function JobDetail({
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 text-xs font-semibold text-ink-soft">
             <Building2 className="h-3.5 w-3.5" strokeWidth={1.75} />
-            {job.company}
+            <button
+              type="button"
+              onClick={() => onOpenJob(job.id)}
+              className="font-bold text-accent hover:underline"
+            >
+              {job.company}
+            </button>
             <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5">
               <Star className="h-3 w-3 fill-accent text-accent" />
               {job.rating.toFixed(1)}
