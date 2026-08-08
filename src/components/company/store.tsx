@@ -635,7 +635,7 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
         log("Perfil da empresa", "Informações atualizadas.");
       },
     };
-  }, [state, patchCandidate, log]);
+  }, [state, patchCandidate, log, notify]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
