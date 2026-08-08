@@ -1,13 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CompanyShell, type CompanyView } from "@/components/company/CompanyShell";
-import { CompanyStoreProvider } from "@/components/company/store";
+import { CompanyStoreProvider, useCompanyStore, type Permission } from "@/components/company/store";
 import { Banco } from "@/components/company/views/Banco";
 import { Entrevistas } from "@/components/company/views/Entrevistas";
+import { Equipe } from "@/components/company/views/Equipe";
 import { Marca } from "@/components/company/views/Marca";
 import { Pipeline } from "@/components/company/views/Pipeline";
 import { Vagas } from "@/components/company/views/Vagas";
 import { Visao } from "@/components/company/views/Visao";
+
 
 const title = "Painel da empresa | Candidatu Empresas";
 const description =
