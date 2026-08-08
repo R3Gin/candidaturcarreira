@@ -4,11 +4,14 @@ import { AppShell, type View } from "@/components/app/AppShell";
 import { AppStoreProvider } from "@/components/app/store";
 import { CentralVagas } from "@/components/app/views/CentralVagas";
 import { EmpresasQueSigo } from "@/components/app/views/EmpresasQueSigo";
+import { Historico } from "@/components/app/views/Historico";
 import { MeuCurriculo } from "@/components/app/views/MeuCurriculo";
 import { MinhaConta } from "@/components/app/views/MinhaConta";
 import { MinhasCandidaturas } from "@/components/app/views/MinhasCandidaturas";
 import { PreferenciasVagas } from "@/components/app/views/PreferenciasVagas";
+import { Recomendadas } from "@/components/app/views/Recomendadas";
 import { VagasSalvas } from "@/components/app/views/VagasSalvas";
+
 
 const title = "Painel do candidato | Candidatu";
 const description =
@@ -60,20 +63,32 @@ function Painel() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const goToPreferences = () => {
+    setView("preferencias");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <AppShell view={view} onNavigate={setView} onSignOut={signOut}>
       <main
-        className={`mx-auto px-5 pb-20 pt-8 ${view === "central" ? "max-w-6xl" : "max-w-4xl"}`}
+        className={`mx-auto px-5 pb-20 pt-8 ${
+          view === "central" || view === "curriculo" ? "max-w-6xl" : "max-w-4xl"
+        }`}
       >
         {view === "central" && <CentralVagas onGoToApplications={goToApplications} />}
 
         {view === "conta" && <MinhaConta onSignOut={signOut} />}
         {view === "curriculo" && <MeuCurriculo onGoToJobs={goToJobs} />}
         {view === "candidaturas" && <MinhasCandidaturas onGoToJobs={goToJobs} />}
+        {view === "recomendadas" && (
+          <Recomendadas onGoToJobs={goToJobs} onGoToPreferences={goToPreferences} />
+        )}
         {view === "salvas" && <VagasSalvas onGoToJobs={goToJobs} />}
         {view === "empresas" && <EmpresasQueSigo onGoToJobs={goToJobs} />}
+        {view === "historico" && <Historico onGoToJobs={goToJobs} />}
         {view === "preferencias" && <PreferenciasVagas onGoToJobs={goToJobs} />}
       </main>
     </AppShell>
   );
 }
+
