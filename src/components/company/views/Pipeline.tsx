@@ -28,12 +28,15 @@ export function Pipeline() {
         <div>
           <p className="eyebrow">Pipeline de seleção</p>
           <h1 className="mt-2 font-display text-2xl font-bold text-ink sm:text-3xl">
-            Arraste as pessoas entre as etapas
+            {canMove ? "Arraste as pessoas entre as etapas" : "Acompanhe as pessoas no processo"}
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-ink-soft">
-            {list.length} pessoas no quadro. Clique em um cartão para abrir o perfil completo,
-            avaliar com scorecard, agendar entrevista ou enviar feedback.
+            {list.length} pessoas no quadro.{" "}
+            {canMove
+              ? "Clique em um cartão para abrir o perfil completo, avaliar com scorecard, agendar entrevista ou enviar feedback."
+              : "Seu cargo tem acesso de leitura: você pode abrir perfis, mas não mover etapas."}
           </p>
+
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <select
