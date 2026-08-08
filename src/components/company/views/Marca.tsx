@@ -4,7 +4,8 @@ import { toast } from "sonner";
 import { useCompanyStore } from "../store";
 
 export function Marca() {
-  const { profile, updateProfile, logs } = useCompanyStore();
+  const { profile, updateProfile, logs, can } = useCompanyStore();
+  const canEdit = can("editar_marca");
   const [form, setForm] = useState(profile);
 
   const reviews = [
