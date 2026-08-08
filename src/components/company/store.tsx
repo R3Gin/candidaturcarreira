@@ -467,21 +467,17 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<CompanyState>(() => {
     const moveStage = (candidateId: string, stage: Stage) => {
-      let name = "";
-      let previous: Stage | null = null;
-      patchCandidate(candidateId, (c) => {
-        name = c.name;
-        previous = c.stage;
-        return {
-          ...c,
-          stage,
-          rejected: false,
-          timeline: [{ id: uid(), label: `Movido para ${stage}`, at: now() }, ...c.timeline],
-        };
-      });
+      const before = state.candidates.find((c) => c.id === candidateId);
+      const name = before?.name ?? "Candidato";
+      const previous = before?.stage ?? null;
+      patchCandidate(candidateId, (c) => ({
+        ...c,
+        stage,
+        rejected: false,
+        timeline: [{ id: uid(), label: `Movido para ${stage}`, at: now() }, ...c.timeline],
+      }));
       log("Etapa atualizada", `${name} foi movida(o) para ${stage}.`);
-      const vacancy = state.candidates.find((c) => c.id === candidateId)?.vacancyId;
-      const role = state.vacancies.find((v) => v.id === vacancy)?.role ?? "vaga";
+      const role = state.vacancies.find((v) => v.id === before?.vacancyId)?.role ?? "vaga";
       if (stage === "Contratado") {
         notify("aprovado", `${name} foi aprovada(o)! 🎉`, `Contratação confirmada para ${role}.`);
       } else if (previous !== stage) {
