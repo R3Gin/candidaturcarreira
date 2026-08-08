@@ -69,7 +69,9 @@ Regras:
 - Para cada experiência, 3 bullets com verbo de ação e resultado mensurável quando possível (estime com bom senso se não houver número).
 - Se a experiência informada estiver vaga, crie no máximo 2 experiências plausíveis e coerentes com o cargo alvo.
 - 8 a 12 habilidades objetivas.
+- O campo headline é o título profissional (ex.: "Analista Administrativo Pleno · Joinville"); nunca repita o nome da pessoa nele.
 - Responda apenas com json válido no schema pedido.`;
+
 
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
