@@ -29,9 +29,9 @@ export function SiteHeader() {
             Vagas verificadas com salário e etapas à vista
           </p>
           <div className="hidden items-center gap-5 sm:flex">
-            <a href="#empregadores" className="font-medium hover:underline">
+            <Link to="/empresa" className="font-medium hover:underline">
               Sou empresa
-            </a>
+            </Link>
             <span className="flex items-center gap-1.5 font-medium">
               <Phone className="h-3.5 w-3.5" strokeWidth={2} />
               0800 000 2026

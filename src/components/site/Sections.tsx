@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { ArrowRight, Building2, Clock, Star } from "lucide-react";
 import { Reveal } from "./Reveal";
 
@@ -228,12 +229,12 @@ export function Empregadores() {
           seguiu. Primeira vaga sem custo.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <a
-            href="#empregadores"
+          <Link
+            to="/empresa"
             className="inline-flex items-center rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-card transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.96]"
           >
             Publicar uma vaga
-          </a>
+          </Link>
           <a
             href="#empresas"
             className="inline-flex items-center rounded-full border border-border px-6 py-3 text-sm font-semibold text-ink transition-colors hover:bg-secondary"
