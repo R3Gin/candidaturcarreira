@@ -203,6 +203,7 @@ export function CentralVagas({
               applied={hasApplied(selected.id)}
               onApply={(extra) => applyToJob(selected, extra)}
               onGoToApplications={onGoToApplications}
+              onOpenJob={onOpenJob}
             />
           )}
         </div>
@@ -221,6 +222,7 @@ function JobDetail({
   applied,
   onApply,
   onGoToApplications,
+  onOpenJob,
 }: {
   job: Job;
   saved: boolean;
@@ -230,6 +232,7 @@ function JobDetail({
   applied: boolean;
   onApply: (extra: { letter: string; qualifications: string[] }) => void;
   onGoToApplications: () => void;
+  onOpenJob: (jobId: string) => void;
 }) {
   const [step, setStep] = useState<number | null>(null);
   const { account, resume } = useAppStore();
