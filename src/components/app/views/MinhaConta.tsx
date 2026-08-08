@@ -94,7 +94,37 @@ export function MinhaConta({ onSignOut }: { onSignOut: () => void }) {
             value={form.phone}
             onChange={(v) => setForm({ ...form, phone: v })}
           />
+          <Input
+            label="Cargo ou ocupação"
+            value={form.occupation ?? ""}
+            onChange={(v) => setForm({ ...form, occupation: v.slice(0, 60) })}
+          />
+          <Input
+            label="Nome de usuário"
+            value={form.username ?? ""}
+            onChange={(v) =>
+              setForm({
+                ...form,
+                username: v
+                  .toLowerCase()
+                  .replace(/[^a-z0-9]+/g, "-")
+                  .replace(/^-+/, "")
+                  .slice(0, 40),
+              })
+            }
+          />
         </div>
+        {form.username && (
+          <p className="mt-3 break-all text-xs text-ink-soft">
+            Perfil público: https://candidatu.com.br/perfil/{form.username}
+          </p>
+        )}
+        {account.onboardedAt && (
+          <p className="mt-1 text-xs text-ink-soft">
+            Registro inicial validado em{" "}
+            {new Date(account.onboardedAt).toLocaleDateString("pt-BR")} · termos aceitos
+          </p>
+        )}
         <div className="mt-5 flex items-center gap-3">
           <button
             type="button"
