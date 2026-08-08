@@ -75,7 +75,11 @@ export function CentralVagas({
                 key={job.company}
                 className="rounded-2xl border border-border bg-card p-4 shadow-card"
               >
-                <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => onOpenJob(job.id)}
+                  className="flex w-full items-center gap-3 text-left"
+                >
                   <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary font-display text-sm font-bold text-ink">
                     {job.company.slice(0, 2).toUpperCase()}
                   </span>
