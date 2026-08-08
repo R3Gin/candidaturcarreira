@@ -548,24 +548,21 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
         moveStage(candidateId, next);
       },
       reject: (candidateId) => {
-        let name = "";
-        patchCandidate(candidateId, (c) => {
-          name = c.name;
-          return {
-            ...c,
-            rejected: true,
-            timeline: [
-              { id: uid(), label: "Reprovado com feedback enviado", at: now() },
-              ...c.timeline,
-            ],
-          };
-        });
+        const before = state.candidates.find((c) => c.id === candidateId);
+        const name = before?.name ?? "Candidato";
+        patchCandidate(candidateId, (c) => ({
+          ...c,
+          rejected: true,
+          timeline: [
+            { id: uid(), label: "Reprovado com feedback enviado", at: now() },
+            ...c.timeline,
+          ],
+        }));
         log("Feedback enviado", `${name} recebeu retorno de reprovação.`);
-        const stage = state.candidates.find((c) => c.id === candidateId)?.stage;
         notify(
           "reprovado",
           `${name} foi reprovada(o)`,
-          `Feedback enviado${stage ? ` na etapa ${stage}` : ""}.`,
+          `Feedback enviado${before ? ` na etapa ${before.stage}` : ""}.`,
         );
       },
       restore: (candidateId) =>
