@@ -89,7 +89,7 @@ export function CentralVagas({
                     </p>
                     <p className="truncate text-[11px] text-ink-soft">{job.segment}</p>
                   </div>
-                </div>
+                </button>
                 <p className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-ink">
                   <Star className="h-3.5 w-3.5 fill-accent text-accent" />
                   {job.rating.toFixed(1)} · {count} {count === 1 ? "vaga aberta" : "vagas abertas"}
