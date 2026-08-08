@@ -1,13 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { Hero } from "@/components/site/Hero";
-import {
-  Vagas,
-  Empresas,
-  Processo,
-  Empregadores,
-  SiteFooter,
-} from "@/components/site/Sections";
+import { SiteFooter } from "@/components/site/SiteFooter";
+import { Vagas, Empresas, Processo, Empregadores } from "@/components/site/Sections";
 
 const title = "Candidatu | Vagas com salário e etapas à vista";
 const description =
