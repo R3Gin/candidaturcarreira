@@ -93,7 +93,21 @@ export type CompanyProfile = {
   rating: number;
   recommend: number;
   benefits: string[];
+  /* Página pública da empresa */
+  founded: string;
+  history: string;
+  milestones: string[];
+  cultureText: string;
+  values: string[];
+  workModel: string;
+  benefitsDetail: string;
+  hrContact: string;
+  hrEmail: string;
+  responseTime: string;
+  processSteps: string[];
+  diversity: string;
 };
+
 
 export type ActivityLog = { id: string; title: string; detail: string; at: string };
 
