@@ -13,18 +13,54 @@ import {
   X,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { useAppStore } from "./store";
 
-const menu = [
-  { label: "Minha conta", icon: UserRound, badge: null },
-  { label: "Meu currículo", icon: FileText, badge: "Revisar" },
-  { label: "Minhas candidaturas", icon: LayoutDashboard, badge: null },
-  { label: "Vagas salvas", icon: Bookmark, badge: null },
-  { label: "Empresas que sigo", icon: Building2, badge: null },
-  { label: "Preferências de vagas", icon: Settings, badge: "Revisar" },
+export type View =
+  | "central"
+  | "conta"
+  | "curriculo"
+  | "candidaturas"
+  | "salvas"
+  | "empresas"
+  | "preferencias";
+
+const menu: { label: string; icon: typeof UserRound; view: View; badge?: string }[] = [
+  { label: "Minha conta", icon: UserRound, view: "conta" },
+  { label: "Meu currículo", icon: FileText, view: "curriculo", badge: "Revisar" },
+  { label: "Minhas candidaturas", icon: LayoutDashboard, view: "candidaturas" },
+  { label: "Vagas salvas", icon: Bookmark, view: "salvas" },
+  { label: "Empresas que sigo", icon: Building2, view: "empresas" },
+  { label: "Preferências de vagas", icon: Settings, view: "preferencias", badge: "Revisar" },
 ];
 
-export function AppShell({ children }: { children: ReactNode }) {
+export function AppShell({
+  children,
+  view,
+  onNavigate,
+  onSignOut,
+}: {
+  children: ReactNode;
+  view: View;
+  onNavigate: (v: View) => void;
+  onSignOut: () => void;
+}) {
   const [openAccount, setOpenAccount] = useState(false);
+  const { account, savedJobs, preferences } = useAppStore();
+
+  const initials = account.name
+    .split(" ")
+    .slice(0, 2)
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase();
+  const firstName = account.name.split(" ")[0];
+  const completion = 55 + (savedJobs.length > 0 ? 10 : 0) + (preferences ? 20 : 0);
+
+  const go = (v: View) => {
+    onNavigate(v);
+    setOpenAccount(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <div className="min-h-screen bg-sand">
@@ -40,32 +76,52 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Link>
 
           <nav className="ml-6 hidden items-center gap-6 md:flex">
-            <span className="relative text-sm font-semibold text-ink">
+            <button
+              type="button"
+              onClick={() => go("central")}
+              className="relative text-sm font-semibold text-ink"
+            >
               Painel
-              <span className="absolute -bottom-[22px] left-0 h-[3px] w-full rounded-full bg-accent" />
-            </span>
-            <Link to="/" className="text-sm font-medium text-ink-soft hover:text-accent">
-              Vagas
-            </Link>
-            <Link to="/" className="text-sm font-medium text-ink-soft hover:text-accent">
+              {view === "central" && (
+                <span className="absolute -bottom-[22px] left-0 h-[3px] w-full rounded-full bg-accent" />
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => go("salvas")}
+              className="text-sm font-medium text-ink-soft hover:text-accent"
+            >
+              Vagas salvas
+            </button>
+            <button
+              type="button"
+              onClick={() => go("empresas")}
+              className="text-sm font-medium text-ink-soft hover:text-accent"
+            >
               Empresas
-            </Link>
-            <Link to="/" className="text-sm font-medium text-ink-soft hover:text-accent">
-              Salários
-            </Link>
+            </button>
+            <button
+              type="button"
+              onClick={() => go("candidaturas")}
+              className="text-sm font-medium text-ink-soft hover:text-accent"
+            >
+              Candidaturas
+            </button>
           </nav>
 
           <div className="ml-auto flex items-center gap-1.5">
             <button
               type="button"
-              aria-label="Buscar"
+              aria-label="Buscar vagas"
+              onClick={() => go("central")}
               className="inline-flex h-10 w-10 items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-secondary"
             >
               <Search className="h-5 w-5" strokeWidth={1.75} />
             </button>
             <button
               type="button"
-              aria-label="Notificações"
+              aria-label="Notificações de vagas compatíveis"
+              onClick={() => go("preferencias")}
               className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-secondary"
             >
               <Bell className="h-5 w-5" strokeWidth={1.75} />
@@ -77,10 +133,14 @@ export function AppShell({ children }: { children: ReactNode }) {
               aria-label="Abrir menu da conta"
               className="ml-1 flex items-center gap-2 rounded-full border border-border bg-card py-1 pl-1 pr-3 text-sm font-semibold text-ink shadow-card"
             >
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-mint font-display text-xs font-bold text-ink">
-                EM
-              </span>
-              <span className="hidden sm:inline">Eduardo</span>
+              {account.photo ? (
+                <img src={account.photo} alt="" className="h-8 w-8 rounded-full object-cover" />
+              ) : (
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-mint font-display text-xs font-bold text-ink">
+                  {initials}
+                </span>
+              )}
+              <span className="hidden sm:inline">{firstName}</span>
             </button>
           </div>
         </div>
@@ -99,12 +159,20 @@ export function AppShell({ children }: { children: ReactNode }) {
           <aside className="relative h-full w-[min(340px,90vw)] overflow-y-auto border-l border-border bg-card p-5">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
-                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-mint font-display text-sm font-bold text-ink">
-                  EM
-                </span>
+                {account.photo ? (
+                  <img src={account.photo} alt="" className="h-12 w-12 rounded-full object-cover" />
+                ) : (
+                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-mint font-display text-sm font-bold text-ink">
+                    {initials}
+                  </span>
+                )}
                 <div>
-                  <p className="font-display text-base font-semibold text-ink">Eduardo Marcelo</p>
-                  <button type="button" className="text-xs font-semibold text-accent">
+                  <p className="font-display text-base font-semibold text-ink">{account.name}</p>
+                  <button
+                    type="button"
+                    onClick={() => go("conta")}
+                    className="text-xs font-semibold text-accent"
+                  >
                     Editar perfil
                   </button>
                 </div>
@@ -121,9 +189,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
             <div className="mt-5 rounded-2xl bg-secondary p-4">
               <p className="eyebrow">Perfil</p>
-              <p className="mt-1 text-sm font-semibold text-ink">72% completo</p>
+              <p className="mt-1 text-sm font-semibold text-ink">{completion}% completo</p>
               <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-background">
-                <div className="h-full w-[72%] rounded-full bg-accent" />
+                <div className="h-full rounded-full bg-accent" style={{ width: `${completion}%` }} />
               </div>
             </div>
 
@@ -132,7 +200,10 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <button
                   key={item.label}
                   type="button"
-                  className="flex w-full items-center gap-3 py-3 text-left text-sm font-medium text-ink transition-colors hover:text-accent"
+                  onClick={() => go(item.view)}
+                  className={`flex w-full items-center gap-3 py-3 text-left text-sm font-medium transition-colors hover:text-accent ${
+                    view === item.view ? "text-accent" : "text-ink"
+                  }`}
                 >
                   <item.icon className="h-4.5 w-4.5 text-ink-soft" strokeWidth={1.75} />
                   {item.label}
@@ -145,6 +216,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               ))}
               <button
                 type="button"
+                onClick={() => go("central")}
                 className="flex w-full items-center gap-3 py-3 text-left text-sm font-medium text-ink transition-colors hover:text-accent"
               >
                 <Sparkles className="h-4.5 w-4.5 text-ink-soft" strokeWidth={1.75} />
@@ -152,7 +224,11 @@ export function AppShell({ children }: { children: ReactNode }) {
               </button>
               <button
                 type="button"
-                className="flex w-full items-center gap-3 py-3 text-left text-sm font-semibold text-ink-soft"
+                onClick={() => {
+                  setOpenAccount(false);
+                  onSignOut();
+                }}
+                className="flex w-full items-center gap-3 py-3 text-left text-sm font-semibold text-ink-soft hover:text-accent"
               >
                 <LogOut className="h-4.5 w-4.5" strokeWidth={1.75} />
                 Sair
