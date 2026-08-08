@@ -186,7 +186,7 @@ function makeCandidate(
     score,
     stage,
     appliedAt,
-    avatarTone: tones[i % tones.length],
+    avatarTone: tones[i % tones.length] ?? "bg-brand",
     favorite: score >= 90,
     notes: [],
     timeline: [{ id: uid(), label: "Candidatura recebida", at: appliedAt }],
@@ -329,7 +329,7 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
         const c = state.candidates.find((x) => x.id === candidateId);
         if (!c) return;
         const idx = stages.indexOf(c.stage);
-        const next = stages[Math.min(idx + 1, stages.length - 1)];
+        const next = stages[Math.min(idx + 1, stages.length - 1)] ?? c.stage;
         moveStage(candidateId, next);
       },
       reject: (candidateId) => {
