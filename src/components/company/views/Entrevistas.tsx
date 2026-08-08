@@ -2,7 +2,8 @@ import { CalendarDays, Trash2, Video } from "lucide-react";
 import { initials, useCompanyStore } from "../store";
 
 export function Entrevistas() {
-  const { interviews, candidates, vacancies, cancelInterview } = useCompanyStore();
+  const { interviews, candidates, vacancies, cancelInterview, can } = useCompanyStore();
+  const canManage = can("agendar_entrevista");
   const sorted = [...interviews].sort((a, b) =>
     `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`),
   );
