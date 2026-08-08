@@ -413,7 +413,11 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
       const raw = localStorage.getItem(KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as Partial<Persisted>;
-        setState((s) => ({ ...s, ...parsed }));
+        setState((s) => ({
+          ...s,
+          ...parsed,
+          profile: { ...defaultProfile, ...(parsed.profile ?? {}) },
+        }));
       }
     } catch {
       /* ignore */
