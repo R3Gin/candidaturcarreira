@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { ArrowRight, Building2, Clock, Star } from "lucide-react";
 import { Reveal } from "./Reveal";
 
