@@ -86,13 +86,16 @@ export function CompanyShell({
 
           <div className="flex items-center gap-2 sm:ml-3">
             <div className="hidden text-right sm:block">
-              <p className="text-sm font-semibold leading-tight text-ink">{profile.name}</p>
-              <p className="text-[11px] text-ink-soft">Painel do recrutador</p>
+              <p className="text-sm font-semibold leading-tight text-ink">{currentMember.name}</p>
+              <p className="text-[11px] text-ink-soft">
+                {profile.name} · {currentMember.role}
+              </p>
             </div>
             <span className="brand-gradient inline-flex h-9 w-9 items-center justify-center rounded-full font-display text-xs font-bold text-primary-foreground">
-              {profile.name.slice(0, 2).toUpperCase()}
+              {currentMember.name.slice(0, 2).toUpperCase()}
             </span>
           </div>
+
         </div>
       </header>
 
