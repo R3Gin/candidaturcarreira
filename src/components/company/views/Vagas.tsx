@@ -248,7 +248,7 @@ export function Vagas({ onOpenPipeline }: { onOpenPipeline: () => void }) {
                   >
                     <Users className="h-4 w-4" /> {applicants.length} candidaturas
                   </button>
-                  <div className="flex gap-2">
+                  <div className={`flex gap-2 ${manage ? "" : "hidden"}`}>
                     {v.status === "Publicada" ? (
                       <button
                         type="button"
