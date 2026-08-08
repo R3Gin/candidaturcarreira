@@ -4,7 +4,8 @@ import { CandidateDrawer } from "../CandidateDrawer";
 import { brl, initials, stages, useCompanyStore, type Candidate, type Stage } from "../store";
 
 export function Pipeline() {
-  const { candidates, vacancies, moveStage } = useCompanyStore();
+  const { candidates, vacancies, moveStage, can } = useCompanyStore();
+  const canMove = can("mover_candidato");
   const [vacancyId, setVacancyId] = useState("todas");
   const [showRejected, setShowRejected] = useState(false);
   const [selected, setSelected] = useState<Candidate | null>(null);
