@@ -109,7 +109,6 @@ export function CandidateDrawer({
                 type="button"
                 onClick={() => {
                   advance(candidate.id);
-                  toast.success("Candidato avançou de etapa");
                 }}
                 className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground"
               >
@@ -219,7 +218,6 @@ export function CandidateDrawer({
                   interviewer: "Você",
                   link: `meet.candidatu.com/${candidate.id}-${time.replace(":", "")}`,
                 });
-                toast.success("Entrevista agendada e convite enviado");
               }}
               className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground"
             >
