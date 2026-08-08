@@ -4,7 +4,8 @@ import { toast } from "sonner";
 import { useCompanyStore } from "../store";
 
 export function Marca() {
-  const { profile, updateProfile, logs } = useCompanyStore();
+  const { profile, updateProfile, logs, can } = useCompanyStore();
+  const canEdit = can("editar_marca");
   const [form, setForm] = useState(profile);
 
   const reviews = [
@@ -91,16 +92,22 @@ export function Marca() {
               />
             </label>
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              updateProfile(form);
-              toast.success("Perfil da empresa atualizado");
-            }}
-            className="mt-4 rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-primary-foreground"
-          >
-            Salvar alterações
-          </button>
+          {canEdit ? (
+            <button
+              type="button"
+              onClick={() => {
+                updateProfile(form);
+                toast.success("Perfil da empresa atualizado");
+              }}
+              className="mt-4 rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-primary-foreground"
+            >
+              Salvar alterações
+            </button>
+          ) : (
+            <p className="mt-4 text-xs font-semibold text-ink-soft">
+              Somente administradores e RH podem editar a marca empregadora.
+            </p>
+          )}
         </section>
 
         <div className="space-y-4">

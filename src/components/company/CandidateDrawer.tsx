@@ -20,7 +20,11 @@ export function CandidateDrawer({
     addNote,
     setScorecard,
     scheduleInterview,
+    can,
   } = useCompanyStore();
+  const canMove = can("mover_candidato");
+  const canReject = can("reprovar_candidato");
+  const canSchedule = can("agendar_entrevista");
   const vacancy = vacancies.find((v) => v.id === candidate.vacancyId);
   const [note, setNote] = useState("");
   const [card, setCard] = useState(
@@ -87,8 +91,9 @@ export function CandidateDrawer({
               <button
                 key={s}
                 type="button"
+                disabled={!canMove}
                 onClick={() => moveStage(candidate.id, s)}
-                className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${
+                className={`rounded-full border px-3 py-1.5 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50 ${
                   candidate.stage === s
                     ? "border-brand bg-brand text-primary-foreground"
                     : "border-border text-ink-soft hover:border-brand-cyan hover:text-brand"
@@ -99,38 +104,47 @@ export function CandidateDrawer({
             ))}
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                advance(candidate.id);
-                toast.success("Candidato avançou de etapa");
-              }}
-              className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground"
-            >
-              <CheckCircle2 className="h-4 w-4" /> Avançar etapa
-            </button>
-            {candidate.rejected ? (
-              <button
-                type="button"
-                onClick={() => restore(candidate.id)}
-                className="rounded-full border border-border px-4 py-2 text-sm font-semibold text-ink-soft"
-              >
-                Reativar no processo
-              </button>
-            ) : (
+            {canMove && (
               <button
                 type="button"
                 onClick={() => {
-                  reject(candidate.id);
-                  toast("Feedback de reprovação enviado");
+                  advance(candidate.id);
+                  toast.success("Candidato avançou de etapa");
                 }}
-                className="inline-flex items-center gap-2 rounded-full border border-destructive/40 px-4 py-2 text-sm font-semibold text-destructive"
+                className="inline-flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground"
               >
-                <ThumbsDown className="h-4 w-4" /> Reprovar com feedback
+                <CheckCircle2 className="h-4 w-4" /> Avançar etapa
               </button>
+            )}
+            {canReject &&
+              (candidate.rejected ? (
+                <button
+                  type="button"
+                  onClick={() => restore(candidate.id)}
+                  className="rounded-full border border-border px-4 py-2 text-sm font-semibold text-ink-soft"
+                >
+                  Reativar no processo
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    reject(candidate.id);
+                    toast("Feedback de reprovação enviado");
+                  }}
+                  className="inline-flex items-center gap-2 rounded-full border border-destructive/40 px-4 py-2 text-sm font-semibold text-destructive"
+                >
+                  <ThumbsDown className="h-4 w-4" /> Reprovar com feedback
+                </button>
+              ))}
+            {!canMove && !canReject && (
+              <p className="text-xs font-semibold text-ink-soft">
+                Seu cargo permite apenas visualizar e comentar este processo.
+              </p>
             )}
           </div>
         </section>
+
 
         <section className="mt-6 rounded-2xl border border-border p-4">
           <h3 className="text-xs font-bold uppercase tracking-wide text-ink-soft">
@@ -172,7 +186,7 @@ export function CandidateDrawer({
           </button>
         </section>
 
-        <section className="mt-6 rounded-2xl border border-border p-4">
+        <section className={`mt-6 rounded-2xl border border-border p-4 ${canSchedule ? "" : "hidden"}`}>
           <h3 className="text-xs font-bold uppercase tracking-wide text-ink-soft">
             Agendar entrevista
           </h3>

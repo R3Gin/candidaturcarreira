@@ -4,7 +4,8 @@ import { CandidateDrawer } from "../CandidateDrawer";
 import { brl, initials, stages, useCompanyStore, type Candidate, type Stage } from "../store";
 
 export function Pipeline() {
-  const { candidates, vacancies, moveStage } = useCompanyStore();
+  const { candidates, vacancies, moveStage, can } = useCompanyStore();
+  const canMove = can("mover_candidato");
   const [vacancyId, setVacancyId] = useState("todas");
   const [showRejected, setShowRejected] = useState(false);
   const [selected, setSelected] = useState<Candidate | null>(null);
@@ -17,7 +18,7 @@ export function Pipeline() {
   const current = selected ? candidates.find((c) => c.id === selected.id) ?? null : null;
 
   const drop = (stage: Stage) => {
-    if (dragging) moveStage(dragging, stage);
+    if (dragging && canMove) moveStage(dragging, stage);
     setDragging(null);
   };
 
@@ -27,12 +28,15 @@ export function Pipeline() {
         <div>
           <p className="eyebrow">Pipeline de seleção</p>
           <h1 className="mt-2 font-display text-2xl font-bold text-ink sm:text-3xl">
-            Arraste as pessoas entre as etapas
+            {canMove ? "Arraste as pessoas entre as etapas" : "Acompanhe as pessoas no processo"}
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-ink-soft">
-            {list.length} pessoas no quadro. Clique em um cartão para abrir o perfil completo,
-            avaliar com scorecard, agendar entrevista ou enviar feedback.
+            {list.length} pessoas no quadro.{" "}
+            {canMove
+              ? "Clique em um cartão para abrir o perfil completo, avaliar com scorecard, agendar entrevista ou enviar feedback."
+              : "Seu cargo tem acesso de leitura: você pode abrir perfis, mas não mover etapas."}
           </p>
+
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <select
@@ -80,7 +84,7 @@ export function Pipeline() {
                     <li key={c.id}>
                       <button
                         type="button"
-                        draggable
+                        draggable={canMove}
                         onDragStart={() => setDragging(c.id)}
                         onClick={() => setSelected(c)}
                         className={`w-full rounded-xl border border-border bg-card p-3 text-left shadow-card transition-transform hover:-translate-y-0.5 ${

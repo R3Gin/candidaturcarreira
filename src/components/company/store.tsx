@@ -84,6 +84,114 @@ export type CompanyProfile = {
 
 export type ActivityLog = { id: string; title: string; detail: string; at: string };
 
+export const roles = ["Administrador", "RH", "Recrutador", "Gestor", "Observador"] as const;
+export type Role = (typeof roles)[number];
+
+export const permissions = [
+  "ver_visao",
+  "ver_pipeline",
+  "ver_vagas",
+  "ver_banco",
+  "ver_entrevistas",
+  "ver_marca",
+  "ver_equipe",
+  "mover_candidato",
+  "reprovar_candidato",
+  "gerenciar_vagas",
+  "agendar_entrevista",
+  "editar_marca",
+  "gerenciar_equipe",
+] as const;
+export type Permission = (typeof permissions)[number];
+
+export const rolePermissions: Record<Role, Permission[]> = {
+  Administrador: [...permissions],
+  RH: [
+    "ver_visao",
+    "ver_pipeline",
+    "ver_vagas",
+    "ver_banco",
+    "ver_entrevistas",
+    "ver_marca",
+    "ver_equipe",
+    "mover_candidato",
+    "reprovar_candidato",
+    "gerenciar_vagas",
+    "agendar_entrevista",
+    "editar_marca",
+  ],
+  Recrutador: [
+    "ver_visao",
+    "ver_pipeline",
+    "ver_vagas",
+    "ver_banco",
+    "ver_entrevistas",
+    "mover_candidato",
+    "agendar_entrevista",
+  ],
+  Gestor: [
+    "ver_visao",
+    "ver_pipeline",
+    "ver_entrevistas",
+    "ver_vagas",
+    "mover_candidato",
+    "reprovar_candidato",
+  ],
+  Observador: ["ver_visao", "ver_vagas", "ver_entrevistas"],
+};
+
+export const roleDescription: Record<Role, string> = {
+  Administrador: "Acesso total, incluindo equipe, permissões e marca empregadora.",
+  RH: "Conduz processos ponta a ponta: pipeline, vagas, entrevistas e marca.",
+  Recrutador: "Trabalha o pipeline, banco de talentos e agenda entrevistas.",
+  Gestor: "Avalia pessoas nas etapas das próprias vagas e dá o parecer final.",
+  Observador: "Somente leitura de indicadores, vagas e agenda.",
+};
+
+export type Member = {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+  status: "Ativo" | "Convite pendente";
+  invitedAt: string;
+};
+
+export const seedMembers: Member[] = [
+  {
+    id: "m1",
+    name: "Fernanda Lopes",
+    email: "fernanda@candidatu.com.br",
+    role: "Administrador",
+    status: "Ativo",
+    invitedAt: "2026-01-12T12:00:00.000Z",
+  },
+  {
+    id: "m2",
+    name: "Rita Menezes",
+    email: "rita@candidatu.com.br",
+    role: "RH",
+    status: "Ativo",
+    invitedAt: "2026-02-02T12:00:00.000Z",
+  },
+  {
+    id: "m3",
+    name: "Diego Ramos",
+    email: "diego@candidatu.com.br",
+    role: "Recrutador",
+    status: "Ativo",
+    invitedAt: "2026-03-18T12:00:00.000Z",
+  },
+  {
+    id: "m4",
+    name: "Marcos Prado",
+    email: "marcos@candidatu.com.br",
+    role: "Gestor",
+    status: "Convite pendente",
+    invitedAt: "2026-07-29T12:00:00.000Z",
+  },
+];
+
 const uid = () => Math.random().toString(36).slice(2, 10);
 const now = () => new Date().toISOString();
 
@@ -232,6 +340,15 @@ type CompanyState = {
   interviews: Interview[];
   profile: CompanyProfile;
   logs: ActivityLog[];
+  members: Member[];
+  currentMemberId: string;
+  currentMember: Member;
+  can: (p: Permission) => boolean;
+  addMember: (m: { name: string; email: string; role: Role }) => void;
+  updateMemberRole: (id: string, role: Role) => void;
+  activateMember: (id: string) => void;
+  removeMember: (id: string) => void;
+  setCurrentMember: (id: string) => void;
   moveStage: (candidateId: string, stage: Stage) => void;
   advance: (candidateId: string) => void;
   reject: (candidateId: string) => void;
@@ -256,6 +373,8 @@ type Persisted = {
   interviews: Interview[];
   profile: CompanyProfile;
   logs: ActivityLog[];
+  members: Member[];
+  currentMemberId: string;
 };
 
 export function CompanyStoreProvider({ children }: { children: ReactNode }) {
@@ -265,6 +384,8 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
     interviews: seedInterviews,
     profile: defaultProfile,
     logs: [],
+    members: seedMembers,
+    currentMemberId: "m1",
   });
   const [hydrated, setHydrated] = useState(false);
 
@@ -322,8 +443,49 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
       log("Etapa atualizada", `${name} foi movida(o) para ${stage}.`);
     };
 
+    const currentMember =
+      state.members.find((m) => m.id === state.currentMemberId) ??
+      state.members[0] ??
+      seedMembers[0]!;
+    const allowed = rolePermissions[currentMember.role] ?? [];
+
     return {
       ...state,
+      currentMember,
+      can: (p) => allowed.includes(p),
+      addMember: ({ name, email, role }) => {
+        setState((s) => ({
+          ...s,
+          members: [
+            ...s.members,
+            { id: uid(), name, email, role, status: "Convite pendente", invitedAt: now() },
+          ],
+        }));
+        log("Convite enviado", `${name} foi convidada(o) como ${role}.`);
+      },
+      updateMemberRole: (id, role) => {
+        setState((s) => ({
+          ...s,
+          members: s.members.map((m) => (m.id === id ? { ...m, role } : m)),
+        }));
+        log("Permissões atualizadas", `Novo cargo aplicado: ${role}.`);
+      },
+      activateMember: (id) =>
+        setState((s) => ({
+          ...s,
+          members: s.members.map((m) => (m.id === id ? { ...m, status: "Ativo" } : m)),
+        })),
+      removeMember: (id) =>
+        setState((s) => {
+          const rest = s.members.filter((m) => m.id !== id);
+          return {
+            ...s,
+            members: rest,
+            currentMemberId:
+              s.currentMemberId === id ? (rest[0]?.id ?? s.currentMemberId) : s.currentMemberId,
+          };
+        }),
+      setCurrentMember: (id) => setState((s) => ({ ...s, currentMemberId: id })),
       moveStage,
       advance: (candidateId) => {
         const c = state.candidates.find((x) => x.id === candidateId);

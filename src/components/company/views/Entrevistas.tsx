@@ -2,7 +2,8 @@ import { CalendarDays, Trash2, Video } from "lucide-react";
 import { initials, useCompanyStore } from "../store";
 
 export function Entrevistas() {
-  const { interviews, candidates, vacancies, cancelInterview } = useCompanyStore();
+  const { interviews, candidates, vacancies, cancelInterview, can } = useCompanyStore();
+  const canManage = can("agendar_entrevista");
   const sorted = [...interviews].sort((a, b) =>
     `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`),
   );
@@ -60,14 +61,16 @@ export function Entrevistas() {
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold text-ink">
                   <Video className="h-3.5 w-3.5" /> {i.link}
                 </span>
-                <button
-                  type="button"
-                  aria-label="Cancelar entrevista"
-                  onClick={() => cancelInterview(i.id)}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full text-destructive hover:bg-destructive/10"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
+                {canManage && (
+                  <button
+                    type="button"
+                    aria-label="Cancelar entrevista"
+                    onClick={() => cancelInterview(i.id)}
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-full text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
               </div>
             </li>
           );
