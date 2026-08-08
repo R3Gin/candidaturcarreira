@@ -340,6 +340,15 @@ type CompanyState = {
   interviews: Interview[];
   profile: CompanyProfile;
   logs: ActivityLog[];
+  members: Member[];
+  currentMemberId: string;
+  currentMember: Member;
+  can: (p: Permission) => boolean;
+  addMember: (m: { name: string; email: string; role: Role }) => void;
+  updateMemberRole: (id: string, role: Role) => void;
+  activateMember: (id: string) => void;
+  removeMember: (id: string) => void;
+  setCurrentMember: (id: string) => void;
   moveStage: (candidateId: string, stage: Stage) => void;
   advance: (candidateId: string) => void;
   reject: (candidateId: string) => void;
@@ -364,6 +373,8 @@ type Persisted = {
   interviews: Interview[];
   profile: CompanyProfile;
   logs: ActivityLog[];
+  members: Member[];
+  currentMemberId: string;
 };
 
 export function CompanyStoreProvider({ children }: { children: ReactNode }) {
@@ -373,6 +384,8 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
     interviews: seedInterviews,
     profile: defaultProfile,
     logs: [],
+    members: seedMembers,
+    currentMemberId: "m1",
   });
   const [hydrated, setHydrated] = useState(false);
 
