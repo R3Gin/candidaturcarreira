@@ -7,21 +7,35 @@ import {
   KanbanSquare,
   LogOut,
   Menu,
+  ShieldCheck,
   Users,
   X,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
-import { useCompanyStore } from "./store";
+import { useCompanyStore, type Permission } from "./store";
 
-export type CompanyView = "visao" | "pipeline" | "vagas" | "banco" | "entrevistas" | "marca";
+export type CompanyView =
+  | "visao"
+  | "pipeline"
+  | "vagas"
+  | "banco"
+  | "entrevistas"
+  | "marca"
+  | "equipe";
 
-const menu: { label: string; icon: typeof Users; view: CompanyView }[] = [
-  { label: "Visão geral", icon: BarChart3, view: "visao" },
-  { label: "Pipeline de seleção", icon: KanbanSquare, view: "pipeline" },
-  { label: "Vagas publicadas", icon: Briefcase, view: "vagas" },
-  { label: "Banco de talentos", icon: Users, view: "banco" },
-  { label: "Agenda de entrevistas", icon: CalendarDays, view: "entrevistas" },
-  { label: "Marca empregadora", icon: Building2, view: "marca" },
+const menu: { label: string; icon: typeof Users; view: CompanyView; permission: Permission }[] = [
+  { label: "Visão geral", icon: BarChart3, view: "visao", permission: "ver_visao" },
+  { label: "Pipeline de seleção", icon: KanbanSquare, view: "pipeline", permission: "ver_pipeline" },
+  { label: "Vagas publicadas", icon: Briefcase, view: "vagas", permission: "ver_vagas" },
+  { label: "Banco de talentos", icon: Users, view: "banco", permission: "ver_banco" },
+  {
+    label: "Agenda de entrevistas",
+    icon: CalendarDays,
+    view: "entrevistas",
+    permission: "ver_entrevistas",
+  },
+  { label: "Marca empregadora", icon: Building2, view: "marca", permission: "ver_marca" },
+  { label: "Equipe e permissões", icon: ShieldCheck, view: "equipe", permission: "ver_equipe" },
 ];
 
 export function CompanyShell({
@@ -33,9 +47,11 @@ export function CompanyShell({
   view: CompanyView;
   onNavigate: (v: CompanyView) => void;
 }) {
-  const { profile, candidates, interviews } = useCompanyStore();
+  const { profile, candidates, interviews, currentMember, can } = useCompanyStore();
   const [open, setOpen] = useState(false);
   const active = candidates.filter((c) => !c.rejected && c.stage !== "Contratado").length;
+  const visible = menu.filter((item) => can(item.permission));
+
 
   return (
     <div className="min-h-screen bg-background">
