@@ -390,6 +390,7 @@ type Persisted = {
   interviews: Interview[];
   profile: CompanyProfile;
   logs: ActivityLog[];
+  notifications: CompanyNotification[];
   members: Member[];
   currentMemberId: string;
 };
@@ -401,6 +402,7 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
     interviews: seedInterviews,
     profile: defaultProfile,
     logs: [],
+    notifications: [],
     members: seedMembers,
     currentMemberId: "m1",
   });
