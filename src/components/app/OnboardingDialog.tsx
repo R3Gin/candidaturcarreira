@@ -231,7 +231,7 @@ function PrimaryButton({
 }: {
   children: React.ReactNode;
   onClick: () => void;
-  disabled?: boolean;
+  disabled?: boolean | undefined;
 }) {
   return (
     <button
@@ -254,7 +254,7 @@ function Nav({
   onPrev: () => void;
   onNext: () => void;
   nextLabel?: string;
-  disabled?: boolean;
+  disabled?: boolean | undefined;
 }) {
   return (
     <div className="mt-8 flex items-center justify-center gap-6">
@@ -278,8 +278,8 @@ function Field({
   label: string;
   value: string;
   onChange: (v: string) => void;
-  placeholder?: string;
-  autoFocus?: boolean;
+  placeholder?: string | undefined;
+  autoFocus?: boolean | undefined;
 }) {
   return (
     <label className="block">
