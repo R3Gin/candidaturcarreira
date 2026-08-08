@@ -38,17 +38,44 @@ function EmpresaPage() {
   );
 }
 
+const viewPermission: Record<CompanyView, Permission> = {
+  visao: "ver_visao",
+  pipeline: "ver_pipeline",
+  vagas: "ver_vagas",
+  banco: "ver_banco",
+  entrevistas: "ver_entrevistas",
+  marca: "ver_marca",
+  equipe: "ver_equipe",
+};
+
 function EmpresaDashboard() {
+  const { can } = useCompanyStore();
   const [view, setView] = useState<CompanyView>("visao");
+  const allowed = can(viewPermission[view]);
+
+  useEffect(() => {
+    if (allowed) return;
+    const fallback = (Object.keys(viewPermission) as CompanyView[]).find((v) =>
+      can(viewPermission[v]),
+    );
+    if (fallback) setView(fallback);
+  }, [allowed, can]);
 
   return (
     <CompanyShell view={view} onNavigate={setView}>
-      {view === "visao" && <Visao onNavigate={setView} />}
-      {view === "pipeline" && <Pipeline />}
-      {view === "vagas" && <Vagas onOpenPipeline={() => setView("pipeline")} />}
-      {view === "banco" && <Banco />}
-      {view === "entrevistas" && <Entrevistas />}
-      {view === "marca" && <Marca />}
+      {!allowed && (
+        <div className="rounded-2xl border border-dashed border-border p-10 text-center text-sm text-ink-soft">
+          Seu cargo não tem acesso a esta área.
+        </div>
+      )}
+      {allowed && view === "visao" && <Visao onNavigate={setView} />}
+      {allowed && view === "pipeline" && <Pipeline />}
+      {allowed && view === "vagas" && <Vagas onOpenPipeline={() => setView("pipeline")} />}
+      {allowed && view === "banco" && <Banco />}
+      {allowed && view === "entrevistas" && <Entrevistas />}
+      {allowed && view === "marca" && <Marca />}
+      {allowed && view === "equipe" && <Equipe />}
     </CompanyShell>
   );
+
 }
