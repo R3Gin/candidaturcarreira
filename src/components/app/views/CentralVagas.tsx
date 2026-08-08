@@ -118,13 +118,10 @@ export function CentralVagas({
                   </button>
                   <button
                     type="button"
-                    onClick={() => {
-                      setFilters({ ...filters, mode: "vagas", query: job.company });
-                      setSelectedId(job.id);
-                    }}
+                    onClick={() => onOpenJob(job.id)}
                     className="text-xs font-semibold text-accent"
                   >
-                    Ver vagas
+                    Ver empresa e vagas
                   </button>
                 </div>
               </li>
