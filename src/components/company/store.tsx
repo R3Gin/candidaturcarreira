@@ -437,6 +437,24 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const notify = useCallback(
+    (kind: NotificationKind, title: string, detail: string) => {
+      setState((s) => ({
+        ...s,
+        notifications: [
+          { id: uid(), kind, title, detail, at: now(), read: false },
+          ...s.notifications,
+        ].slice(0, 40),
+      }));
+      if (kind === "reprovado") toast.error(title, { description: detail });
+      else if (kind === "aprovado") toast.success(title, { description: detail });
+      else toast(title, { description: detail });
+    },
+    [],
+  );
+
+
+
   const patchCandidate = useCallback(
     (id: string, fn: (c: Candidate) => Candidate) => {
       setState((s) => ({
