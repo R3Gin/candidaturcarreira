@@ -106,7 +106,7 @@ export function CompanyShell({
           } fixed inset-x-4 top-20 z-30 rounded-2xl border border-border bg-card p-3 shadow-lift lg:static lg:block lg:w-64 lg:shrink-0 lg:self-start lg:bg-transparent lg:p-0 lg:shadow-none`}
         >
           <nav className="space-y-1 lg:rounded-2xl lg:border lg:border-border lg:bg-card lg:p-3 lg:shadow-card">
-            {menu.map((item) => {
+            {visible.map((item) => {
               const isActive = view === item.view;
               return (
                 <button
