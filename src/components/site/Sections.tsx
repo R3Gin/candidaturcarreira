@@ -1,4 +1,5 @@
 import { ArrowRight, Building2, Clock, Star } from "lucide-react";
+import { Reveal } from "./Reveal";
 
 const vagas = [
   {
@@ -63,10 +64,12 @@ export function Vagas() {
       </div>
 
       <ul className="mt-10 grid gap-4 md:grid-cols-2">
-        {vagas.map((vaga) => (
-          <li
+        {vagas.map((vaga, i) => (
+          <Reveal
+            as="li"
             key={vaga.cargo}
-            className="surface-card rounded-2xl p-5 transition-shadow hover:shadow-lift"
+            delay={i * 90}
+            className="surface-card rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lift"
           >
             <div className="flex items-start gap-3">
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary">
@@ -108,7 +111,7 @@ export function Vagas() {
                 {vaga.etapas} etapas
               </span>
             </div>
-          </li>
+          </Reveal>
         ))}
       </ul>
     </section>
@@ -131,10 +134,12 @@ export function Empresas() {
         </h2>
 
         <div className="mt-10 grid gap-4 md:grid-cols-3">
-          {empresas.map((empresa) => (
-            <article
+          {empresas.map((empresa, i) => (
+            <Reveal
+              as="article"
               key={empresa.nome}
-              className="rounded-2xl border border-primary-foreground/12 bg-primary-foreground/[0.06] p-5"
+              delay={i * 110}
+              className="rounded-2xl border border-primary-foreground/12 bg-primary-foreground/[0.06] p-5 transition-transform duration-300 hover:-translate-y-1"
             >
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">{empresa.nome}</h3>
@@ -152,11 +157,11 @@ export function Empresas() {
               </p>
               <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-primary-foreground/15">
                 <span
-                  className="block h-full rounded-full bg-accent"
+                  className="animate-grow block h-full rounded-full bg-brand-cyan"
                   style={{ width: `${empresa.recomenda}%` }}
                 />
               </div>
-            </article>
+            </Reveal>
           ))}
         </div>
       </div>
@@ -192,13 +197,18 @@ export function Processo() {
 
       <ol className="mt-10 grid gap-6 md:grid-cols-3">
         {etapas.map((etapa, i) => (
-          <li key={etapa.titulo} className="border-t-2 border-accent pt-5">
+          <Reveal
+            as="li"
+            key={etapa.titulo}
+            delay={i * 120}
+            className="border-t-2 border-accent pt-5"
+          >
             <span className="font-display text-sm font-bold text-accent">
               {String(i + 1).padStart(2, "0")}
             </span>
             <h3 className="mt-2 text-lg font-semibold">{etapa.titulo}</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{etapa.texto}</p>
-          </li>
+          </Reveal>
         ))}
       </ol>
     </section>
@@ -220,7 +230,7 @@ export function Empregadores() {
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <a
             href="#empregadores"
-            className="inline-flex items-center rounded-full bg-accent px-6 py-3 text-sm font-semibold text-accent-foreground transition-transform active:scale-[0.96]"
+            className="inline-flex items-center rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-card transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.96]"
           >
             Publicar uma vaga
           </a>
@@ -233,32 +243,5 @@ export function Empregadores() {
         </div>
       </div>
     </section>
-  );
-}
-
-export function SiteFooter() {
-  return (
-    <footer className="border-t border-border bg-sand">
-      <div className="mx-auto flex max-w-6xl flex-col gap-4 px-5 py-10 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
-        <p className="font-display font-semibold text-ink">
-          Candidatu<span className="text-accent">.</span>
-        </p>
-        <nav className="flex flex-wrap gap-x-6 gap-y-2">
-          <a href="#vagas" className="hover:text-accent">
-            Vagas
-          </a>
-          <a href="#empresas" className="hover:text-accent">
-            Avaliações
-          </a>
-          <a href="#empregadores" className="hover:text-accent">
-            Empregadores
-          </a>
-          <a href="#processo" className="hover:text-accent">
-            Privacidade
-          </a>
-        </nav>
-        <p>© {new Date().getFullYear()} Candidatu</p>
-      </div>
-    </footer>
   );
 }
