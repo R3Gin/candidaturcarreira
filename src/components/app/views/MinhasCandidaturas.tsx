@@ -1,20 +1,22 @@
 import { useMemo, useState } from "react";
 import { BadgeCheck, Building2, Clock, MapPin, Star, TrendingUp } from "lucide-react";
-import { applications, stageNames } from "../store";
+import { stageNames, useAppStore } from "../store";
 import { Chip, EmptyState, PageHead } from "./ui";
 
 const filters = ["Todas", "Deram procedência", "Aguardando", "Finalizadas"] as const;
 
 export function MinhasCandidaturas({ onGoToJobs }: { onGoToJobs: () => void }) {
+  const { applications, advance, withdraw } = useAppStore();
   const [filter, setFilter] = useState<(typeof filters)[number]>("Todas");
-  const [openId, setOpenId] = useState<string | null>(applications[0]?.id ?? null);
+  const [openId, setOpenId] = useState<string | null>(null);
 
   const list = useMemo(() => {
-    if (filter === "Deram procedência") return applications.filter((a) => a.stage >= 2 && a.stage < 4);
+    if (filter === "Deram procedência")
+      return applications.filter((a) => a.stage >= 2 && a.stage < 4);
     if (filter === "Aguardando") return applications.filter((a) => a.stage < 2);
     if (filter === "Finalizadas") return applications.filter((a) => a.stage >= 4);
     return applications;
-  }, [filter]);
+  }, [filter, applications]);
 
   const advanced = applications.filter((a) => a.stage >= 2).length;
 
@@ -27,9 +29,17 @@ export function MinhasCandidaturas({ onGoToJobs }: { onGoToJobs: () => void }) {
       />
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <Metric label="Candidaturas ativas" value={String(applications.filter((a) => a.stage < 4).length)} hint="em processos abertos" />
+        <Metric
+          label="Candidaturas ativas"
+          value={String(applications.filter((a) => a.stage < 4).length)}
+          hint="em processos abertos"
+        />
         <Metric label="Avançaram de etapa" value={String(advanced)} hint="empresas deram procedência" />
-        <Metric label="Taxa de avanço" value={`${Math.round((advanced / applications.length) * 100)}%`} hint="dos seus envios" />
+        <Metric
+          label="Taxa de avanço"
+          value={applications.length ? `${Math.round((advanced / applications.length) * 100)}%` : "0%"}
+          hint="dos seus envios"
+        />
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -41,7 +51,7 @@ export function MinhasCandidaturas({ onGoToJobs }: { onGoToJobs: () => void }) {
       {list.length === 0 ? (
         <EmptyState
           title="Nenhuma candidatura neste filtro"
-          description="Assim que uma empresa mover seu perfil de etapa, ela aparece aqui com o motivo do retorno."
+          description="Use a candidatura rápida na central de vagas: cada envio aparece aqui com etapa e retorno da empresa."
           actionLabel="Buscar oportunidades"
           onAction={onGoToJobs}
         />
@@ -50,7 +60,10 @@ export function MinhasCandidaturas({ onGoToJobs }: { onGoToJobs: () => void }) {
           {list.map((a) => {
             const open = openId === a.id;
             return (
-              <article key={a.id} className="rounded-2xl border border-border bg-card p-5 shadow-card">
+              <article
+                key={a.id}
+                className="rounded-2xl border border-border bg-card p-5 shadow-card"
+              >
                 <div className="flex flex-wrap items-start gap-3">
                   <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary font-display text-sm font-bold text-ink">
                     {a.company.slice(0, 2).toUpperCase()}
@@ -84,7 +97,9 @@ export function MinhasCandidaturas({ onGoToJobs }: { onGoToJobs: () => void }) {
                 <div className="mt-4 grid gap-1.5 sm:grid-cols-5">
                   {stageNames.map((s, i) => (
                     <div key={s}>
-                      <div className={`h-1.5 rounded-full ${i <= a.stage ? "bg-accent" : "bg-secondary"}`} />
+                      <div
+                        className={`h-1.5 rounded-full ${i <= a.stage ? "bg-accent" : "bg-secondary"}`}
+                      />
                       <p
                         className={`mt-1.5 text-[11px] font-semibold ${
                           i <= a.stage ? "text-ink" : "text-muted-foreground"
@@ -101,13 +116,31 @@ export function MinhasCandidaturas({ onGoToJobs }: { onGoToJobs: () => void }) {
                     <Clock className="h-3.5 w-3.5" strokeWidth={1.75} />
                     {a.updated}
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => setOpenId(open ? null : a.id)}
-                    className="text-xs font-semibold text-accent"
-                  >
-                    {open ? "Ocultar processo" : "Ver processo"}
-                  </button>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setOpenId(open ? null : a.id)}
+                      className="text-xs font-semibold text-accent"
+                    >
+                      {open ? "Ocultar processo" : "Ver processo"}
+                    </button>
+                    {a.stage < stageNames.length - 1 && (
+                      <button
+                        type="button"
+                        onClick={() => advance(a.id)}
+                        className="text-xs font-semibold text-ink-soft hover:text-accent"
+                      >
+                        Registrar avanço
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => withdraw(a.id)}
+                      className="text-xs font-semibold text-ink-soft hover:text-destructive"
+                    >
+                      Desistir
+                    </button>
+                  </div>
                 </div>
 
                 {open && (
