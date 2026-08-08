@@ -55,10 +55,18 @@ function Painel() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const goToApplications = () => {
+    setView("candidaturas");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <AppShell view={view} onNavigate={setView} onSignOut={signOut}>
-      <main className="mx-auto max-w-4xl px-5 pb-20 pt-8">
-        {view === "central" && <CentralVagas />}
+      <main
+        className={`mx-auto px-5 pb-20 pt-8 ${view === "central" ? "max-w-6xl" : "max-w-4xl"}`}
+      >
+        {view === "central" && <CentralVagas onGoToApplications={goToApplications} />}
+
         {view === "conta" && <MinhaConta onSignOut={signOut} />}
         {view === "curriculo" && <MeuCurriculo onGoToJobs={goToJobs} />}
         {view === "candidaturas" && <MinhasCandidaturas onGoToJobs={goToJobs} />}
