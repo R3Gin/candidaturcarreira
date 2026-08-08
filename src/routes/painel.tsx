@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AppShell, type View } from "@/components/app/AppShell";
 import { AppStoreProvider } from "@/components/app/store";
+import { OnboardingDialog, shouldShowOnboarding } from "@/components/app/OnboardingDialog";
 import { CentralVagas } from "@/components/app/views/CentralVagas";
 import { EmpresasQueSigo } from "@/components/app/views/EmpresasQueSigo";
 import { Historico } from "@/components/app/views/Historico";
@@ -42,7 +43,12 @@ function PainelPage() {
 
 function Painel() {
   const [view, setView] = useState<View>("central");
+  const [onboarding, setOnboarding] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (shouldShowOnboarding()) setOnboarding(true);
+  }, []);
 
   const signOut = () => {
     try {
@@ -70,6 +76,19 @@ function Painel() {
 
   return (
     <AppShell view={view} onNavigate={setView} onSignOut={signOut}>
+      {onboarding && (
+        <OnboardingDialog
+          onFinish={() => setOnboarding(false)}
+          onGoToProfile={() => {
+            setOnboarding(false);
+            setView("curriculo");
+          }}
+          onExit={() => {
+            setOnboarding(false);
+            signOut();
+          }}
+        />
+      )}
       <main
         className={`mx-auto px-5 pb-20 pt-8 ${
           view === "central" || view === "curriculo" ? "max-w-6xl" : "max-w-4xl"
