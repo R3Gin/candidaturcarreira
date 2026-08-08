@@ -11,6 +11,7 @@ import {
   Menu,
   MoveRight,
   ShieldCheck,
+  Sparkles,
   Users,
   X,
   XCircle,
