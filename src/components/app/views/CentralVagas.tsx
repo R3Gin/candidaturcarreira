@@ -12,9 +12,11 @@ import {
   Zap,
 } from "lucide-react";
 import { companyFromJob, jobPool, useAppStore, type Job } from "../store";
+import { toast } from "sonner";
 import { Chip } from "./ui";
 
 const models = ["Remoto", "Híbrido", "Presencial"];
+const flowSteps = ["Qualificações", "Dados", "Mensagem", "Revisão"];
 
 export function CentralVagas({ onGoToApplications }: { onGoToApplications: () => void }) {
   const { savedJobs, toggleSaved, followed, toggleFollow, applyToJob, hasApplied } = useAppStore();
@@ -150,7 +152,7 @@ export function CentralVagas({ onGoToApplications }: { onGoToApplications: () =>
             following={followed.some((c) => c.id === companyFromJob(selected).id)}
             onToggleFollow={() => toggleFollow(companyFromJob(selected))}
             applied={hasApplied(selected.id)}
-            onApply={() => applyToJob(selected)}
+            onApply={(extra) => applyToJob(selected, extra)}
             onGoToApplications={onGoToApplications}
           />
         )}
@@ -175,7 +177,7 @@ function JobDetail({
   following: boolean;
   onToggleFollow: () => void;
   applied: boolean;
-  onApply: () => void;
+  onApply: (extra: { letter: string; qualifications: string[] }) => void;
   onGoToApplications: () => void;
 }) {
   const [step, setStep] = useState<number | null>(null);
@@ -238,10 +240,10 @@ function JobDetail({
               Acompanhar processo
             </button>
           </>
-        ) : step === "idle" ? (
+        ) : step === null ? (
           <button
             type="button"
-            onClick={() => (job.quickApply ? setStep("form") : setStep("form"))}
+            onClick={() => setStep(0)}
             className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-transform active:scale-[0.96]"
           >
             {job.quickApply ? <Zap className="h-4 w-4" strokeWidth={2} /> : null}
