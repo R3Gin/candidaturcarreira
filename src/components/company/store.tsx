@@ -443,8 +443,49 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
       log("Etapa atualizada", `${name} foi movida(o) para ${stage}.`);
     };
 
+    const currentMember =
+      state.members.find((m) => m.id === state.currentMemberId) ??
+      state.members[0] ??
+      seedMembers[0]!;
+    const allowed = rolePermissions[currentMember.role] ?? [];
+
     return {
       ...state,
+      currentMember,
+      can: (p) => allowed.includes(p),
+      addMember: ({ name, email, role }) => {
+        setState((s) => ({
+          ...s,
+          members: [
+            ...s.members,
+            { id: uid(), name, email, role, status: "Convite pendente", invitedAt: now() },
+          ],
+        }));
+        log("Convite enviado", `${name} foi convidada(o) como ${role}.`);
+      },
+      updateMemberRole: (id, role) => {
+        setState((s) => ({
+          ...s,
+          members: s.members.map((m) => (m.id === id ? { ...m, role } : m)),
+        }));
+        log("Permissões atualizadas", `Novo cargo aplicado: ${role}.`);
+      },
+      activateMember: (id) =>
+        setState((s) => ({
+          ...s,
+          members: s.members.map((m) => (m.id === id ? { ...m, status: "Ativo" } : m)),
+        })),
+      removeMember: (id) =>
+        setState((s) => {
+          const rest = s.members.filter((m) => m.id !== id);
+          return {
+            ...s,
+            members: rest,
+            currentMemberId:
+              s.currentMemberId === id ? (rest[0]?.id ?? s.currentMemberId) : s.currentMemberId,
+          };
+        }),
+      setCurrentMember: (id) => setState((s) => ({ ...s, currentMemberId: id })),
       moveStage,
       advance: (candidateId) => {
         const c = state.candidates.find((x) => x.id === candidateId);
