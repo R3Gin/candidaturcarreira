@@ -91,16 +91,22 @@ export function Marca() {
               />
             </label>
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              updateProfile(form);
-              toast.success("Perfil da empresa atualizado");
-            }}
-            className="mt-4 rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-primary-foreground"
-          >
-            Salvar alterações
-          </button>
+          {canEdit ? (
+            <button
+              type="button"
+              onClick={() => {
+                updateProfile(form);
+                toast.success("Perfil da empresa atualizado");
+              }}
+              className="mt-4 rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-primary-foreground"
+            >
+              Salvar alterações
+            </button>
+          ) : (
+            <p className="mt-4 text-xs font-semibold text-ink-soft">
+              Somente administradores e RH podem editar a marca empregadora.
+            </p>
+          )}
         </section>
 
         <div className="space-y-4">
