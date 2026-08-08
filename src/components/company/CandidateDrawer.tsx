@@ -186,7 +186,7 @@ export function CandidateDrawer({
           </button>
         </section>
 
-        <section className="mt-6 rounded-2xl border border-border p-4">
+        <section className={`mt-6 rounded-2xl border border-border p-4 ${canSchedule ? "" : "hidden"}`}>
           <h3 className="text-xs font-bold uppercase tracking-wide text-ink-soft">
             Agendar entrevista
           </h3>
