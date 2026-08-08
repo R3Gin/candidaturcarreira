@@ -88,7 +88,14 @@ function NotificationBell() {
                     <div className="min-w-0">
                       <p className="text-sm font-semibold leading-tight text-ink">{n.title}</p>
                       <p className="mt-0.5 text-xs text-ink-soft">{n.detail}</p>
-                      <p className="mt-1 text-[11px] text-ink-soft">{n.at}</p>
+                      <p className="mt-1 text-[11px] text-ink-soft">
+                        {new Date(n.at).toLocaleString("pt-BR", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
                     </div>
                   </li>
                 );
