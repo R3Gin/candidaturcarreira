@@ -12,6 +12,8 @@ import { MinhasCandidaturas } from "@/components/app/views/MinhasCandidaturas";
 import { PreferenciasVagas } from "@/components/app/views/PreferenciasVagas";
 import { Recomendadas } from "@/components/app/views/Recomendadas";
 import { VagasSalvas } from "@/components/app/views/VagasSalvas";
+import { VagaDetalhe } from "@/components/app/views/VagaDetalhe";
+import { jobPool } from "@/components/app/store";
 
 
 const title = "Painel do candidato | Candidatu";
@@ -44,6 +46,7 @@ function PainelPage() {
 function Painel() {
   const [view, setView] = useState<View>("central");
   const [onboarding, setOnboarding] = useState(false);
+  const [openJobId, setOpenJobId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -59,23 +62,40 @@ function Painel() {
     navigate({ to: "/" });
   };
 
+  const openJob = (jobId: string) => {
+    setOpenJobId(jobId);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const goToJobs = () => {
+    setOpenJobId(null);
     setView("central");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const goToApplications = () => {
+    setOpenJobId(null);
     setView("candidaturas");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const goToPreferences = () => {
+    setOpenJobId(null);
     setView("preferencias");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const activeJob = openJobId ? (jobPool.find((j) => j.id === openJobId) ?? null) : null;
+
   return (
-    <AppShell view={view} onNavigate={setView} onSignOut={signOut}>
+    <AppShell
+      view={view}
+      onNavigate={(v) => {
+        setOpenJobId(null);
+        setView(v);
+      }}
+      onSignOut={signOut}
+    >
       {onboarding && (
         <OnboardingDialog
           onFinish={() => setOnboarding(false)}
@@ -91,10 +111,21 @@ function Painel() {
       )}
       <main
         className={`mx-auto px-5 pb-20 pt-8 ${
-          view === "central" || view === "curriculo" ? "max-w-6xl" : "max-w-4xl"
+          activeJob || view === "central" || view === "curriculo" ? "max-w-6xl" : "max-w-4xl"
         }`}
       >
-        {view === "central" && <CentralVagas onGoToApplications={goToApplications} />}
+        {activeJob ? (
+          <VagaDetalhe
+            job={activeJob}
+            onBack={() => setOpenJobId(null)}
+            onOpenJob={openJob}
+            onGoToApplications={goToApplications}
+          />
+        ) : (
+          <>
+            {view === "central" && (
+              <CentralVagas onGoToApplications={goToApplications} onOpenJob={openJob} />
+            )}
 
         {view === "conta" && <MinhaConta onSignOut={signOut} />}
         {view === "curriculo" && <MeuCurriculo onGoToJobs={goToJobs} />}
@@ -105,7 +136,9 @@ function Painel() {
         {view === "salvas" && <VagasSalvas onGoToJobs={goToJobs} />}
         {view === "empresas" && <EmpresasQueSigo onGoToJobs={goToJobs} />}
         {view === "historico" && <Historico onGoToJobs={goToJobs} />}
-        {view === "preferencias" && <PreferenciasVagas onGoToJobs={goToJobs} />}
+            {view === "preferencias" && <PreferenciasVagas onGoToJobs={goToJobs} />}
+          </>
+        )}
       </main>
     </AppShell>
   );
