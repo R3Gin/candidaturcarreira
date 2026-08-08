@@ -22,7 +22,13 @@ import {
 
 const flowSteps = ["Qualificações", "Dados", "Mensagem", "Revisão"];
 
-export function CentralVagas({ onGoToApplications }: { onGoToApplications: () => void }) {
+export function CentralVagas({
+  onGoToApplications,
+  onOpenJob,
+}: {
+  onGoToApplications: () => void;
+  onOpenJob: (jobId: string) => void;
+}) {
   const { savedJobs, toggleSaved, followed, toggleFollow, applyToJob, hasApplied } = useAppStore();
   const [filters, setFilters] = useState<JobFilterState>(emptyFilters);
 
