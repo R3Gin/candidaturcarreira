@@ -178,11 +178,14 @@ function JobDetail({
   onApply: () => void;
   onGoToApplications: () => void;
 }) {
-  const [step, setStep] = useState<"idle" | "form">("idle");
-  const { account } = useAppStore();
+  const [step, setStep] = useState<number | null>(null);
+  const { account, resume } = useAppStore();
   const [answers, setAnswers] = useState<Record<string, boolean>>({});
+  const [letter, setLetter] = useState("");
 
   const allChecked = job.qualifications.every((q) => answers[q]);
+  const checked = job.qualifications.filter((q) => answers[q]);
+
 
   return (
     <article className="max-h-[70vh] overflow-y-auto rounded-2xl border border-border bg-card p-5 shadow-card">
