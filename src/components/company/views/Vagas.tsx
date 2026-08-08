@@ -66,16 +66,22 @@ export function Vagas({ onOpenPipeline }: { onOpenPipeline: () => void }) {
             Toda vaga publicada no Candidatu exige faixa salarial e etapas visíveis.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setOpen((o) => !o)}
-          className="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-accent-foreground"
-        >
-          <Plus className="h-4 w-4" /> {open ? "Fechar formulário" : "Publicar nova vaga"}
-        </button>
+        {manage ? (
+          <button
+            type="button"
+            onClick={() => setOpen((o) => !o)}
+            className="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-accent-foreground"
+          >
+            <Plus className="h-4 w-4" /> {open ? "Fechar formulário" : "Publicar nova vaga"}
+          </button>
+        ) : (
+          <span className="rounded-full bg-secondary px-4 py-2 text-xs font-semibold text-ink-soft">
+            Somente leitura no seu cargo
+          </span>
+        )}
       </header>
 
-      {open && (
+      {open && manage && (
         <section className="rounded-2xl border border-border bg-card p-5 shadow-card">
           <h2 className="font-display text-lg font-semibold text-ink">Nova vaga</h2>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
