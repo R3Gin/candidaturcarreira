@@ -122,6 +122,7 @@ export type CompanyView =
   | "banco"
   | "entrevistas"
   | "marca"
+  | "pagina"
   | "equipe";
 
 const menu: { label: string; icon: typeof Users; view: CompanyView; permission: Permission }[] = [
@@ -136,6 +137,7 @@ const menu: { label: string; icon: typeof Users; view: CompanyView; permission: 
     permission: "ver_entrevistas",
   },
   { label: "Marca empregadora", icon: Building2, view: "marca", permission: "ver_marca" },
+  { label: "Página da empresa", icon: Sparkles, view: "pagina", permission: "ver_marca" },
   { label: "Equipe e permissões", icon: ShieldCheck, view: "equipe", permission: "ver_equipe" },
 ];
 
