@@ -129,7 +129,6 @@ export function CandidateDrawer({
                   type="button"
                   onClick={() => {
                     reject(candidate.id);
-                    toast("Feedback de reprovação enviado");
                   }}
                   className="inline-flex items-center gap-2 rounded-full border border-destructive/40 px-4 py-2 text-sm font-semibold text-destructive"
                 >
