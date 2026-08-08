@@ -144,14 +144,71 @@ export function MinhasCandidaturas({ onGoToJobs }: { onGoToJobs: () => void }) {
                 </div>
 
                 {open && (
-                  <div className="mt-3 space-y-2 rounded-2xl bg-secondary p-4 text-sm text-ink-soft">
+                  <div className="mt-3 space-y-3 rounded-2xl bg-secondary p-4 text-sm text-ink-soft">
                     <p className="inline-flex items-center gap-1.5 font-semibold text-ink">
                       <TrendingUp className="h-4 w-4 text-accent" strokeWidth={2} />
                       {a.feedback}
                     </p>
                     <p>Próximo passo: {a.next}</p>
+
+                    {a.qualifications && a.qualifications.length > 0 && (
+                      <div>
+                        <p className="text-xs font-bold text-ink">Qualificações enviadas</p>
+                        <div className="mt-1 flex flex-wrap gap-1.5">
+                          {a.qualifications.map((q) => (
+                            <span
+                              key={q}
+                              className="rounded-full bg-card px-2.5 py-1 text-[11px] font-semibold text-ink-soft"
+                            >
+                              {q}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {a.letter && (
+                      <div>
+                        <p className="text-xs font-bold text-ink">Sua mensagem à empresa</p>
+                        <p className="mt-1 rounded-xl bg-card p-3 text-xs italic">{a.letter}</p>
+                      </div>
+                    )}
+
+                    <div>
+                      <p className="text-xs font-bold text-ink">Linha do tempo do processo</p>
+                      <ol className="mt-2 space-y-2.5">
+                        {(a.events ?? []).map((ev, i, arr) => (
+                          <li key={ev.id} className="relative flex gap-3 pl-1">
+                            {i < arr.length - 1 && (
+                              <span className="absolute left-[9px] top-5 h-full w-px bg-border" />
+                            )}
+                            <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full bg-accent" />
+                            <span className="min-w-0">
+                              <span className="block text-xs font-semibold text-ink">
+                                {ev.label}
+                              </span>
+                              <span className="block text-[11px]">{ev.note}</span>
+                              <span className="block text-[11px] text-muted-foreground">
+                                {new Date(ev.at).toLocaleString("pt-BR", {
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </span>
+                            </span>
+                          </li>
+                        ))}
+                        {(a.events ?? []).length === 0 && (
+                          <li className="text-[11px] text-muted-foreground">
+                            Sem eventos registrados para esta candidatura.
+                          </li>
+                        )}
+                      </ol>
+                    </div>
                   </div>
                 )}
+
               </article>
             );
           })}

@@ -4,6 +4,7 @@ import {
   Bookmark,
   Building2,
   FileText,
+  History as HistoryIcon,
   LayoutDashboard,
   LogOut,
   Search,
@@ -12,8 +13,10 @@ import {
   UserRound,
   X,
 } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { toast } from "sonner";
 import { useAppStore } from "./store";
+
 
 export type View =
   | "central"
@@ -22,16 +25,21 @@ export type View =
   | "candidaturas"
   | "salvas"
   | "empresas"
-  | "preferencias";
+  | "preferencias"
+  | "recomendadas"
+  | "historico";
 
 const menu: { label: string; icon: typeof UserRound; view: View; badge?: string }[] = [
   { label: "Minha conta", icon: UserRound, view: "conta" },
-  { label: "Meu currículo", icon: FileText, view: "curriculo", badge: "Revisar" },
+  { label: "Meu currículo", icon: FileText, view: "curriculo", badge: "IA" },
   { label: "Minhas candidaturas", icon: LayoutDashboard, view: "candidaturas" },
+  { label: "Recomendadas para você", icon: Sparkles, view: "recomendadas", badge: "Novo" },
   { label: "Vagas salvas", icon: Bookmark, view: "salvas" },
   { label: "Empresas que sigo", icon: Building2, view: "empresas" },
+  { label: "Histórico de ações", icon: HistoryIcon, view: "historico" },
   { label: "Preferências de vagas", icon: Settings, view: "preferencias", badge: "Revisar" },
 ];
+
 
 export function AppShell({
   children,
@@ -45,7 +53,28 @@ export function AppShell({
   onSignOut: () => void;
 }) {
   const [openAccount, setOpenAccount] = useState(false);
-  const { account, savedJobs, preferences } = useAppStore();
+  const [openAlerts, setOpenAlerts] = useState(false);
+  const {
+    account,
+    savedJobs,
+    preferences,
+    alerts,
+    unreadAlerts,
+    markAlertsRead,
+    dismissAlert,
+    resume,
+  } = useAppStore();
+
+  // Alerta em tempo real: avisa em tela assim que uma vaga compatível entra.
+  useEffect(() => {
+    const latest = alerts[0];
+    if (!latest || latest.read) return;
+    toast(latest.title, {
+      description: latest.detail,
+      action: { label: "Ver vagas", onClick: () => go("recomendadas") },
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [alerts[0]?.id]);
 
   const initials = account.name
     .split(" ")
@@ -54,7 +83,9 @@ export function AppShell({
     .join("")
     .toUpperCase();
   const firstName = account.name.split(" ")[0];
-  const completion = 55 + (savedJobs.length > 0 ? 10 : 0) + (preferences ? 20 : 0);
+  const completion =
+    45 + (savedJobs.length > 0 ? 10 : 0) + (preferences ? 20 : 0) + (resume ? 25 : 0);
+
 
   const go = (v: View) => {
     onNavigate(v);
@@ -118,15 +149,92 @@ export function AppShell({
             >
               <Search className="h-5 w-5" strokeWidth={1.75} />
             </button>
-            <button
-              type="button"
-              aria-label="Notificações de vagas compatíveis"
-              onClick={() => go("preferencias")}
-              className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-secondary"
-            >
-              <Bell className="h-5 w-5" strokeWidth={1.75} />
-              <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-accent" />
-            </button>
+            <div className="relative">
+              <button
+                type="button"
+                aria-label="Notificações de vagas compatíveis"
+                onClick={() => {
+                  setOpenAlerts((o) => !o);
+                  markAlertsRead();
+                }}
+                className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-secondary"
+              >
+                <Bell className="h-5 w-5" strokeWidth={1.75} />
+                {unreadAlerts > 0 && (
+                  <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-accent-foreground">
+                    {unreadAlerts}
+                  </span>
+                )}
+              </button>
+              {openAlerts && (
+                <>
+                  <button
+                    type="button"
+                    aria-label="Fechar notificações"
+                    onClick={() => setOpenAlerts(false)}
+                    className="fixed inset-0 z-40 cursor-default"
+                  />
+                  <div className="absolute right-0 top-12 z-50 w-[min(340px,86vw)] rounded-2xl border border-border bg-card p-3 shadow-card">
+                    <p className="px-1 pb-2 text-xs font-bold text-ink">
+                      Alertas em tempo real
+                      <span className="ml-1 font-medium text-muted-foreground">
+                        · vagas compatíveis com seu perfil
+                      </span>
+                    </p>
+                    {alerts.length === 0 ? (
+                      <p className="px-1 pb-1 text-xs text-ink-soft">
+                        Nenhum alerta ainda. Assim que uma vaga combinar com suas preferências,
+                        avisamos aqui na hora.
+                      </p>
+                    ) : (
+                      <ul className="max-h-72 space-y-1.5 overflow-y-auto">
+                        {alerts.slice(0, 8).map((a) => (
+                          <li
+                            key={a.id}
+                            className="flex items-start gap-2 rounded-xl bg-secondary p-2.5"
+                          >
+                            <Sparkles
+                              className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent"
+                              strokeWidth={2}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setOpenAlerts(false);
+                                go("recomendadas");
+                              }}
+                              className="min-w-0 flex-1 text-left"
+                            >
+                              <span className="block text-xs font-semibold text-ink">{a.title}</span>
+                              <span className="block text-[11px] text-ink-soft">{a.detail}</span>
+                            </button>
+                            <button
+                              type="button"
+                              aria-label="Descartar alerta"
+                              onClick={() => dismissAlert(a.id)}
+                              className="text-ink-soft hover:text-destructive"
+                            >
+                              <X className="h-3.5 w-3.5" strokeWidth={2} />
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOpenAlerts(false);
+                        go("preferencias");
+                      }}
+                      className="mt-2 w-full rounded-full bg-secondary py-2 text-xs font-semibold text-ink"
+                    >
+                      Ajustar preferências de alerta
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+
             <button
               type="button"
               onClick={() => setOpenAccount(true)}

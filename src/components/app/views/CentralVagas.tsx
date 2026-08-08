@@ -12,9 +12,11 @@ import {
   Zap,
 } from "lucide-react";
 import { companyFromJob, jobPool, useAppStore, type Job } from "../store";
+import { toast } from "sonner";
 import { Chip } from "./ui";
 
 const models = ["Remoto", "Híbrido", "Presencial"];
+const flowSteps = ["Qualificações", "Dados", "Mensagem", "Revisão"];
 
 export function CentralVagas({ onGoToApplications }: { onGoToApplications: () => void }) {
   const { savedJobs, toggleSaved, followed, toggleFollow, applyToJob, hasApplied } = useAppStore();
@@ -150,7 +152,7 @@ export function CentralVagas({ onGoToApplications }: { onGoToApplications: () =>
             following={followed.some((c) => c.id === companyFromJob(selected).id)}
             onToggleFollow={() => toggleFollow(companyFromJob(selected))}
             applied={hasApplied(selected.id)}
-            onApply={() => applyToJob(selected)}
+            onApply={(extra) => applyToJob(selected, extra)}
             onGoToApplications={onGoToApplications}
           />
         )}
@@ -175,14 +177,17 @@ function JobDetail({
   following: boolean;
   onToggleFollow: () => void;
   applied: boolean;
-  onApply: () => void;
+  onApply: (extra: { letter: string; qualifications: string[] }) => void;
   onGoToApplications: () => void;
 }) {
-  const [step, setStep] = useState<"idle" | "form">("idle");
-  const { account } = useAppStore();
+  const [step, setStep] = useState<number | null>(null);
+  const { account, resume } = useAppStore();
   const [answers, setAnswers] = useState<Record<string, boolean>>({});
+  const [letter, setLetter] = useState("");
 
   const allChecked = job.qualifications.every((q) => answers[q]);
+  const checked = job.qualifications.filter((q) => answers[q]);
+
 
   return (
     <article className="max-h-[70vh] overflow-y-auto rounded-2xl border border-border bg-card p-5 shadow-card">
@@ -235,10 +240,10 @@ function JobDetail({
               Acompanhar processo
             </button>
           </>
-        ) : step === "idle" ? (
+        ) : step === null ? (
           <button
             type="button"
-            onClick={() => (job.quickApply ? setStep("form") : setStep("form"))}
+            onClick={() => setStep(0)}
             className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-transform active:scale-[0.96]"
           >
             {job.quickApply ? <Zap className="h-4 w-4" strokeWidth={2} /> : null}
@@ -267,61 +272,173 @@ function JobDetail({
         </button>
       </div>
 
-      {!applied && step === "form" && (
+      {!applied && step !== null && (
         <div className="mt-4 rounded-2xl border border-border bg-secondary p-4">
-          <p className="font-display text-base font-semibold text-ink">
-            Suas qualificações para esta vaga
-          </p>
-          <p className="mt-1 text-xs text-ink-soft">
-            Você tem alguma destas qualificações? Marque para a empresa avaliar seu perfil.
-          </p>
-          <div className="mt-3 space-y-2">
-            {job.qualifications.map((q) => (
-              <button
-                key={q}
-                type="button"
-                onClick={() => setAnswers((a) => ({ ...a, [q]: !a[q] }))}
-                className={`flex w-full items-center gap-2 rounded-xl border bg-card px-3 py-2 text-left text-sm font-medium ${
-                  answers[q] ? "border-accent text-ink" : "border-border text-ink-soft"
-                }`}
-              >
-                <span
-                  className={`flex h-4.5 w-4.5 items-center justify-center rounded border ${
-                    answers[q] ? "border-accent bg-accent text-accent-foreground" : "border-border"
+          <div className="flex items-center gap-1.5">
+            {flowSteps.map((s, i) => (
+              <div key={s} className="flex-1">
+                <div className={`h-1.5 rounded-full ${i <= step ? "bg-accent" : "bg-card"}`} />
+                <p
+                  className={`mt-1 text-[10px] font-bold ${
+                    i <= step ? "text-ink" : "text-muted-foreground"
                   }`}
                 >
-                  {answers[q] && <Check className="h-3 w-3" strokeWidth={3} />}
-                </span>
-                {q}
-              </button>
+                  {s}
+                </p>
+              </div>
             ))}
           </div>
-          <p className="mt-3 text-xs text-ink-soft">
-            Enviaremos seu currículo, {account.email} e {account.phone} para {job.company}.
-          </p>
-          <div className="mt-3 flex flex-wrap items-center gap-2">
+
+          {step === 0 && (
+            <div className="mt-4">
+              <p className="font-display text-base font-semibold text-ink">
+                Suas qualificações para esta vaga
+              </p>
+              <p className="mt-1 text-xs text-ink-soft">
+                Marque o que você tem: a empresa usa isso na triagem.
+              </p>
+              <div className="mt-3 space-y-2">
+                {job.qualifications.map((q) => (
+                  <button
+                    key={q}
+                    type="button"
+                    onClick={() => setAnswers((a) => ({ ...a, [q]: !a[q] }))}
+                    className={`flex w-full items-center gap-2 rounded-xl border bg-card px-3 py-2 text-left text-sm font-medium ${
+                      answers[q] ? "border-accent text-ink" : "border-border text-ink-soft"
+                    }`}
+                  >
+                    <span
+                      className={`flex h-4.5 w-4.5 items-center justify-center rounded border ${
+                        answers[q]
+                          ? "border-accent bg-accent text-accent-foreground"
+                          : "border-border"
+                      }`}
+                    >
+                      {answers[q] && <Check className="h-3 w-3" strokeWidth={3} />}
+                    </span>
+                    {q}
+                  </button>
+                ))}
+              </div>
+              {!allChecked && (
+                <p className="mt-2 text-[11px] text-muted-foreground">
+                  Você pode seguir mesmo sem marcar todas.
+                </p>
+              )}
+            </div>
+          )}
+
+          {step === 1 && (
+            <div className="mt-4 space-y-2">
+              <p className="font-display text-base font-semibold text-ink">
+                Confirme seus dados de contato
+              </p>
+              <div className="space-y-1.5 rounded-xl bg-card p-3 text-sm text-ink-soft">
+                <p>
+                  <span className="font-semibold text-ink">Nome:</span> {account.name}
+                </p>
+                <p>
+                  <span className="font-semibold text-ink">E-mail:</span> {account.email}
+                </p>
+                <p>
+                  <span className="font-semibold text-ink">Telefone:</span> {account.phone}
+                </p>
+                <p>
+                  <span className="font-semibold text-ink">Currículo:</span>{" "}
+                  {resume ? resume.headline : "Currículo padrão do perfil"}
+                </p>
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                Esses dados serão compartilhados com {job.company}.
+              </p>
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="mt-4">
+              <p className="font-display text-base font-semibold text-ink">
+                Mensagem para a empresa (opcional)
+              </p>
+              <textarea
+                value={letter}
+                onChange={(e) => setLetter(e.target.value)}
+                rows={4}
+                placeholder={`Conte em poucas linhas por que a vaga de ${job.role} faz sentido para você.`}
+                className="mt-2 w-full rounded-xl border border-border bg-card p-3 text-sm text-ink outline-none focus:border-accent"
+              />
+              <button
+                type="button"
+                onClick={() =>
+                  setLetter(
+                    `Tenho interesse na vaga de ${job.role} na ${job.company}. Minha experiência com ${
+                      job.qualifications[0] ?? "a área"
+                    } e o foco em resultados podem ajudar o time desde o primeiro mês. Fico à disposição para conversar.`,
+                  )
+                }
+                className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-accent"
+              >
+                <Zap className="h-3.5 w-3.5" strokeWidth={2} />
+                Sugerir texto automaticamente
+              </button>
+            </div>
+          )}
+
+          {step === 3 && (
+            <div className="mt-4 space-y-2 text-sm text-ink-soft">
+              <p className="font-display text-base font-semibold text-ink">Revisão final</p>
+              <p>
+                <span className="font-semibold text-ink">Vaga:</span> {job.role} · {job.company}
+              </p>
+              <p>
+                <span className="font-semibold text-ink">Qualificações marcadas:</span>{" "}
+                {checked.length ? checked.join(", ") : "nenhuma"}
+              </p>
+              <p>
+                <span className="font-semibold text-ink">Mensagem:</span>{" "}
+                {letter.trim() ? `"${letter.trim().slice(0, 120)}"` : "sem mensagem"}
+              </p>
+              <p className="text-[11px] text-muted-foreground">
+                Ao enviar, a candidatura entra em Minhas candidaturas com etapas e histórico.
+              </p>
+            </div>
+          )}
+
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            {step < flowSteps.length - 1 ? (
+              <button
+                type="button"
+                onClick={() => setStep(step + 1)}
+                className="rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-accent-foreground transition-transform active:scale-[0.96]"
+              >
+                Continuar
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  onApply({ letter: letter.trim(), qualifications: checked });
+                  setStep(null);
+                  toast.success(`Candidatura enviada para ${job.company}`, {
+                    description: "Acompanhe cada etapa em Minhas candidaturas.",
+                    action: { label: "Acompanhar", onClick: onGoToApplications },
+                  });
+                }}
+                className="rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition-transform active:scale-[0.96]"
+              >
+                Enviar candidatura
+              </button>
+            )}
             <button
               type="button"
-              onClick={onApply}
-              className="rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-accent-foreground transition-transform active:scale-[0.96]"
-            >
-              Enviar candidatura
-            </button>
-            <button
-              type="button"
-              onClick={() => setStep("idle")}
+              onClick={() => (step === 0 ? setStep(null) : setStep(step - 1))}
               className="rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold text-ink-soft"
             >
-              Cancelar
+              {step === 0 ? "Cancelar" : "Voltar"}
             </button>
-            {!allChecked && (
-              <span className="text-[11px] text-muted-foreground">
-                Você pode enviar mesmo sem marcar todas as qualificações.
-              </span>
-            )}
           </div>
         </div>
       )}
+
 
       <section className="mt-5">
         <h3 className="font-display text-base font-semibold text-ink">Sobre a vaga</h3>
