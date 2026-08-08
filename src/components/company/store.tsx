@@ -468,8 +468,10 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
   const value = useMemo<CompanyState>(() => {
     const moveStage = (candidateId: string, stage: Stage) => {
       let name = "";
+      let previous: Stage | null = null;
       patchCandidate(candidateId, (c) => {
         name = c.name;
+        previous = c.stage;
         return {
           ...c,
           stage,
@@ -478,6 +480,17 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
         };
       });
       log("Etapa atualizada", `${name} foi movida(o) para ${stage}.`);
+      const vacancy = state.candidates.find((c) => c.id === candidateId)?.vacancyId;
+      const role = state.vacancies.find((v) => v.id === vacancy)?.role ?? "vaga";
+      if (stage === "Contratado") {
+        notify("aprovado", `${name} foi aprovada(o)! 🎉`, `Contratação confirmada para ${role}.`);
+      } else if (previous !== stage) {
+        notify(
+          "etapa",
+          `${name} avançou para ${stage}`,
+          `Processo de ${role}${previous ? ` · saiu de ${previous}` : ""}.`,
+        );
+      }
     };
 
     const currentMember =
@@ -489,6 +502,13 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
     return {
       ...state,
       currentMember,
+      unreadCount: state.notifications.filter((n) => !n.read).length,
+      markNotificationsRead: () =>
+        setState((s) => ({
+          ...s,
+          notifications: s.notifications.map((n) => ({ ...n, read: true })),
+        })),
+      clearNotifications: () => setState((s) => ({ ...s, notifications: [] })),
       can: (p) => allowed.includes(p),
       addMember: ({ name, email, role }) => {
         setState((s) => ({
