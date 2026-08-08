@@ -178,6 +178,8 @@ export function CompanyShell({
           </div>
 
           <div className="flex items-center gap-2 sm:ml-3">
+            <NotificationBell />
+
             <div className="hidden text-right sm:block">
               <p className="text-sm font-semibold leading-tight text-ink">{currentMember.name}</p>
               <p className="text-[11px] text-ink-soft">
