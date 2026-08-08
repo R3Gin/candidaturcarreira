@@ -84,7 +84,7 @@ export function Pipeline() {
                     <li key={c.id}>
                       <button
                         type="button"
-                        draggable
+                        draggable={canMove}
                         onDragStart={() => setDragging(c.id)}
                         onClick={() => setSelected(c)}
                         className={`w-full rounded-xl border border-border bg-card p-3 text-left shadow-card transition-transform hover:-translate-y-0.5 ${
