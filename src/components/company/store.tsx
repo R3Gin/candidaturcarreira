@@ -7,6 +7,19 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { toast } from "sonner";
+
+export type NotificationKind = "etapa" | "aprovado" | "reprovado" | "entrevista";
+
+export type CompanyNotification = {
+  id: string;
+  kind: NotificationKind;
+  title: string;
+  detail: string;
+  at: string;
+  read: boolean;
+};
+
 
 export const stages = [
   "Triagem",
