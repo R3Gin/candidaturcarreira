@@ -84,6 +84,114 @@ export type CompanyProfile = {
 
 export type ActivityLog = { id: string; title: string; detail: string; at: string };
 
+export const roles = ["Administrador", "RH", "Recrutador", "Gestor", "Observador"] as const;
+export type Role = (typeof roles)[number];
+
+export const permissions = [
+  "ver_visao",
+  "ver_pipeline",
+  "ver_vagas",
+  "ver_banco",
+  "ver_entrevistas",
+  "ver_marca",
+  "ver_equipe",
+  "mover_candidato",
+  "reprovar_candidato",
+  "gerenciar_vagas",
+  "agendar_entrevista",
+  "editar_marca",
+  "gerenciar_equipe",
+] as const;
+export type Permission = (typeof permissions)[number];
+
+export const rolePermissions: Record<Role, Permission[]> = {
+  Administrador: [...permissions],
+  RH: [
+    "ver_visao",
+    "ver_pipeline",
+    "ver_vagas",
+    "ver_banco",
+    "ver_entrevistas",
+    "ver_marca",
+    "ver_equipe",
+    "mover_candidato",
+    "reprovar_candidato",
+    "gerenciar_vagas",
+    "agendar_entrevista",
+    "editar_marca",
+  ],
+  Recrutador: [
+    "ver_visao",
+    "ver_pipeline",
+    "ver_vagas",
+    "ver_banco",
+    "ver_entrevistas",
+    "mover_candidato",
+    "agendar_entrevista",
+  ],
+  Gestor: [
+    "ver_visao",
+    "ver_pipeline",
+    "ver_entrevistas",
+    "ver_vagas",
+    "mover_candidato",
+    "reprovar_candidato",
+  ],
+  Observador: ["ver_visao", "ver_vagas", "ver_entrevistas"],
+};
+
+export const roleDescription: Record<Role, string> = {
+  Administrador: "Acesso total, incluindo equipe, permissões e marca empregadora.",
+  RH: "Conduz processos ponta a ponta: pipeline, vagas, entrevistas e marca.",
+  Recrutador: "Trabalha o pipeline, banco de talentos e agenda entrevistas.",
+  Gestor: "Avalia pessoas nas etapas das próprias vagas e dá o parecer final.",
+  Observador: "Somente leitura de indicadores, vagas e agenda.",
+};
+
+export type Member = {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+  status: "Ativo" | "Convite pendente";
+  invitedAt: string;
+};
+
+export const seedMembers: Member[] = [
+  {
+    id: "m1",
+    name: "Fernanda Lopes",
+    email: "fernanda@candidatu.com.br",
+    role: "Administrador",
+    status: "Ativo",
+    invitedAt: "2026-01-12T12:00:00.000Z",
+  },
+  {
+    id: "m2",
+    name: "Rita Menezes",
+    email: "rita@candidatu.com.br",
+    role: "RH",
+    status: "Ativo",
+    invitedAt: "2026-02-02T12:00:00.000Z",
+  },
+  {
+    id: "m3",
+    name: "Diego Ramos",
+    email: "diego@candidatu.com.br",
+    role: "Recrutador",
+    status: "Ativo",
+    invitedAt: "2026-03-18T12:00:00.000Z",
+  },
+  {
+    id: "m4",
+    name: "Marcos Prado",
+    email: "marcos@candidatu.com.br",
+    role: "Gestor",
+    status: "Convite pendente",
+    invitedAt: "2026-07-29T12:00:00.000Z",
+  },
+];
+
 const uid = () => Math.random().toString(36).slice(2, 10);
 const now = () => new Date().toISOString();
 
