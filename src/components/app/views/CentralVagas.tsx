@@ -1,168 +1,374 @@
 import { useMemo, useState } from "react";
-import { BadgeCheck, Bookmark, Building2, Heart, MapPin, Search, Star, TrendingUp } from "lucide-react";
-import { applications, jobPool, useAppStore } from "../store";
-import { Chip, PageHead } from "./ui";
-
-const stats = [
-  { label: "Candidaturas ativas", value: String(applications.filter((a) => a.stage < 4).length), hint: "2 avançaram esta semana" },
-  { label: "Visualizações do perfil", value: "38", hint: "+12 em 7 dias" },
-  { label: "Match médio", value: "82%", hint: "com seu currículo" },
-];
-
-const salaries = [
-  { role: "Analista Administrativo", range: "R$ 3.100 / mês", trend: "+4,1% no ano" },
-  { role: "Coordenador de Operações", range: "R$ 7.050 / mês", trend: "+6,8% no ano" },
-  { role: "Analista de RH", range: "R$ 3.850 / mês", trend: "+3,2% no ano" },
-];
+import {
+  BadgeCheck,
+  Bookmark,
+  Building2,
+  Check,
+  Clock,
+  Heart,
+  MapPin,
+  Search,
+  Star,
+  Zap,
+} from "lucide-react";
+import { companyFromJob, jobPool, useAppStore, type Job } from "../store";
+import { Chip } from "./ui";
 
 const models = ["Remoto", "Híbrido", "Presencial"];
 
-export function CentralVagas() {
-  const { savedJobs, toggleSaved, followed, toggleFollow } = useAppStore();
+export function CentralVagas({ onGoToApplications }: { onGoToApplications: () => void }) {
+  const { savedJobs, toggleSaved, followed, toggleFollow, applyToJob, hasApplied } = useAppStore();
   const [query, setQuery] = useState("");
+  const [city, setCity] = useState("");
   const [model, setModel] = useState<string | null>(null);
 
   const list = useMemo(
     () =>
       jobPool.filter((j) => {
         const q = query.trim().toLowerCase();
+        const c = city.trim().toLowerCase();
         const qOk = !q || j.role.toLowerCase().includes(q) || j.company.toLowerCase().includes(q);
+        const cOk = !c || j.city.toLowerCase().includes(c);
         const mOk = !model || j.city.toLowerCase().includes(model.toLowerCase());
-        return qOk && mOk;
+        return qOk && cOk && mOk;
       }),
-    [query, model],
+    [query, city, model],
   );
 
+  const [selectedId, setSelectedId] = useState<string>(jobPool[0]!.id);
+  const selected = list.find((j) => j.id === selectedId) ?? list[0] ?? null;
+
   return (
-    <div className="space-y-6">
-      <PageHead
-        eyebrow="Central de empregabilidade"
-        title="Busque vagas e empresas em um só lugar"
-        subtitle="Salve vagas com o marcador, siga empresas com o coração e acompanhe faixas salariais reais."
-      />
+    <div className="space-y-4">
+      <header>
+        <p className="eyebrow">Central de empregabilidade</p>
+        <h1 className="mt-2 font-display text-2xl font-bold text-ink sm:text-3xl">
+          Vagas, empresas e candidatura rápida
+        </h1>
+      </header>
 
       <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-card p-2 shadow-card">
-        <Search className="ml-2 h-5 w-5 text-muted-foreground" strokeWidth={1.75} />
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Buscar por vaga ou empresa"
-          className="h-11 min-w-40 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-muted-foreground"
-        />
+        <div className="flex min-w-52 flex-1 items-center gap-2 px-2">
+          <Search className="h-4.5 w-4.5 text-muted-foreground" strokeWidth={1.75} />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Encontre a vaga dos seus sonhos"
+            className="h-10 w-full bg-transparent text-sm text-ink outline-none placeholder:text-muted-foreground"
+          />
+        </div>
+        <div className="flex min-w-44 flex-1 items-center gap-2 border-border px-2 sm:border-l">
+          <MapPin className="h-4.5 w-4.5 text-muted-foreground" strokeWidth={1.75} />
+          <input
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            placeholder="Cidade, estado ou remoto"
+            className="h-10 w-full bg-transparent text-sm text-ink outline-none placeholder:text-muted-foreground"
+          />
+        </div>
         <div className="flex flex-wrap gap-2 pr-1">
           {models.map((m) => (
-            <Chip key={m} label={m} active={model === m} onClick={() => setModel(model === m ? null : m)} />
+            <Chip
+              key={m}
+              label={m}
+              active={model === m}
+              onClick={() => setModel(model === m ? null : m)}
+            />
           ))}
         </div>
       </div>
 
-      <section className="grid gap-3 sm:grid-cols-3">
-        {stats.map((s) => (
-          <div key={s.label} className="rounded-2xl border border-border bg-card p-4 shadow-card">
-            <p className="eyebrow">{s.label}</p>
-            <p className="mt-1 font-display text-2xl font-bold text-ink">{s.value}</p>
-            <p className="mt-1 text-xs text-muted-foreground">{s.hint}</p>
-          </div>
-        ))}
-      </section>
+      <p className="text-xs font-semibold text-ink-soft">
+        {list.length} {list.length === 1 ? "vaga encontrada" : "vagas encontradas"} · use a
+        candidatura rápida para enviar seu currículo em um clique
+      </p>
 
-      <section className="space-y-3">
-        <h2 className="font-display text-lg font-semibold text-ink">
-          {list.length} {list.length === 1 ? "vaga encontrada" : "vagas encontradas"}
-        </h2>
-        {list.map((j) => {
-          const saved = savedJobs.includes(j.id);
-          const company = {
-            id: `co-${j.company}`,
-            name: j.company,
-            segment: "Empresa parceira Candidatu",
-            rating: j.rating,
-            reason: "Você demonstrou interesse nesta empresa",
-            since: "agora",
-          };
-          const following = followed.some((c) => c.id === company.id);
-          return (
-            <article key={j.id} className="rounded-2xl border border-border bg-card p-5 shadow-card">
-              <div className="flex flex-wrap items-start gap-3">
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary font-display text-sm font-bold text-ink">
-                  {j.company.slice(0, 2).toUpperCase()}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-ink-soft">
-                    <Building2 className="h-3.5 w-3.5" strokeWidth={1.75} />
-                    {j.company}
-                    <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5">
-                      <Star className="h-3 w-3 fill-accent text-accent" />
-                      {j.rating.toFixed(1)}
-                    </span>
-                  </div>
-                  <h3 className="mt-1 font-display text-lg font-semibold text-ink">{j.role}</h3>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-soft">
-                    <span className="inline-flex items-center gap-1">
-                      <MapPin className="h-3.5 w-3.5" strokeWidth={1.75} />
-                      {j.city}
-                    </span>
-                    <span className="inline-flex items-center gap-1 font-semibold text-ink">
-                      <BadgeCheck className="h-3.5 w-3.5 text-accent" strokeWidth={2} />
-                      {j.salary}
-                    </span>
-                  </div>
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {j.tags.map((t) => (
-                      <span key={t} className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-semibold text-ink-soft">
-                        {t}
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,340px)_1fr]">
+        <ul className="max-h-[70vh] space-y-2 overflow-y-auto pr-1">
+          {list.map((j) => {
+            const active = selected?.id === j.id;
+            return (
+              <li key={j.id}>
+                <button
+                  type="button"
+                  onClick={() => setSelectedId(j.id)}
+                  className={`w-full rounded-2xl border bg-card p-4 text-left shadow-card transition-colors ${
+                    active ? "border-accent" : "border-border hover:border-accent/50"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-ink-soft">
+                      {j.company}
+                      <span className="inline-flex items-center gap-0.5">
+                        <Star className="h-3 w-3 fill-accent text-accent" />
+                        {j.rating.toFixed(1)}
                       </span>
-                    ))}
+                    </span>
+                    <Bookmark
+                      className={`h-4 w-4 ${savedJobs.includes(j.id) ? "fill-accent text-accent" : "text-ink-soft"}`}
+                      strokeWidth={1.75}
+                    />
                   </div>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="mr-1 rounded-full bg-mint px-2 py-0.5 text-[11px] font-bold text-ink">
-                    {j.match}
-                  </span>
-                  <button
-                    type="button"
-                    aria-label={following ? `Deixar de seguir ${j.company}` : `Seguir ${j.company}`}
-                    onClick={() => toggleFollow(company)}
-                    className={`inline-flex h-9 w-9 items-center justify-center rounded-full hover:bg-secondary ${
-                      following ? "text-accent" : "text-ink-soft"
-                    }`}
-                  >
-                    <Heart className={`h-4.5 w-4.5 ${following ? "fill-accent" : ""}`} strokeWidth={1.75} />
-                  </button>
-                  <button
-                    type="button"
-                    aria-label={saved ? `Remover ${j.role} das vagas salvas` : `Salvar ${j.role}`}
-                    onClick={() => toggleSaved(j.id)}
-                    className={`inline-flex h-9 w-9 items-center justify-center rounded-full hover:bg-secondary ${
-                      saved ? "text-accent" : "text-ink-soft"
-                    }`}
-                  >
-                    <Bookmark className={`h-4.5 w-4.5 ${saved ? "fill-accent" : ""}`} strokeWidth={1.75} />
-                  </button>
-                </div>
-              </div>
-            </article>
-          );
-        })}
+                  <p className="mt-1 font-display text-sm font-semibold text-ink">{j.role}</p>
+                  <p className="text-[11px] text-ink-soft">{j.city}</p>
+                  <p className="mt-1 text-[11px] font-semibold text-ink">{j.salary}</p>
+                  <div className="mt-2 flex items-center justify-between gap-2">
+                    {j.quickApply ? (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-accent">
+                        <Zap className="h-3 w-3" strokeWidth={2} />
+                        Candidatura rápida
+                      </span>
+                    ) : (
+                      <span className="text-[11px] font-semibold text-muted-foreground">
+                        Formulário da empresa
+                      </span>
+                    )}
+                    <span className="text-[11px] text-muted-foreground">{j.posted}</span>
+                  </div>
+                  {hasApplied(j.id) && (
+                    <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-mint px-2 py-0.5 text-[10px] font-bold text-ink">
+                      <Check className="h-3 w-3" strokeWidth={2.5} /> Candidatura enviada
+                    </span>
+                  )}
+                </button>
+              </li>
+            );
+          })}
+          {list.length === 0 && (
+            <li className="rounded-2xl border border-border bg-card p-6 text-center text-sm text-ink-soft">
+              Nenhuma vaga com esses filtros.
+            </li>
+          )}
+        </ul>
+
+        {selected && (
+          <JobDetail
+            key={selected.id}
+            job={selected}
+            saved={savedJobs.includes(selected.id)}
+            onToggleSaved={() => toggleSaved(selected.id)}
+            following={followed.some((c) => c.id === companyFromJob(selected).id)}
+            onToggleFollow={() => toggleFollow(companyFromJob(selected))}
+            applied={hasApplied(selected.id)}
+            onApply={() => applyToJob(selected)}
+            onGoToApplications={onGoToApplications}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function JobDetail({
+  job,
+  saved,
+  onToggleSaved,
+  following,
+  onToggleFollow,
+  applied,
+  onApply,
+  onGoToApplications,
+}: {
+  job: Job;
+  saved: boolean;
+  onToggleSaved: () => void;
+  following: boolean;
+  onToggleFollow: () => void;
+  applied: boolean;
+  onApply: () => void;
+  onGoToApplications: () => void;
+}) {
+  const [step, setStep] = useState<"idle" | "form">("idle");
+  const { account } = useAppStore();
+  const [answers, setAnswers] = useState<Record<string, boolean>>({});
+
+  const allChecked = job.qualifications.every((q) => answers[q]);
+
+  return (
+    <article className="max-h-[70vh] overflow-y-auto rounded-2xl border border-border bg-card p-5 shadow-card">
+      <div className="flex flex-wrap items-start gap-3">
+        <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary font-display text-sm font-bold text-ink">
+          {job.company.slice(0, 2).toUpperCase()}
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 text-xs font-semibold text-ink-soft">
+            <Building2 className="h-3.5 w-3.5" strokeWidth={1.75} />
+            {job.company}
+            <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5">
+              <Star className="h-3 w-3 fill-accent text-accent" />
+              {job.rating.toFixed(1)}
+            </span>
+          </div>
+          <h2 className="mt-1 font-display text-xl font-bold text-ink">{job.role}</h2>
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-soft">
+            <span className="inline-flex items-center gap-1">
+              <MapPin className="h-3.5 w-3.5" strokeWidth={1.75} />
+              {job.city}
+            </span>
+            <span className="inline-flex items-center gap-1 font-semibold text-ink">
+              <BadgeCheck className="h-3.5 w-3.5 text-accent" strokeWidth={2} />
+              {job.salary}
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <Clock className="h-3.5 w-3.5" strokeWidth={1.75} />
+              Publicada {job.posted}
+            </span>
+          </div>
+        </div>
+        <span className="rounded-full bg-mint px-2.5 py-1 text-[11px] font-bold text-ink">
+          {job.match} de match
+        </span>
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        {applied ? (
+          <>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-mint px-4 py-2.5 text-sm font-bold text-ink">
+              <Check className="h-4 w-4" strokeWidth={2.5} />
+              Candidatura enviada
+            </span>
+            <button
+              type="button"
+              onClick={onGoToApplications}
+              className="text-xs font-semibold text-accent"
+            >
+              Acompanhar processo
+            </button>
+          </>
+        ) : step === "idle" ? (
+          <button
+            type="button"
+            onClick={() => (job.quickApply ? setStep("form") : setStep("form"))}
+            className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-transform active:scale-[0.96]"
+          >
+            {job.quickApply ? <Zap className="h-4 w-4" strokeWidth={2} /> : null}
+            {job.quickApply ? "Candidatura rápida" : "Candidatar-se"}
+          </button>
+        ) : null}
+        <button
+          type="button"
+          onClick={onToggleSaved}
+          aria-label={saved ? "Remover das vagas salvas" : "Salvar vaga"}
+          className={`inline-flex h-10 w-10 items-center justify-center rounded-full border border-border ${
+            saved ? "text-accent" : "text-ink-soft"
+          }`}
+        >
+          <Bookmark className={`h-4.5 w-4.5 ${saved ? "fill-accent" : ""}`} strokeWidth={1.75} />
+        </button>
+        <button
+          type="button"
+          onClick={onToggleFollow}
+          aria-label={following ? `Deixar de seguir ${job.company}` : `Seguir ${job.company}`}
+          className={`inline-flex h-10 w-10 items-center justify-center rounded-full border border-border ${
+            following ? "text-accent" : "text-ink-soft"
+          }`}
+        >
+          <Heart className={`h-4.5 w-4.5 ${following ? "fill-accent" : ""}`} strokeWidth={1.75} />
+        </button>
+      </div>
+
+      {!applied && step === "form" && (
+        <div className="mt-4 rounded-2xl border border-border bg-secondary p-4">
+          <p className="font-display text-base font-semibold text-ink">
+            Suas qualificações para esta vaga
+          </p>
+          <p className="mt-1 text-xs text-ink-soft">
+            Você tem alguma destas qualificações? Marque para a empresa avaliar seu perfil.
+          </p>
+          <div className="mt-3 space-y-2">
+            {job.qualifications.map((q) => (
+              <button
+                key={q}
+                type="button"
+                onClick={() => setAnswers((a) => ({ ...a, [q]: !a[q] }))}
+                className={`flex w-full items-center gap-2 rounded-xl border bg-card px-3 py-2 text-left text-sm font-medium ${
+                  answers[q] ? "border-accent text-ink" : "border-border text-ink-soft"
+                }`}
+              >
+                <span
+                  className={`flex h-4.5 w-4.5 items-center justify-center rounded border ${
+                    answers[q] ? "border-accent bg-accent text-accent-foreground" : "border-border"
+                  }`}
+                >
+                  {answers[q] && <Check className="h-3 w-3" strokeWidth={3} />}
+                </span>
+                {q}
+              </button>
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-ink-soft">
+            Enviaremos seu currículo, {account.email} e {account.phone} para {job.company}.
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={onApply}
+              className="rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-accent-foreground transition-transform active:scale-[0.96]"
+            >
+              Enviar candidatura
+            </button>
+            <button
+              type="button"
+              onClick={() => setStep("idle")}
+              className="rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold text-ink-soft"
+            >
+              Cancelar
+            </button>
+            {!allChecked && (
+              <span className="text-[11px] text-muted-foreground">
+                Você pode enviar mesmo sem marcar todas as qualificações.
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
+      <section className="mt-5">
+        <h3 className="font-display text-base font-semibold text-ink">Sobre a vaga</h3>
+        <p className="mt-1.5 text-sm text-ink-soft">{job.about}</p>
       </section>
 
-      <section className="rounded-2xl border border-border bg-card p-5 shadow-card">
-        <h2 className="font-display text-lg font-semibold text-ink">Seu potencial de ganho</h2>
-        <ul className="mt-3 divide-y divide-border">
-          {salaries.map((s) => (
-            <li key={s.role} className="flex items-center gap-3 py-3">
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-ink">{s.role}</p>
-                <p className="text-xs text-ink-soft">{s.range}</p>
-              </div>
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-accent">
-                <TrendingUp className="h-3.5 w-3.5" strokeWidth={2} />
-                {s.trend}
-              </span>
-            </li>
+      <DetailList title="Responsabilidades" items={job.responsibilities} />
+      <DetailList title="Requisitos" items={job.requirements} />
+
+      <section className="mt-5">
+        <h3 className="font-display text-base font-semibold text-ink">Benefícios</h3>
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {job.benefits.map((b) => (
+            <span
+              key={b}
+              className="rounded-full bg-secondary px-2.5 py-1 text-[11px] font-semibold text-ink-soft"
+            >
+              {b}
+            </span>
           ))}
-        </ul>
+        </div>
       </section>
-    </div>
+
+      <section className="mt-5 rounded-2xl bg-secondary p-4">
+        <h3 className="font-display text-base font-semibold text-ink">Visão geral da empresa</h3>
+        <p className="mt-1 text-sm text-ink-soft">{job.segment}</p>
+        <p className="mt-1 inline-flex items-center gap-1 text-sm font-semibold text-ink">
+          <Star className="h-4 w-4 fill-accent text-accent" />
+          {job.rating.toFixed(1)} de avaliação de quem trabalha lá
+        </p>
+      </section>
+    </article>
+  );
+}
+
+function DetailList({ title, items }: { title: string; items: string[] }) {
+  return (
+    <section className="mt-5">
+      <h3 className="font-display text-base font-semibold text-ink">{title}</h3>
+      <ul className="mt-2 space-y-1.5">
+        {items.map((i) => (
+          <li key={i} className="flex gap-2 text-sm text-ink-soft">
+            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+            {i}
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
