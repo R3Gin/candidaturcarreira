@@ -1,9 +1,48 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Camera, Minus } from "lucide-react";
-import { useAppStore } from "@/components/app/store";
+import { z } from "zod";
+import { useAppStore, type Account } from "@/components/app/store";
 
 const KEY = "candidatu-onboarding";
 const TOTAL = 6;
+
+const nameSchema = z
+  .string()
+  .trim()
+  .min(3, { message: "Informe seu nome completo (mínimo 3 caracteres)." })
+  .max(80, { message: "O nome deve ter no máximo 80 caracteres." })
+  .regex(/^[\p{L}][\p{L}\s'.-]*$/u, { message: "Use apenas letras, espaços, hífen ou apóstrofo." });
+
+const occupationSchema = z
+  .string()
+  .trim()
+  .min(2, { message: "Informe um cargo ou ocupação válido." })
+  .max(60, { message: "A ocupação deve ter no máximo 60 caracteres." });
+
+const usernameSchema = z
+  .string()
+  .trim()
+  .min(3, { message: "O nome de usuário precisa de ao menos 3 caracteres." })
+  .max(40, { message: "O nome de usuário deve ter no máximo 40 caracteres." })
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, {
+    message: "Use apenas letras minúsculas, números e hífen (sem espaços).",
+  });
+
+const photoSchema = z
+  .string()
+  .regex(/^data:image\/(png|jpe?g|webp|gif);base64,/, {
+    message: "Envie uma imagem PNG, JPG, WEBP ou GIF.",
+  })
+  .max(2_500_000, { message: "A imagem deve ter menos de 2 MB." });
+
+function slugify(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
 
 type Props = {
   onFinish: () => void;
@@ -15,11 +54,10 @@ export function OnboardingDialog({ onFinish, onGoToProfile, onExit }: Props) {
   const { account, setAccount, logActivity } = useAppStore();
   const [step, setStep] = useState(1);
   const [name, setName] = useState(account.name ?? "");
-  const [occupation, setOccupation] = useState("");
+  const [occupation, setOccupation] = useState(account.occupation ?? "");
   const [photo, setPhoto] = useState<string | null>(account.photo ?? null);
-  const [username, setUsername] = useState(
-    (account.name || "candidato").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
-  );
+  const [username, setUsername] = useState(account.username || slugify(account.name || ""));
+  const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -29,31 +67,96 @@ export function OnboardingDialog({ onFinish, onGoToProfile, onExit }: Props) {
     };
   }, []);
 
-  const persist = () => {
-    setAccount({ ...account, name: name.trim() || account.name, photo });
-    try {
-      localStorage.setItem(
-        KEY,
-        JSON.stringify({ done: true, occupation, username, at: new Date().toISOString() }),
-      );
-    } catch {
-      /* ignore */
+  const persist = (patch: Partial<Account>) => {
+    setAccount({
+      ...account,
+      name: name.trim(),
+      occupation: occupation.trim(),
+      username: username.trim(),
+      photo,
+      ...patch,
+    });
+  };
+
+  const validateStep = () => {
+    if (step === 2) {
+      const n = nameSchema.safeParse(name);
+      if (!n.success) return n.error.issues[0]?.message ?? "Nome inválido.";
+      const o = occupationSchema.safeParse(occupation);
+      if (!o.success) return o.error.issues[0]?.message ?? "Ocupação inválida.";
+      setName(n.data);
+      setOccupation(o.data);
+      if (!username.trim()) setUsername(slugify(n.data));
     }
+    if (step === 3 && photo) {
+      const img = photoSchema.safeParse(photo);
+      if (!img.success) return img.error.issues[0]?.message ?? "Imagem inválida.";
+    }
+    if (step === 4) {
+      const u = usernameSchema.safeParse(username);
+      if (!u.success) return u.error.issues[0]?.message ?? "Nome de usuário inválido.";
+      setUsername(u.data);
+    }
+    return null;
+  };
+
+  const next = () => {
+    const message = validateStep();
+    if (message) {
+      setError(message);
+      return;
+    }
+    setError(null);
+    if (step === 5) {
+      persist({ termsAcceptedAt: new Date().toISOString() });
+    } else if (step >= 2) {
+      persist({});
+    }
+    setStep((s) => Math.min(TOTAL, s + 1));
+  };
+
+  const prev = () => {
+    setError(null);
+    setStep((s) => Math.max(1, s - 1));
   };
 
   const complete = () => {
-    persist();
-    logActivity("perfil", "Configuração inicial concluída", occupation || "Perfil configurado");
+    const at = new Date().toISOString();
+    persist({ onboardedAt: at, termsAcceptedAt: account.termsAcceptedAt ?? at });
+    try {
+      localStorage.setItem(KEY, JSON.stringify({ done: true, at }));
+    } catch {
+      /* ignore */
+    }
+    logActivity(
+      "perfil",
+      "Registro inicial concluído",
+      `${name.trim()} · ${occupation.trim()} · @${username.trim()}`,
+    );
     onFinish();
   };
 
-  const next = () => setStep((s) => Math.min(TOTAL, s + 1));
-  const prev = () => setStep((s) => Math.max(1, s - 1));
-
   const onPick = (file?: File | null) => {
     if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("Selecione um arquivo de imagem.");
+      return;
+    }
+    if (file.size > 2_000_000) {
+      setError("A imagem deve ter menos de 2 MB.");
+      return;
+    }
     const reader = new FileReader();
-    reader.onload = () => setPhoto(String(reader.result));
+    reader.onload = () => {
+      const data = String(reader.result);
+      const parsed = photoSchema.safeParse(data);
+      if (!parsed.success) {
+        setError(parsed.error.issues[0]?.message ?? "Imagem inválida.");
+        return;
+      }
+      setError(null);
+      setPhoto(data);
+    };
     reader.readAsDataURL(file);
   };
 
@@ -97,15 +200,26 @@ export function OnboardingDialog({ onFinish, onGoToProfile, onExit }: Props) {
                 Por favor, digite seu nome e sua ocupação
               </p>
               <div className="mt-6 space-y-4 text-left">
-                <Field label="Seu nome" value={name} onChange={setName} autoFocus />
+                <Field
+                  label="Seu nome"
+                  value={name}
+                  onChange={(v) => {
+                    setError(null);
+                    setName(v.slice(0, 80));
+                  }}
+                  autoFocus
+                />
                 <Field
                   label="Cargo ou ocupação"
                   value={occupation}
-                  onChange={setOccupation}
+                  onChange={(v) => {
+                    setError(null);
+                    setOccupation(v.slice(0, 60));
+                  }}
                   placeholder="Ex.: Analista de marketing"
                 />
               </div>
-              <Nav onPrev={prev} onNext={next} disabled={!name.trim()} />
+              <Nav onPrev={prev} onNext={next} error={error} />
             </>
           )}
 
@@ -142,13 +256,13 @@ export function OnboardingDialog({ onFinish, onGoToProfile, onExit }: Props) {
                 <input
                   ref={fileRef}
                   type="file"
-                  accept="image/*"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
                   className="hidden"
                   onChange={(e) => onPick(e.target.files?.[0])}
                 />
                 <p className="mt-3 text-sm text-ink-soft">Clique para enviar uma imagem</p>
               </div>
-              <Nav onPrev={prev} onNext={next} />
+              <Nav onPrev={prev} onNext={next} error={error} />
             </>
           )}
 
@@ -163,13 +277,16 @@ export function OnboardingDialog({ onFinish, onGoToProfile, onExit }: Props) {
                 <Field
                   label="Nome de usuário"
                   value={username}
-                  onChange={(v) => setUsername(v.toLowerCase().replace(/\s+/g, "-"))}
+                  onChange={(v) => {
+                    setError(null);
+                    setUsername(slugify(v).slice(0, 40));
+                  }}
                 />
                 <p className="mt-2 break-all text-xs text-ink-soft">
                   Seu endereço de perfil: https://candidatu.com.br/perfil/{username || "seu-usuario"}
                 </p>
               </div>
-              <Nav onPrev={prev} onNext={next} />
+              <Nav onPrev={prev} onNext={next} error={error} />
             </>
           )}
 
@@ -187,7 +304,7 @@ export function OnboardingDialog({ onFinish, onGoToProfile, onExit }: Props) {
                 </a>{" "}
                 da Candidatu
               </p>
-              <Nav onPrev={prev} onNext={next} nextLabel="Concordo" />
+              <Nav onPrev={prev} onNext={next} nextLabel="Concordo" error={error} />
             </>
           )}
 
@@ -195,14 +312,15 @@ export function OnboardingDialog({ onFinish, onGoToProfile, onExit }: Props) {
             <>
               <h3 className="font-display text-xl font-bold text-ink">Prontinho!</h3>
               <p className="mx-auto mt-2 max-w-sm text-sm text-ink-soft">
-                Você pode terminar de configurar o seu <strong>Perfil</strong> agora. É{" "}
-                <strong>altamente recomendado</strong> que você o faça, pois é através dele que
-                recrutadores terão acesso ao seu histórico profissional em uma eventual candidatura.
+                Cadastro validado e salvo na sua conta: <strong>{name.trim()}</strong>
+                {occupation.trim() ? ` · ${occupation.trim()}` : ""} · @{username.trim()}. Você pode
+                terminar de configurar o seu <strong>Perfil</strong> agora — é através dele que
+                recrutadores acessam seu histórico profissional.
               </p>
               <button
                 type="button"
                 onClick={() => {
-                  persist();
+                  complete();
                   onGoToProfile();
                 }}
                 className="mx-auto mt-6 inline-flex items-center gap-2 font-semibold text-brand transition hover:gap-3"
@@ -249,21 +367,26 @@ function Nav({
   onPrev,
   onNext,
   nextLabel = "Próximo",
-  disabled,
+  error,
 }: {
   onPrev: () => void;
   onNext: () => void;
   nextLabel?: string;
-  disabled?: boolean | undefined;
+  error?: string | null;
 }) {
   return (
-    <div className="mt-8 flex items-center justify-center gap-6">
-      <button type="button" onClick={onPrev} className="text-sm font-semibold text-brand">
-        Anterior
-      </button>
-      <PrimaryButton onClick={onNext} disabled={disabled}>
-        {nextLabel}
-      </PrimaryButton>
+    <div className="mt-6">
+      {error && (
+        <p role="alert" className="mb-3 text-sm font-semibold text-destructive">
+          {error}
+        </p>
+      )}
+      <div className="flex items-center justify-center gap-6">
+        <button type="button" onClick={onPrev} className="text-sm font-semibold text-brand">
+          Anterior
+        </button>
+        <PrimaryButton onClick={onNext}>{nextLabel}</PrimaryButton>
+      </div>
     </div>
   );
 }

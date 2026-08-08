@@ -276,6 +276,9 @@ export function AppShell({
                 )}
                 <div>
                   <p className="font-display text-base font-semibold text-ink">{account.name}</p>
+                  {account.occupation && (
+                    <p className="text-xs text-ink-soft">{account.occupation}</p>
+                  )}
                   <button
                     type="button"
                     onClick={() => go("conta")}

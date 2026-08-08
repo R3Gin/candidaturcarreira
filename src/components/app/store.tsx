@@ -114,6 +114,10 @@ export type Account = {
   email: string;
   phone: string;
   photo: string | null;
+  occupation?: string;
+  username?: string;
+  termsAcceptedAt?: string | null;
+  onboardedAt?: string | null;
 };
 
 export const jobPool: Job[] = [
@@ -338,6 +342,10 @@ const defaultAccount: Account = {
   email: "eduardo.marcelo@email.com",
   phone: "(47) 99123-4567",
   photo: null,
+  occupation: "",
+  username: "",
+  termsAcceptedAt: null,
+  onboardedAt: null,
 };
 
 export function companyFromJob(job: Job): Company {
