@@ -18,7 +18,7 @@ export function Pipeline() {
   const current = selected ? candidates.find((c) => c.id === selected.id) ?? null : null;
 
   const drop = (stage: Stage) => {
-    if (dragging) moveStage(dragging, stage);
+    if (dragging && canMove) moveStage(dragging, stage);
     setDragging(null);
   };
 
