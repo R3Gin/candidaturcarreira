@@ -18,7 +18,9 @@ const empty = {
 };
 
 export function Vagas({ onOpenPipeline }: { onOpenPipeline: () => void }) {
-  const { vacancies, candidates, addVacancy, setVacancyStatus, removeVacancy } = useCompanyStore();
+  const { vacancies, candidates, addVacancy, setVacancyStatus, removeVacancy, can } =
+    useCompanyStore();
+  const manage = can("gerenciar_vagas");
   const [form, setForm] = useState(empty);
   const [open, setOpen] = useState(false);
 
