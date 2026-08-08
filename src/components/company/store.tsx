@@ -598,6 +598,12 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
       scheduleInterview: (i) => {
         setState((s) => ({ ...s, interviews: [...s.interviews, { ...i, id: uid() }] }));
         log("Entrevista agendada", `${i.kind} em ${i.date} às ${i.time}.`);
+        const name = state.candidates.find((c) => c.id === i.candidateId)?.name ?? "Candidato";
+        notify(
+          "entrevista",
+          `Entrevista agendada com ${name}`,
+          `${i.kind} em ${new Date(`${i.date}T00:00:00`).toLocaleDateString("pt-BR")} às ${i.time} com ${i.interviewer}.`,
+        );
       },
       cancelInterview: (id) =>
         setState((s) => ({ ...s, interviews: s.interviews.filter((i) => i.id !== id) })),
