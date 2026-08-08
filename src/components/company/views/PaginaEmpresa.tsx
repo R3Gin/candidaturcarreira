@@ -1,0 +1,357 @@
+import { useState } from "react";
+import {
+  BookOpen,
+  Building2,
+  Check,
+  Gift,
+  HeartHandshake,
+  Sparkles,
+  Users,
+} from "lucide-react";
+import { toast } from "sonner";
+import { useCompanyStore, type CompanyProfile } from "../store";
+
+type Tab = "historia" | "cultura" | "beneficios" | "rh";
+
+const tabs: { id: Tab; label: string; icon: typeof BookOpen }[] = [
+  { id: "historia", label: "História", icon: BookOpen },
+  { id: "cultura", label: "Cultura", icon: Sparkles },
+  { id: "beneficios", label: "Benefícios", icon: Gift },
+  { id: "rh", label: "Informações de RH", icon: HeartHandshake },
+];
+
+function Field({
+  label,
+  hint,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-ink-soft">
+        {label}
+      </span>
+      {children}
+      {hint && <span className="mt-1 block text-xs text-ink-soft">{hint}</span>}
+    </label>
+  );
+}
+
+const inputClass =
+  "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-ink outline-none focus:border-brand-cyan";
+
+function List({ items, icon }: { items: string[]; icon?: boolean }) {
+  return (
+    <ul className="mt-2 space-y-1.5 text-sm text-ink">
+      {items.map((item) => (
+        <li key={item} className="flex gap-2">
+          {icon ? (
+            <Check className="mt-0.5 h-4 w-4 shrink-0 text-brand-cyan" strokeWidth={2.2} />
+          ) : (
+            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-cyan" />
+          )}
+          <span>{item}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export function PaginaEmpresa() {
+  const { profile, updateProfile, can } = useCompanyStore();
+  const canEdit = can("editar_marca");
+  const [tab, setTab] = useState<Tab>("historia");
+  const [form, setForm] = useState<CompanyProfile>(profile);
+
+  const set = <K extends keyof CompanyProfile>(key: K, value: CompanyProfile[K]) =>
+    setForm((f) => ({ ...f, [key]: value }));
+
+  const lines = (v: string) =>
+    v
+      .split("\n")
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+  const save = () => {
+    updateProfile(form);
+    toast.success("Página da empresa atualizada", {
+      description: "As pessoas candidatas já veem essas informações na vaga.",
+    });
+  };
+
+  return (
+    <div className="space-y-5">
+      <header>
+        <p className="eyebrow">Página da empresa</p>
+        <h1 className="mt-2 font-display text-2xl font-bold text-ink sm:text-3xl">
+          História, cultura, benefícios e RH
+        </h1>
+        <p className="mt-2 max-w-2xl text-sm text-ink-soft">
+          Tudo que você preencher aqui aparece junto da vaga para detalhar melhor a candidatura —
+          quanto mais completo, maior a taxa de resposta.
+        </p>
+      </header>
+
+      <div className="flex flex-wrap gap-2">
+        {tabs.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => setTab(t.id)}
+            className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition ${
+              tab === t.id
+                ? "border-transparent bg-brand text-primary-foreground"
+                : "border-border bg-card text-ink-soft hover:text-ink"
+            }`}
+          >
+            <t.icon className="h-4 w-4" strokeWidth={1.9} />
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-[1.15fr_1fr]">
+        <section className="rounded-2xl border border-border bg-card p-5 shadow-card">
+          {tab === "historia" && (
+            <div className="grid gap-3">
+              <Field label="Ano de fundação">
+                <input
+                  value={form.founded}
+                  onChange={(e) => set("founded", e.target.value)}
+                  className={inputClass}
+                />
+              </Field>
+              <Field label="Nossa história">
+                <textarea
+                  rows={6}
+                  value={form.history}
+                  onChange={(e) => set("history", e.target.value)}
+                  className={inputClass}
+                />
+              </Field>
+              <Field label="Marcos da empresa" hint="Um por linha.">
+                <textarea
+                  rows={5}
+                  value={form.milestones.join("\n")}
+                  onChange={(e) => set("milestones", lines(e.target.value))}
+                  className={inputClass}
+                />
+              </Field>
+            </div>
+          )}
+
+          {tab === "cultura" && (
+            <div className="grid gap-3">
+              <Field label="Como é trabalhar aqui">
+                <textarea
+                  rows={6}
+                  value={form.cultureText}
+                  onChange={(e) => set("cultureText", e.target.value)}
+                  className={inputClass}
+                />
+              </Field>
+              <Field label="Valores" hint="Um por linha.">
+                <textarea
+                  rows={5}
+                  value={form.values.join("\n")}
+                  onChange={(e) => set("values", lines(e.target.value))}
+                  className={inputClass}
+                />
+              </Field>
+              <Field label="Modelo de trabalho">
+                <input
+                  value={form.workModel}
+                  onChange={(e) => set("workModel", e.target.value)}
+                  className={inputClass}
+                />
+              </Field>
+              <Field label="Diversidade e inclusão">
+                <textarea
+                  rows={4}
+                  value={form.diversity}
+                  onChange={(e) => set("diversity", e.target.value)}
+                  className={inputClass}
+                />
+              </Field>
+            </div>
+          )}
+
+          {tab === "beneficios" && (
+            <div className="grid gap-3">
+              <Field label="Benefícios em destaque" hint="Separados por vírgula.">
+                <input
+                  value={form.benefits.join(", ")}
+                  onChange={(e) =>
+                    set(
+                      "benefits",
+                      e.target.value
+                        .split(",")
+                        .map((s) => s.trim())
+                        .filter(Boolean),
+                    )
+                  }
+                  className={inputClass}
+                />
+              </Field>
+              <Field label="Detalhamento dos benefícios">
+                <textarea
+                  rows={7}
+                  value={form.benefitsDetail}
+                  onChange={(e) => set("benefitsDetail", e.target.value)}
+                  className={inputClass}
+                />
+              </Field>
+            </div>
+          )}
+
+          {tab === "rh" && (
+            <div className="grid gap-3">
+              <Field label="Responsável de RH">
+                <input
+                  value={form.hrContact}
+                  onChange={(e) => set("hrContact", e.target.value)}
+                  className={inputClass}
+                />
+              </Field>
+              <Field label="E-mail de contato">
+                <input
+                  value={form.hrEmail}
+                  onChange={(e) => set("hrEmail", e.target.value)}
+                  className={inputClass}
+                />
+              </Field>
+              <Field label="Prazo de resposta">
+                <input
+                  value={form.responseTime}
+                  onChange={(e) => set("responseTime", e.target.value)}
+                  className={inputClass}
+                />
+              </Field>
+              <Field label="Etapas do processo seletivo" hint="Uma por linha, na ordem.">
+                <textarea
+                  rows={6}
+                  value={form.processSteps.join("\n")}
+                  onChange={(e) => set("processSteps", lines(e.target.value))}
+                  className={inputClass}
+                />
+              </Field>
+            </div>
+          )}
+
+          {canEdit ? (
+            <button
+              type="button"
+              onClick={save}
+              className="mt-4 rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-primary-foreground"
+            >
+              Salvar página
+            </button>
+          ) : (
+            <p className="mt-4 text-xs font-semibold text-ink-soft">
+              Somente administradores e RH podem editar a página da empresa.
+            </p>
+          )}
+        </section>
+
+        <aside className="space-y-4">
+          <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-card">
+            <div className="bg-brand px-5 py-4 text-primary-foreground">
+              <p className="text-xs font-bold uppercase tracking-wide opacity-80">
+                Prévia para candidatos
+              </p>
+              <h2 className="mt-1 font-display text-lg font-semibold">{form.name}</h2>
+              <p className="text-xs opacity-90">
+                {form.segment} · {form.size} · desde {form.founded}
+              </p>
+            </div>
+            <div className="space-y-4 p-5">
+              <div>
+                <h3 className="flex items-center gap-2 font-display text-sm font-semibold text-ink">
+                  <BookOpen className="h-4 w-4 text-brand-cyan" strokeWidth={1.9} /> Nossa história
+                </h3>
+                <p className="mt-1 text-sm text-ink-soft">{form.history}</p>
+                <List items={form.milestones} />
+              </div>
+              <div>
+                <h3 className="flex items-center gap-2 font-display text-sm font-semibold text-ink">
+                  <Sparkles className="h-4 w-4 text-brand-cyan" strokeWidth={1.9} /> Cultura
+                </h3>
+                <p className="mt-1 text-sm text-ink-soft">{form.cultureText}</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {form.values.map((v) => (
+                    <span
+                      key={v}
+                      className="rounded-full bg-secondary px-3 py-1 text-xs font-semibold text-ink-soft"
+                    >
+                      {v}
+                    </span>
+                  ))}
+                </div>
+                <p className="mt-2 text-xs text-ink-soft">
+                  <Users className="mr-1 inline h-3.5 w-3.5" /> {form.workModel}
+                </p>
+                <p className="mt-1 text-xs text-ink-soft">{form.diversity}</p>
+              </div>
+              <div>
+                <h3 className="flex items-center gap-2 font-display text-sm font-semibold text-ink">
+                  <Gift className="h-4 w-4 text-brand-cyan" strokeWidth={1.9} /> Benefícios
+                </h3>
+                <List items={form.benefits} icon />
+                <p className="mt-2 text-sm text-ink-soft">{form.benefitsDetail}</p>
+              </div>
+              <div>
+                <h3 className="flex items-center gap-2 font-display text-sm font-semibold text-ink">
+                  <HeartHandshake className="h-4 w-4 text-brand-cyan" strokeWidth={1.9} />{" "}
+                  Informações de RH
+                </h3>
+                <p className="mt-1 text-sm text-ink">{form.hrContact}</p>
+                <p className="text-sm text-ink-soft">{form.hrEmail}</p>
+                <p className="text-sm text-ink-soft">{form.responseTime}</p>
+                <ol className="mt-2 space-y-1.5 text-sm text-ink">
+                  {form.processSteps.map((step, i) => (
+                    <li key={step} className="flex gap-2">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-bold text-ink-soft">
+                        {i + 1}
+                      </span>
+                      {step}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-border bg-card p-5 shadow-card">
+            <h2 className="flex items-center gap-2 font-display text-sm font-semibold text-ink">
+              <Building2 className="h-4 w-4 text-brand-cyan" strokeWidth={1.9} /> Completude da
+              página
+            </h2>
+            <ul className="mt-3 space-y-1.5 text-sm">
+              {(
+                [
+                  ["História", form.history.length > 80],
+                  ["Marcos", form.milestones.length >= 3],
+                  ["Cultura e valores", form.values.length >= 3],
+                  ["Benefícios detalhados", form.benefitsDetail.length > 60],
+                  ["Etapas do processo", form.processSteps.length >= 3],
+                  ["Contato de RH", form.hrEmail.includes("@")],
+                ] as const
+              ).map(([label, ok]) => (
+                <li key={label} className="flex items-center gap-2 text-ink-soft">
+                  <Check
+                    className={`h-4 w-4 ${ok ? "text-brand-cyan" : "text-border"}`}
+                    strokeWidth={2.2}
+                  />
+                  {label}
+                </li>
+              ))}
+            </ul>
+          </section>
+        </aside>
+      </div>
+    </div>
+  );
+}
