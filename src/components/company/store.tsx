@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { toast } from "sonner";
+import { autoStageMessage } from "@/lib/chat";
 
 export type NotificationKind = "etapa" | "aprovado" | "reprovado" | "entrevista";
 
@@ -584,12 +585,14 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
       const role = state.vacancies.find((v) => v.id === before?.vacancyId)?.role ?? "vaga";
       if (stage === "Contratado") {
         notify("aprovado", `${name} foi aprovada(o)! 🎉`, `Contratação confirmada para ${role}.`);
+        autoStageMessage(candidateId, "aprovado", { stage, role });
       } else if (previous !== stage) {
         notify(
           "etapa",
           `${name} avançou para ${stage}`,
           `Processo de ${role}${previous ? ` · saiu de ${previous}` : ""}.`,
         );
+        autoStageMessage(candidateId, "etapa", { stage, role });
       }
     };
 
