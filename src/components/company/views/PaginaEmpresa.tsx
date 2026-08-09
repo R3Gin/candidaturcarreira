@@ -758,6 +758,8 @@ export function PaginaEmpresa() {
                   ["Benefícios detalhados", form.benefitsDetail.length > 60],
                   ["Etapas do processo", form.processSteps.length >= 3],
                   ["Contato de RH", form.hrEmail.includes("@")],
+                  ["Logo da empresa", form.logoUrl.length > 0],
+                  ["Documentos e políticas", profile.documents.length >= 1],
                 ] as const
               ).map(([label, ok]) => (
                 <li key={label} className="flex items-center gap-2 text-ink-soft">
