@@ -14,6 +14,7 @@ import {
   Sparkles,
   Users,
   Video,
+  MessageSquare,
   X,
   XCircle,
 } from "lucide-react";
@@ -130,6 +131,7 @@ export type CompanyView =
   | "reunioes"
   | "marca"
   | "pagina"
+  | "modelos"
   | "equipe";
 
 const menu: { label: string; icon: typeof Users; view: CompanyView; permission: Permission }[] = [
@@ -146,6 +148,12 @@ const menu: { label: string; icon: typeof Users; view: CompanyView; permission: 
   { label: "Reuniões", icon: Video, view: "reunioes", permission: "ver_reunioes" },
   { label: "Marca empregadora", icon: Building2, view: "marca", permission: "ver_marca" },
   { label: "Página da empresa", icon: Sparkles, view: "pagina", permission: "ver_marca" },
+  {
+    label: "Mensagens automáticas",
+    icon: MessageSquare,
+    view: "modelos",
+    permission: "ver_modelos",
+  },
   { label: "Equipe e permissões", icon: ShieldCheck, view: "equipe", permission: "ver_equipe" },
 ];
 
