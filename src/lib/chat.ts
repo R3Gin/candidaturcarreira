@@ -30,7 +30,15 @@ export type StageEvent = {
   stage: string;
   status: string;
   by: string;
-  kind: "abertura" | "etapa" | "aprovado" | "reprovado" | "entrevista" | "reuniao";
+  kind:
+    | "abertura"
+    | "etapa"
+    | "aprovado"
+    | "reprovado"
+    | "entrevista"
+    | "reuniao"
+    | "presenca"
+    | "cancelamento";
   detail?: string;
 };
 
@@ -256,10 +264,40 @@ export function closeThread(threadId: string) {
   update((all) => all.map((t) => (t.id === threadId ? { ...t, status: "Encerrado" } : t)));
 }
 
+/** Registra um evento no histórico de etapas do chat (sem mensagem nova). */
+export function recordStageEvent(
+  candidateId: string,
+  event: { kind: StageEvent["kind"]; by: string; detail: string; stage?: string },
+) {
+  const thread = findThreadByCandidate(candidateId);
+  if (!thread) return;
+  update((all) =>
+    all.map((t) =>
+      t.id === thread.id
+        ? {
+            ...t,
+            stageHistory: [
+              ...(t.stageHistory ?? []),
+              {
+                id: uid(),
+                at: now(),
+                stage: event.stage ?? t.stage,
+                status: t.status,
+                by: event.by,
+                kind: event.kind,
+                detail: event.detail,
+              },
+            ],
+          }
+        : t,
+    ),
+  );
+}
+
 /** Mensagens automáticas de andamento do processo. */
 export function autoStageMessage(
   candidateId: string,
-  kind: "etapa" | "aprovado" | "reprovado" | "entrevista" | "reuniao",
+  kind: "etapa" | "aprovado" | "reprovado" | "entrevista" | "reuniao" | "cancelamento",
   data: { stage?: string; role?: string; detail?: string; author?: string },
 ) {
   const thread = findThreadByCandidate(candidateId);
@@ -273,6 +311,8 @@ export function autoStageMessage(
     text = `Parabéns, ${first}! 🎉 Você foi aprovada(o) no processo de ${data.role ?? thread.role}. Vamos alinhar os detalhes da contratação por este chat.`;
   } else if (kind === "reprovado") {
     text = `${first}, agradecemos muito sua participação no processo de ${data.role ?? thread.role}. Nesta etapa (${stage}) seguimos com outro perfil, mas seu currículo fica no nosso banco de talentos.`;
+  } else if (kind === "cancelamento") {
+    text = `${first}, houve uma alteração na sua reunião. ${data.detail ?? ""}`.trim();
   } else if (kind === "reuniao") {
     text = `${first}, você foi convidada(o) para uma reunião do processo de ${data.role ?? thread.role}. ${data.detail ?? ""} Confirme sua presença por aqui.`.trim();
   } else {
