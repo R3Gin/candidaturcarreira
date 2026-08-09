@@ -156,6 +156,17 @@ export function acceptCandidate(input: {
     autoEnabled: true,
     unreadForCompany: 0,
     unreadForCandidate: 1,
+    stageHistory: [
+      {
+        id: uid(),
+        at: now(),
+        stage: input.stage,
+        status: "Em andamento",
+        by: input.responsible ?? "Equipe de recrutamento",
+        kind: "abertura",
+        detail: "Currículo aceito e chat aberto com o candidato.",
+      },
+    ],
     messages: [
       {
         id: uid(),
