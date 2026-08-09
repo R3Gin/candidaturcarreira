@@ -1,24 +1,54 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   BookOpen,
   Building2,
   Check,
+  Download,
+  FileText,
   Gift,
   HeartHandshake,
   Sparkles,
+  Trash2,
+  Upload,
+  User,
   Users,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useCompanyStore, type CompanyProfile } from "../store";
+import { useCompanyStore, type CompanyDoc, type CompanyProfile } from "../store";
 
-type Tab = "historia" | "cultura" | "beneficios" | "rh";
+type Tab = "perfil" | "historia" | "cultura" | "beneficios" | "rh" | "documentos";
 
 const tabs: { id: Tab; label: string; icon: typeof BookOpen }[] = [
+  { id: "perfil", label: "Perfil e dados", icon: User },
   { id: "historia", label: "História", icon: BookOpen },
   { id: "cultura", label: "Cultura", icon: Sparkles },
   { id: "beneficios", label: "Benefícios", icon: Gift },
   { id: "rh", label: "Informações de RH", icon: HeartHandshake },
+  { id: "documentos", label: "Documentos e políticas", icon: FileText },
 ];
+
+const docCategories: CompanyDoc["category"][] = [
+  "Política de RH",
+  "Código de conduta",
+  "Benefícios",
+  "Processo seletivo",
+  "Outros",
+];
+
+const formatSize = (bytes: number) =>
+  bytes >= 1024 * 1024
+    ? `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+    : `${Math.max(1, Math.round(bytes / 1024))} KB`;
+
+function readAsDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error("Falha ao ler o arquivo"));
+    reader.readAsDataURL(file);
+  });
+}
+
 
 function Field({
   label,
@@ -61,10 +91,18 @@ function List({ items, icon }: { items: string[]; icon?: boolean }) {
 }
 
 export function PaginaEmpresa() {
-  const { profile, updateProfile, can } = useCompanyStore();
+  const { profile, updateProfile, addDocument, removeDocument, can } = useCompanyStore();
   const canEdit = can("editar_marca");
-  const [tab, setTab] = useState<Tab>("historia");
+  const [tab, setTab] = useState<Tab>("perfil");
   const [form, setForm] = useState<CompanyProfile>(profile);
+  const [docDraft, setDocDraft] = useState<{
+    name: string;
+    category: CompanyDoc["category"];
+    description: string;
+  }>({ name: "", category: "Política de RH", description: "" });
+  const docInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   const set = <K extends keyof CompanyProfile>(key: K, value: CompanyProfile[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
@@ -75,12 +113,42 @@ export function PaginaEmpresa() {
       .map((s) => s.trim())
       .filter(Boolean);
 
+  const uploadImage = async (file: File, key: "logoUrl" | "hrPhotoUrl") => {
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Imagem muito grande", { description: "Envie um arquivo de até 2 MB." });
+      return;
+    }
+    const url = await readAsDataUrl(file);
+    set(key, url);
+    updateProfile({ [key]: url } as Partial<CompanyProfile>);
+    toast.success("Imagem atualizada");
+  };
+
+  const uploadDoc = async (file: File) => {
+    if (file.size > 4 * 1024 * 1024) {
+      toast.error("Arquivo muito grande", { description: "Envie um documento de até 4 MB." });
+      return;
+    }
+    const url = await readAsDataUrl(file);
+    addDocument({
+      name: docDraft.name.trim() || file.name,
+      category: docDraft.category,
+      description: docDraft.description.trim(),
+      fileName: file.name,
+      size: file.size,
+      url,
+    });
+    setDocDraft({ name: "", category: "Política de RH", description: "" });
+    toast.success("Documento disponível para download");
+  };
+
   const save = () => {
     updateProfile(form);
     toast.success("Página da empresa atualizada", {
       description: "As pessoas candidatas já veem essas informações na vaga.",
     });
   };
+
 
   return (
     <div className="space-y-5">
@@ -115,6 +183,174 @@ export function PaginaEmpresa() {
 
       <div className="grid gap-4 lg:grid-cols-[1.15fr_1fr]">
         <section className="rounded-2xl border border-border bg-card p-5 shadow-card">
+          {tab === "perfil" && (
+            <div className="grid gap-4">
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-3">
+                  {form.logoUrl ? (
+                    <img
+                      src={form.logoUrl}
+                      alt={`Logo da ${form.name}`}
+                      className="h-16 w-16 rounded-2xl border border-border object-cover"
+                    />
+                  ) : (
+                    <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary">
+                      <Building2 className="h-7 w-7 text-brand-cyan" strokeWidth={1.9} />
+                    </span>
+                  )}
+                  <div>
+                    <p className="text-sm font-semibold text-ink">Logo da empresa</p>
+                    <input
+                      ref={logoInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) void uploadImage(file, "logoUrl");
+                        e.target.value = "";
+                      }}
+                    />
+                    {canEdit && (
+                      <button
+                        type="button"
+                        onClick={() => logoInputRef.current?.click()}
+                        className="mt-1 inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-ink"
+                      >
+                        <Upload className="h-3.5 w-3.5" strokeWidth={2} /> Enviar logo
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  {form.hrPhotoUrl ? (
+                    <img
+                      src={form.hrPhotoUrl}
+                      alt={form.hrContact}
+                      className="h-16 w-16 rounded-full border border-border object-cover"
+                    />
+                  ) : (
+                    <span className="flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
+                      <User className="h-7 w-7 text-brand-cyan" strokeWidth={1.9} />
+                    </span>
+                  )}
+                  <div>
+                    <p className="text-sm font-semibold text-ink">Foto do responsável</p>
+                    <input
+                      ref={photoInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) void uploadImage(file, "hrPhotoUrl");
+                        e.target.value = "";
+                      }}
+                    />
+                    {canEdit && (
+                      <button
+                        type="button"
+                        onClick={() => photoInputRef.current?.click()}
+                        className="mt-1 inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-ink"
+                      >
+                        <Upload className="h-3.5 w-3.5" strokeWidth={2} /> Enviar foto
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="Nome da empresa">
+                  <input
+                    value={form.name}
+                    onChange={(e) => set("name", e.target.value)}
+                    className={inputClass}
+                  />
+                </Field>
+                <Field label="Segmento">
+                  <input
+                    value={form.segment}
+                    onChange={(e) => set("segment", e.target.value)}
+                    className={inputClass}
+                  />
+                </Field>
+                <Field label="Tamanho do time">
+                  <input
+                    value={form.size}
+                    onChange={(e) => set("size", e.target.value)}
+                    className={inputClass}
+                  />
+                </Field>
+                <Field label="Cidade">
+                  <input
+                    value={form.city}
+                    onChange={(e) => set("city", e.target.value)}
+                    className={inputClass}
+                  />
+                </Field>
+                <Field label="Site">
+                  <input
+                    value={form.site}
+                    onChange={(e) => set("site", e.target.value)}
+                    className={inputClass}
+                  />
+                </Field>
+                <Field label="LinkedIn">
+                  <input
+                    value={form.hrLinkedin}
+                    onChange={(e) => set("hrLinkedin", e.target.value)}
+                    className={inputClass}
+                  />
+                </Field>
+              </div>
+
+              <Field label="Sobre a empresa">
+                <textarea
+                  rows={4}
+                  value={form.about}
+                  onChange={(e) => set("about", e.target.value)}
+                  className={inputClass}
+                />
+              </Field>
+
+              <p className="text-xs font-bold uppercase tracking-wide text-ink-soft">
+                Dados pessoais do responsável
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="Nome completo">
+                  <input
+                    value={form.hrContact}
+                    onChange={(e) => set("hrContact", e.target.value)}
+                    className={inputClass}
+                  />
+                </Field>
+                <Field label="Cargo">
+                  <input
+                    value={form.hrRole}
+                    onChange={(e) => set("hrRole", e.target.value)}
+                    className={inputClass}
+                  />
+                </Field>
+                <Field label="E-mail">
+                  <input
+                    value={form.hrEmail}
+                    onChange={(e) => set("hrEmail", e.target.value)}
+                    className={inputClass}
+                  />
+                </Field>
+                <Field label="Telefone">
+                  <input
+                    value={form.hrPhone}
+                    onChange={(e) => set("hrPhone", e.target.value)}
+                    className={inputClass}
+                  />
+                </Field>
+              </div>
+            </div>
+          )}
+
           {tab === "historia" && (
             <div className="grid gap-3">
               <Field label="Ano de fundação">
@@ -241,6 +477,129 @@ export function PaginaEmpresa() {
             </div>
           )}
 
+          {tab === "documentos" && (
+            <div className="grid gap-4">
+              <div>
+                <h2 className="font-display text-base font-semibold text-ink">
+                  Documentos e políticas de RH
+                </h2>
+                <p className="mt-1 text-sm text-ink-soft">
+                  Anexe PDFs e arquivos que as pessoas candidatas podem baixar direto na página da
+                  empresa: políticas internas, código de conduta, guia de benefícios e detalhes do
+                  processo seletivo.
+                </p>
+              </div>
+
+              {canEdit && (
+                <div className="grid gap-3 rounded-xl border border-dashed border-border p-4">
+                  <Field label="Nome do documento">
+                    <input
+                      value={docDraft.name}
+                      onChange={(e) => setDocDraft((d) => ({ ...d, name: e.target.value }))}
+                      placeholder="Política de home office"
+                      className={inputClass}
+                    />
+                  </Field>
+                  <Field label="Categoria">
+                    <select
+                      value={docDraft.category}
+                      onChange={(e) =>
+                        setDocDraft((d) => ({
+                          ...d,
+                          category: e.target.value as CompanyDoc["category"],
+                        }))
+                      }
+                      className={inputClass}
+                    >
+                      {docCategories.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field label="Descrição" hint="Explique o que a pessoa vai encontrar no arquivo.">
+                    <textarea
+                      rows={3}
+                      value={docDraft.description}
+                      onChange={(e) => setDocDraft((d) => ({ ...d, description: e.target.value }))}
+                      className={inputClass}
+                    />
+                  </Field>
+                  <input
+                    ref={docInputRef}
+                    type="file"
+                    accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) void uploadDoc(file);
+                      e.target.value = "";
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => docInputRef.current?.click()}
+                    className="inline-flex w-fit items-center gap-2 rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-primary-foreground"
+                  >
+                    <Upload className="h-4 w-4" strokeWidth={2} /> Anexar arquivo
+                  </button>
+                </div>
+              )}
+
+              <ul className="grid gap-3">
+                {profile.documents.length === 0 && (
+                  <li className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-ink-soft">
+                    Nenhum documento anexado ainda.
+                  </li>
+                )}
+                {profile.documents.map((doc) => (
+                  <li
+                    key={doc.id}
+                    className="flex flex-wrap items-start gap-3 rounded-xl border border-border p-4"
+                  >
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary">
+                      <FileText className="h-5 w-5 text-brand-cyan" strokeWidth={1.9} />
+                    </span>
+                    <div className="min-w-[12rem] flex-1">
+                      <p className="text-sm font-semibold text-ink">{doc.name}</p>
+                      <p className="text-xs text-ink-soft">
+                        {doc.category} · {doc.fileName} · {formatSize(doc.size)} · atualizado em{" "}
+                        {new Date(doc.updatedAt).toLocaleDateString("pt-BR")}
+                      </p>
+                      {doc.description && (
+                        <p className="mt-1 text-sm text-ink-soft">{doc.description}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {doc.url ? (
+                        <a
+                          href={doc.url}
+                          download={doc.fileName}
+                          className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-ink"
+                        >
+                          <Download className="h-3.5 w-3.5" strokeWidth={2} /> Baixar
+                        </a>
+                      ) : (
+                        <span className="text-xs font-semibold text-ink-soft">Exemplo</span>
+                      )}
+                      {canEdit && (
+                        <button
+                          type="button"
+                          onClick={() => removeDocument(doc.id)}
+                          aria-label={`Remover ${doc.name}`}
+                          className="inline-flex items-center rounded-full border border-border p-1.5 text-ink-soft hover:text-coral"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
+                        </button>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {canEdit ? (
             <button
               type="button"
@@ -262,10 +621,21 @@ export function PaginaEmpresa() {
               <p className="text-xs font-bold uppercase tracking-wide opacity-80">
                 Prévia para candidatos
               </p>
-              <h2 className="mt-1 font-display text-lg font-semibold">{form.name}</h2>
-              <p className="text-xs opacity-90">
-                {form.segment} · {form.size} · desde {form.founded}
-              </p>
+              <div className="mt-1 flex items-center gap-3">
+                {form.logoUrl && (
+                  <img
+                    src={form.logoUrl}
+                    alt={`Logo da ${form.name}`}
+                    className="h-10 w-10 rounded-xl border border-white/30 object-cover"
+                  />
+                )}
+                <div>
+                  <h2 className="font-display text-lg font-semibold">{form.name}</h2>
+                  <p className="text-xs opacity-90">
+                    {form.segment} · {form.size} · desde {form.founded}
+                  </p>
+                </div>
+              </div>
             </div>
             <div className="space-y-4 p-5">
               <div>
@@ -307,8 +677,21 @@ export function PaginaEmpresa() {
                   <HeartHandshake className="h-4 w-4 text-brand-cyan" strokeWidth={1.9} />{" "}
                   Informações de RH
                 </h3>
-                <p className="mt-1 text-sm text-ink">{form.hrContact}</p>
-                <p className="text-sm text-ink-soft">{form.hrEmail}</p>
+                <div className="mt-1 flex items-center gap-3">
+                  {form.hrPhotoUrl && (
+                    <img
+                      src={form.hrPhotoUrl}
+                      alt={form.hrContact}
+                      className="h-10 w-10 rounded-full border border-border object-cover"
+                    />
+                  )}
+                  <div>
+                    <p className="text-sm text-ink">{form.hrContact}</p>
+                    <p className="text-xs text-ink-soft">{form.hrRole}</p>
+                  </div>
+                </div>
+                <p className="mt-1 text-sm text-ink-soft">{form.hrEmail}</p>
+                <p className="text-sm text-ink-soft">{form.hrPhone}</p>
                 <p className="text-sm text-ink-soft">{form.responseTime}</p>
                 <ol className="mt-2 space-y-1.5 text-sm text-ink">
                   {form.processSteps.map((step, i) => (
@@ -320,6 +703,43 @@ export function PaginaEmpresa() {
                     </li>
                   ))}
                 </ol>
+              </div>
+              <div>
+                <h3 className="flex items-center gap-2 font-display text-sm font-semibold text-ink">
+                  <FileText className="h-4 w-4 text-brand-cyan" strokeWidth={1.9} /> Documentos para
+                  download
+                </h3>
+                <ul className="mt-2 space-y-2">
+                  {profile.documents.length === 0 && (
+                    <li className="text-sm text-ink-soft">Nenhum documento publicado.</li>
+                  )}
+                  {profile.documents.map((doc) => (
+                    <li
+                      key={doc.id}
+                      className="flex items-center justify-between gap-2 rounded-xl border border-border px-3 py-2"
+                    >
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-semibold text-ink">
+                          {doc.name}
+                        </span>
+                        <span className="block text-xs text-ink-soft">
+                          {doc.category} · {formatSize(doc.size)}
+                        </span>
+                      </span>
+                      {doc.url ? (
+                        <a
+                          href={doc.url}
+                          download={doc.fileName}
+                          className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-brand px-3 py-1.5 text-xs font-semibold text-primary-foreground"
+                        >
+                          <Download className="h-3.5 w-3.5" strokeWidth={2} /> Baixar
+                        </a>
+                      ) : (
+                        <span className="shrink-0 text-xs text-ink-soft">Exemplo</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           </section>
@@ -338,6 +758,8 @@ export function PaginaEmpresa() {
                   ["Benefícios detalhados", form.benefitsDetail.length > 60],
                   ["Etapas do processo", form.processSteps.length >= 3],
                   ["Contato de RH", form.hrEmail.includes("@")],
+                  ["Logo da empresa", form.logoUrl.length > 0],
+                  ["Documentos e políticas", profile.documents.length >= 1],
                 ] as const
               ).map(([label, ok]) => (
                 <li key={label} className="flex items-center gap-2 text-ink-soft">
