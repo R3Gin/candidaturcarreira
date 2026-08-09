@@ -20,7 +20,10 @@ const permissionLabels: Record<(typeof permissions)[number], string> = {
   gerenciar_reunioes: "Agendar e editar reuniões",
 
   ver_marca: "Ver marca empregadora",
+  ver_modelos: "Ver modelos de mensagens",
+  editar_modelos: "Editar modelos de mensagens",
   ver_equipe: "Ver equipe",
+
   mover_candidato: "Mover candidatos de etapa",
   reprovar_candidato: "Reprovar com feedback",
   gerenciar_vagas: "Publicar e editar vagas",
