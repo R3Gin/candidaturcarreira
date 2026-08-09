@@ -196,6 +196,7 @@ export function Reunioes() {
                       inicio: toLocalInput(r.inicio),
                       duracaoMin: String(r.duracaoMin),
                       participantes: r.participantes.join(", "),
+                      candidatos: r.candidatos ?? [],
                       link: r.link,
                       status: r.status,
                     });
