@@ -8,6 +8,7 @@ import { EmpresasQueSigo } from "@/components/app/views/EmpresasQueSigo";
 import { Historico } from "@/components/app/views/Historico";
 import { MeuCurriculo } from "@/components/app/views/MeuCurriculo";
 import { MinhaConta } from "@/components/app/views/MinhaConta";
+import { Mensagens } from "@/components/app/views/Mensagens";
 import { MinhasCandidaturas } from "@/components/app/views/MinhasCandidaturas";
 import { PreferenciasVagas } from "@/components/app/views/PreferenciasVagas";
 import { Recomendadas } from "@/components/app/views/Recomendadas";
@@ -130,6 +131,7 @@ function Painel() {
         {view === "conta" && <MinhaConta onSignOut={signOut} />}
         {view === "curriculo" && <MeuCurriculo onGoToJobs={goToJobs} />}
         {view === "candidaturas" && <MinhasCandidaturas onGoToJobs={goToJobs} />}
+        {view === "mensagens" && <Mensagens onGoToJobs={goToJobs} />}
         {view === "recomendadas" && (
           <Recomendadas onGoToJobs={goToJobs} onGoToPreferences={goToPreferences} />
         )}

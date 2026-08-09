@@ -1,6 +1,7 @@
 import { CalendarPlus, CheckCircle2, Star, ThumbsDown, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { CandidateChat } from "./CandidateChat";
 import { brl, initials, stages, useCompanyStore, type Candidate } from "./store";
 
 export function CandidateDrawer({
@@ -143,6 +144,8 @@ export function CandidateDrawer({
           </div>
         </section>
 
+
+        <CandidateChat candidate={candidate} />
 
         <section className="mt-6 rounded-2xl border border-border p-4">
           <h3 className="text-xs font-bold uppercase tracking-wide text-ink-soft">
