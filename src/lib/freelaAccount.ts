@@ -115,10 +115,11 @@ function withProfileName(acc: FreelaAccount): FreelaAccount {
     const raw = window.localStorage.getItem(APP_KEY);
     if (!raw) return acc;
     const parsed = JSON.parse(raw) as { profile?: { name?: string; avatar?: string } };
+    const avatar = parsed.profile?.avatar || acc.avatar;
     return {
       ...acc,
       nome: parsed.profile?.name || acc.nome,
-      avatar: parsed.profile?.avatar || acc.avatar,
+      ...(avatar ? { avatar } : {}),
     };
   } catch {
     return acc;
@@ -211,9 +212,9 @@ export function computeMetrics(acc: FreelaAccount): Metrics {
     distribuicao[k] += 1;
   });
 
-  const level = [...levels].reverse().find((l) => diarias >= l.min) ?? levels[0];
+  const level = [...levels].reverse().find((l) => diarias >= l.min) ?? levels[0]!;
   const idx = levels.findIndex((l) => l.nome === level.nome);
-  const nextLevel = levels[idx + 1] ?? null;
+  const nextLevel: Level | null = levels[idx + 1] ?? null;
   const progresso = nextLevel
     ? Math.min(100, Math.round(((diarias - level.min) / (nextLevel.min - level.min)) * 100))
     : 100;
