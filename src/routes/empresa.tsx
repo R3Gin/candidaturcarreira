@@ -1,7 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import { Loader2 } from "lucide-react";
 
+import { useAuthModal } from "@/components/auth/AuthModal";
 import { CompanyShell, type CompanyView } from "@/components/company/CompanyShell";
 import { CompanyStoreProvider, useCompanyStore, type Permission } from "@/components/company/store";
 import { Banco } from "@/components/company/views/Banco";
@@ -53,6 +54,7 @@ function Centro({ children }: { children: ReactNode }) {
 
 function EmpresaGate() {
   const { loading, authenticated, company, createCompanyProfile } = useCompanyStore();
+  const { openAuthModal } = useAuthModal();
   const [form, setForm] = useState({ name: "", segment: "", city: "", website: "", about: "" });
   const [saving, setSaving] = useState(false);
   const [erro, setErro] = useState("");
@@ -74,12 +76,13 @@ function EmpresaGate() {
           O painel empresarial é exclusivo para contas de empresa. Faça login ou crie sua conta
           empresarial para publicar vagas e selecionar candidatos.
         </p>
-        <Link
-          to="/auth"
+        <button
+          type="button"
+          onClick={() => openAuthModal({ mode: "entrar", accountType: "empresa" })}
           className="mt-5 inline-flex rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground"
         >
           Entrar ou criar conta
-        </Link>
+        </button>
       </Centro>
     );
   }

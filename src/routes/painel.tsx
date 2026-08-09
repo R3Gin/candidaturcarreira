@@ -1,9 +1,10 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { AppShell, type View } from "@/components/app/AppShell";
 import { AppStoreProvider, useAppStore } from "@/components/app/store";
 import { OnboardingDialog } from "@/components/app/OnboardingDialog";
 import { useAuth } from "@/hooks/useAuth";
+import { useAuthModal } from "@/components/auth/AuthModal";
 import { CentralVagas } from "@/components/app/views/CentralVagas";
 import { EmpresasQueSigo } from "@/components/app/views/EmpresasQueSigo";
 import { Historico } from "@/components/app/views/Historico";
@@ -47,6 +48,7 @@ function PainelPage() {
 function Painel() {
   const { loading, authenticated } = useAppStore();
   const { signOut } = useAuth();
+  const { openAuthModal } = useAuthModal();
   const [view, setView] = useState<View>("central");
   const [openJobId, setOpenJobId] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -73,12 +75,13 @@ function Painel() {
           <p className="mt-2 text-sm text-ink-soft">
             Entre na sua conta de candidato para ver vagas, candidaturas e preferências.
           </p>
-          <Link
-            to="/auth"
+          <button
+            type="button"
+            onClick={() => openAuthModal({ mode: "entrar", accountType: "candidato" })}
             className="mt-5 inline-flex rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-accent-foreground"
           >
             Ir para o login
-          </Link>
+          </button>
         </div>
       </div>
     );
