@@ -10,7 +10,7 @@ const title = "Freelas do dia | Candidatu";
 const description =
   "Busque freelas por cargo, empresa ou cidade, filtre por período e modelo e ordene por data ou valor da diária. Carga horária, empresa e descrição em cada vaga.";
 
-export const Route = createFileRoute("/freelance")({
+export const Route = createFileRoute("/freelance/")({
   head: () => ({
     meta: [
       { title },
