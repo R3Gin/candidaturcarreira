@@ -49,8 +49,16 @@ const fieldClass =
   "w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-ink outline-none focus:border-brand";
 
 export function Reunioes() {
-  const { meetings, members, addMeeting, updateMeeting, setMeetingStatus, removeMeeting, can } =
-    useCompanyStore();
+  const {
+    meetings,
+    members,
+    candidates,
+    addMeeting,
+    updateMeeting,
+    setMeetingStatus,
+    removeMeeting,
+    can,
+  } = useCompanyStore();
   const canManage = can("gerenciar_reunioes");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Meeting | null>(null);
@@ -58,6 +66,15 @@ export function Reunioes() {
 
   const sorted = [...meetings].sort((a, b) => b.inicio.localeCompare(a.inicio));
   const agendadas = meetings.filter((m) => m.status === "agendada").length;
+  const candidatosAtivos = candidates.filter((c) => !c.rejected);
+  const nomeCandidato = (id: string) => candidates.find((c) => c.id === id)?.name ?? id;
+  const toggleCandidato = (id: string) =>
+    setForm((f) => ({
+      ...f,
+      candidatos: f.candidatos.includes(id)
+        ? f.candidatos.filter((c) => c !== id)
+        : [...f.candidatos, id],
+    }));
 
   const submit = () => {
     if (!form.titulo.trim()) {
@@ -74,6 +91,7 @@ export function Reunioes() {
         .split(",")
         .map((p) => p.trim())
         .filter(Boolean),
+      candidatos: form.candidatos,
       link: form.link.trim(),
       status: form.status,
     };
