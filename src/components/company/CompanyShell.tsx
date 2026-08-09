@@ -190,24 +190,26 @@ export function CompanyShell({
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6">
+        <div className="mx-auto flex h-16 max-w-7xl items-center gap-2 px-4 sm:gap-4 sm:px-6">
           <button
             type="button"
             onClick={() => setOpen((o) => !o)}
             aria-label="Abrir menu"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border text-ink lg:hidden"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border text-ink lg:hidden"
           >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
 
-          <Link to="/" className="flex items-center gap-2">
-            <span className="brand-gradient inline-flex h-9 w-9 items-center justify-center rounded-xl font-display text-sm font-bold text-primary-foreground">
+          <Link to="/" className="flex min-w-0 shrink items-center gap-2">
+            <span className="brand-gradient inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl font-display text-sm font-bold text-primary-foreground">
               C
             </span>
-            <span className="font-display text-lg font-bold text-ink">
-              Candidatu <span className="text-brand-cyan">Empresas</span>
+            <span className="truncate font-display text-base font-bold leading-none text-ink sm:text-lg">
+              Candidatu
+              <span className="hidden text-brand-cyan sm:inline"> Empresas</span>
             </span>
           </Link>
+
 
           <div className="ml-auto hidden items-center gap-3 sm:flex">
             <span className="rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold text-ink-soft">
