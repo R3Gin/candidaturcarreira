@@ -91,10 +91,18 @@ function List({ items, icon }: { items: string[]; icon?: boolean }) {
 }
 
 export function PaginaEmpresa() {
-  const { profile, updateProfile, can } = useCompanyStore();
+  const { profile, updateProfile, addDocument, removeDocument, can } = useCompanyStore();
   const canEdit = can("editar_marca");
-  const [tab, setTab] = useState<Tab>("historia");
+  const [tab, setTab] = useState<Tab>("perfil");
   const [form, setForm] = useState<CompanyProfile>(profile);
+  const [docDraft, setDocDraft] = useState<{
+    name: string;
+    category: CompanyDoc["category"];
+    description: string;
+  }>({ name: "", category: "Política de RH", description: "" });
+  const docInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   const set = <K extends keyof CompanyProfile>(key: K, value: CompanyProfile[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
@@ -105,12 +113,42 @@ export function PaginaEmpresa() {
       .map((s) => s.trim())
       .filter(Boolean);
 
+  const uploadImage = async (file: File, key: "logoUrl" | "hrPhotoUrl") => {
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Imagem muito grande", { description: "Envie um arquivo de até 2 MB." });
+      return;
+    }
+    const url = await readAsDataUrl(file);
+    set(key, url);
+    updateProfile({ [key]: url } as Partial<CompanyProfile>);
+    toast.success("Imagem atualizada");
+  };
+
+  const uploadDoc = async (file: File) => {
+    if (file.size > 4 * 1024 * 1024) {
+      toast.error("Arquivo muito grande", { description: "Envie um documento de até 4 MB." });
+      return;
+    }
+    const url = await readAsDataUrl(file);
+    addDocument({
+      name: docDraft.name.trim() || file.name,
+      category: docDraft.category,
+      description: docDraft.description.trim(),
+      fileName: file.name,
+      size: file.size,
+      url,
+    });
+    setDocDraft({ name: "", category: "Política de RH", description: "" });
+    toast.success("Documento disponível para download");
+  };
+
   const save = () => {
     updateProfile(form);
     toast.success("Página da empresa atualizada", {
       description: "As pessoas candidatas já veem essas informações na vaga.",
     });
   };
+
 
   return (
     <div className="space-y-5">
