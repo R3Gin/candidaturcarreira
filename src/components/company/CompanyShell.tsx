@@ -20,6 +20,8 @@ import {
 import { useState, type ReactNode } from "react";
 import { useCompanyStore, type NotificationKind, type Permission } from "./store";
 import { useChatMessageNotifications, useChatUnread } from "@/lib/useChat";
+import { useMeetingReminders } from "@/lib/useMeetings";
+import { labelOf, REUNIAO_TIPOS } from "./store";
 import { MessageSquare } from "lucide-react";
 
 const notifIcon: Record<NotificationKind, typeof Bell> = {
@@ -156,7 +158,20 @@ export function CompanyShell({
   view: CompanyView;
   onNavigate: (v: CompanyView) => void;
 }) {
-  const { profile, candidates, interviews, currentMember, can } = useCompanyStore();
+  const { profile, candidates, interviews, currentMember, can, meetings } = useCompanyStore();
+
+  // Lembretes automáticos antes de cada reunião (painel + email, se permitido).
+  useMeetingReminders(
+    "empresa",
+    meetings.map((m) => ({
+      id: m.id,
+      titulo: m.titulo,
+      inicio: m.inicio,
+      status: m.status,
+      detail: `${labelOf(REUNIAO_TIPOS, m.tipo)} · ${m.duracaoMin} min${m.link ? ` · ${m.link}` : ""}`,
+    })),
+    { fallbackEmail: profile.hrEmail, onOpen: () => onNavigate("reunioes") },
+  );
   const chatUnread = useChatUnread("empresa");
   // Avisa a equipe quando um candidato responde no chat.
   useChatMessageNotifications("empresa", { onOpen: () => onNavigate("pipeline") });

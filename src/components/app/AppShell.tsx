@@ -19,6 +19,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { useAppStore } from "./store";
 import { useChatMessageNotifications, useChatUnread } from "@/lib/useChat";
+import { useMeetingInvites, useMeetingReminders } from "@/lib/useMeetings";
 
 
 export type View =
@@ -86,6 +87,20 @@ export function AppShell({
 
   // Notificação em tempo real de novas mensagens no chat com as empresas.
   useChatMessageNotifications("candidato", { onOpen: () => go("mensagens") });
+
+  // Lembretes automáticos antes de cada reunião confirmada com as empresas.
+  const meetingInvites = useMeetingInvites();
+  useMeetingReminders(
+    "candidato",
+    meetingInvites.map((i) => ({
+      id: i.id,
+      titulo: i.titulo,
+      inicio: i.inicio,
+      status: i.status,
+      detail: `${i.companyName}${i.link ? ` · ${i.link}` : ""}`,
+    })),
+    { fallbackEmail: account.email, onOpen: () => go("reunioes") },
+  );
 
   const initials = account.name
     .split(" ")
