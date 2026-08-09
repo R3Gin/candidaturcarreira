@@ -270,8 +270,9 @@ export function MeuCurriculo({ onGoToJobs }: { onGoToJobs: () => void }) {
 
           {!resume && !loading && (
             <p className="mt-4 rounded-2xl border border-dashed border-border p-6 text-center text-sm text-ink-soft">
-              Preencha o formulário ao lado e a IA monta seu currículo aqui, pronto para usar nas
+              Preencha o formulário rápido e a IA monta seu currículo aqui, pronto para usar nas
               candidaturas rápidas.
+
             </p>
           )}
 
