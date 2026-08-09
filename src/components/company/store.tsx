@@ -671,6 +671,10 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
           `${name} foi reprovada(o)`,
           `Feedback enviado${before ? ` na etapa ${before.stage}` : ""}.`,
         );
+        autoStageMessage(candidateId, "reprovado", {
+          ...(before ? { stage: before.stage } : {}),
+          role: state.vacancies.find((v) => v.id === before?.vacancyId)?.role ?? "vaga",
+        });
       },
       restore: (candidateId) =>
         patchCandidate(candidateId, (c) => ({
@@ -699,11 +703,11 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
         setState((s) => ({ ...s, interviews: [...s.interviews, { ...i, id: uid() }] }));
         log("Entrevista agendada", `${i.kind} em ${i.date} às ${i.time}.`);
         const name = state.candidates.find((c) => c.id === i.candidateId)?.name ?? "Candidato";
-        notify(
-          "entrevista",
-          `Entrevista agendada com ${name}`,
-          `${i.kind} em ${new Date(`${i.date}T00:00:00`).toLocaleDateString("pt-BR")} às ${i.time} com ${i.interviewer}.`,
-        );
+        const when = `${i.kind} em ${new Date(`${i.date}T00:00:00`).toLocaleDateString("pt-BR")} às ${i.time} com ${i.interviewer}.`;
+        notify("entrevista", `Entrevista agendada com ${name}`, when);
+        autoStageMessage(i.candidateId, "entrevista", {
+          detail: `${when} Link: ${i.link}`,
+        });
       },
       cancelInterview: (id) =>
         setState((s) => ({ ...s, interviews: s.interviews.filter((i) => i.id !== id) })),
