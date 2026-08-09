@@ -1,11 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { MessageSquare, Send } from "lucide-react";
 import { ChatMessages } from "@/components/company/CandidateChat";
-import { markRead, sendMessage } from "@/lib/chat";
+import { markRead } from "@/lib/chat";
+import { ChatComposer, StageHistory } from "@/components/chat/ChatPieces";
+import { useAppStore } from "@/components/app/store";
 import { useChatThreads } from "@/lib/useChat";
 
 export function Mensagens({ onGoToJobs }: { onGoToJobs: () => void }) {
   const threads = useChatThreads();
+  const { account } = useAppStore();
   const ordered = useMemo(
     () =>
       [...threads].sort(
@@ -96,28 +99,16 @@ export function Mensagens({ onGoToJobs }: { onGoToJobs: () => void }) {
 
               <ChatMessages thread={active} side="candidato" />
 
-              <form
-                className="mt-3 flex gap-2"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (!text.trim()) return;
-                  sendMessage(active.id, "candidato", text);
-                  setText("");
-                }}
-              >
-                <input
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                  placeholder="Escreva para a empresa..."
-                  className="flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm text-ink outline-none focus:border-brand-cyan"
-                />
-                <button
-                  type="submit"
-                  className="inline-flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-primary-foreground"
-                >
-                  <Send className="h-4 w-4" /> Enviar
-                </button>
-              </form>
+              <StageHistory thread={active} />
+
+              <ChatComposer
+                threadId={active.id}
+                side="candidato"
+                author={account.name}
+                placeholder="Escreva para a empresa..."
+                value={text}
+                onValueChange={setText}
+              />
             </section>
           )}
         </div>

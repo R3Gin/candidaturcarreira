@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { MessageSquare, Send, Sparkles } from "lucide-react";
+import { MessageSquare, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { acceptCandidate, markRead, setAutoEnabled, type ChatThread } from "@/lib/chat";
 import { AttachmentList, ChatComposer, StageHistory } from "@/components/chat/ChatPieces";
