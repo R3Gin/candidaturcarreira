@@ -1,9 +1,26 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Building2, CalendarDays, Clock, MapPin, Wallet } from "lucide-react";
+import {
+  ArrowLeft,
+  Building2,
+  CalendarDays,
+  Check,
+  Clock,
+  MapPin,
+  MessageCircle,
+  Wallet,
+} from "lucide-react";
+import { toast } from "sonner";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { allFreelas, brlDiaria, contactHref, freelasBase, type Freela } from "@/lib/freelas";
+import {
+  candidateDefaults,
+  contactForFreela,
+  requestFreelaContact,
+  subscribeFreelaContacts,
+  type FreelaContact,
+} from "@/lib/freelaContacts";
 
 export const Route = createFileRoute("/freelance/$id")({
   loader: ({ params }) => {
@@ -133,17 +150,14 @@ function FreelaDetalhe() {
             >
               {freela.aberto && freela.quando === "hoje" ? "Aberto" : "Encerrado"}
             </span>
-            {freela.contato ? (
+            <ContatoBox freela={freela} />
+            {freela.contato && (
               <a
                 href={contactHref(freela.contato)}
-                className="mt-4 block rounded-full bg-accent px-4 py-2.5 text-center text-sm font-semibold text-accent-foreground"
+                className="mt-2 block text-center text-xs font-semibold text-ink-soft hover:text-brand"
               >
-                Contato
+                Ou fale direto: {freela.contato}
               </a>
-            ) : (
-              <p className="mt-4 text-xs text-ink-soft">
-                Esta empresa não divulgou um contato direto.
-              </p>
             )}
           </div>
         </aside>
@@ -153,6 +167,111 @@ function FreelaDetalhe() {
     </main>
   );
 }
+
+function ContatoBox({ freela }: { freela: Freela }) {
+  const [enviado, setEnviado] = useState<FreelaContact | null>(null);
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({ nome: "", contato: "", mensagem: "" });
+
+  useEffect(() => {
+    const sync = () => setEnviado(contactForFreela(freela.id));
+    sync();
+    const d = candidateDefaults();
+    setForm((f) => ({ ...f, nome: f.nome || d.nome, contato: f.contato || d.contato }));
+    return subscribeFreelaContacts(sync);
+  }, [freela.id]);
+
+  const enviar = () => {
+    if (form.nome.trim().length < 3) {
+      toast.error("Informe seu nome completo");
+      return;
+    }
+    if (form.contato.trim().length < 8) {
+      toast.error("Informe um e-mail ou telefone para a empresa te responder");
+      return;
+    }
+    requestFreelaContact({
+      freelaId: freela.id,
+      cargo: freela.cargo,
+      empresa: freela.empresa,
+      diaria: freela.diariaValor,
+      nome: form.nome.trim(),
+      contato: form.contato.trim(),
+      mensagem: form.mensagem,
+    });
+    setOpen(false);
+    toast.success(`Solicitação enviada para ${freela.empresa}`, {
+      description: "Um chat foi aberto e a conversa aparece no seu painel de freelas.",
+    });
+  };
+
+  if (enviado) {
+    return (
+      <div className="mt-4 rounded-xl bg-mint/60 p-3">
+        <p className="inline-flex items-center gap-1.5 text-sm font-bold text-ink">
+          <Check className="h-4 w-4" strokeWidth={2.5} /> Solicitação enviada
+        </p>
+        <p className="mt-1 text-xs text-ink-soft">
+          Chat aberto com {enviado.empresa}. Acompanhe as respostas em Mensagens.
+        </p>
+        <Link
+          to="/freelance"
+          className="mt-2 inline-block text-xs font-semibold text-brand hover:underline"
+        >
+          Ver no painel de freelas
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-4">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center justify-center gap-2 rounded-full bg-accent px-4 py-2.5 text-sm font-semibold text-accent-foreground"
+      >
+        <MessageCircle className="h-4 w-4" strokeWidth={2} /> Contato
+      </button>
+      {open && (
+        <div className="mt-3 space-y-2 rounded-xl border border-border bg-secondary/60 p-3">
+          <p className="text-xs text-ink-soft">
+            Enviamos sua solicitação para {freela.empresa} e abrimos um chat com a equipe.
+          </p>
+          <input
+            value={form.nome}
+            onChange={(e) => setForm({ ...form, nome: e.target.value })}
+            placeholder="Seu nome completo"
+            className={inputCls}
+          />
+          <input
+            value={form.contato}
+            onChange={(e) => setForm({ ...form, contato: e.target.value })}
+            placeholder="E-mail ou WhatsApp"
+            className={inputCls}
+          />
+          <textarea
+            rows={3}
+            value={form.mensagem}
+            onChange={(e) => setForm({ ...form, mensagem: e.target.value })}
+            placeholder="Mensagem para a empresa (opcional)"
+            className={inputCls}
+          />
+          <button
+            type="button"
+            onClick={enviar}
+            className="w-full rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+          >
+            Enviar solicitação e abrir chat
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const inputCls =
+  "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-ink outline-none focus:border-brand-cyan";
 
 function Info({ label, value }: { label: string; value: string }) {
   return (
