@@ -33,15 +33,21 @@ export function Visao({ onNavigate }: { onNavigate: (v: CompanyView) => void }) 
         </p>
       </header>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         {cards.map((c) => (
-          <div key={c.label} className="rounded-2xl border border-border bg-card p-5 shadow-card">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-bold uppercase tracking-wide text-ink-soft">{c.label}</p>
-              <c.icon className="h-4.5 w-4.5 text-brand-cyan" strokeWidth={2} />
+          <div
+            key={c.label}
+            className="rounded-2xl border border-border bg-card p-4 shadow-card sm:p-5"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <p className="min-w-0 text-[10px] font-bold uppercase leading-tight tracking-wide text-ink-soft sm:text-xs">
+                {c.label}
+              </p>
+              <c.icon className="h-4.5 w-4.5 shrink-0 text-brand-cyan" strokeWidth={2} />
             </div>
-            <p className="mt-3 font-display text-3xl font-bold text-ink">{c.value}</p>
+            <p className="mt-3 font-display text-2xl font-bold text-ink sm:text-3xl">{c.value}</p>
             <p className="mt-1 text-xs text-ink-soft">{c.hint}</p>
+
           </div>
         ))}
       </div>

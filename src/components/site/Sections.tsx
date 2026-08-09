@@ -72,7 +72,7 @@ export function Vagas() {
             delay={i * 90}
             className="surface-card rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lift"
           >
-            <div className="flex items-start gap-3">
+            <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-3 gap-y-2">
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary">
                 <Building2 className="h-5 w-5 text-ink-soft" strokeWidth={1.75} />
               </span>
@@ -81,13 +81,14 @@ export function Vagas() {
                 <p className="mt-0.5 text-sm text-muted-foreground">
                   {vaga.empresa} · {vaga.local}
                 </p>
+                {vaga.novo && (
+                  <span className="mt-2 inline-flex rounded-full bg-mint px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wider text-ink">
+                    Nova
+                  </span>
+                )}
               </div>
-              {vaga.novo && (
-                <span className="ml-auto shrink-0 rounded-full bg-mint px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wider text-ink">
-                  Nova
-                </span>
-              )}
             </div>
+
 
             <p className="mt-4 font-display text-lg font-semibold">{vaga.faixa}</p>
 
