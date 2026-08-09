@@ -315,13 +315,25 @@ export function Vagas({ onOpenPipeline }: { onOpenPipeline: () => void }) {
                     >
                       {v.status}
                     </span>
+                    <span
+                      className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
+                        v.type === "Freelance"
+                          ? "bg-accent text-accent-foreground"
+                          : "bg-brand/10 text-brand"
+                      }`}
+                    >
+                      {v.type === "Freelance" ? "Freela · página de Freelas" : "Contratual · painel"}
+                    </span>
                   </div>
                   <p className="mt-1 text-sm text-ink-soft">
                     {v.area} · {v.city} · {v.model} · {v.contract} · {v.seniority}
                   </p>
                   <p className="mt-1 text-sm font-semibold text-ink">
-                    {brl(v.salaryMin)} – {brl(v.salaryMax)} · {v.openings}{" "}
-                    {v.openings === 1 ? "posição" : "posições"} · publicada {v.published}
+                    {v.type === "Freelance"
+                      ? `${brl(v.dailyRate ?? v.salaryMin)} / diária · ${v.hours ?? "8h"}${v.period ? ` · ${v.period}` : ""}`
+                      : `${brl(v.salaryMin)} – ${brl(v.salaryMax)}`}{" "}
+                    · {v.openings} {v.openings === 1 ? "posição" : "posições"} · publicada{" "}
+                    {v.published}
                   </p>
                   {v.description && (
                     <p className="mt-2 max-w-2xl text-sm text-ink-soft">{v.description}</p>
@@ -346,6 +358,18 @@ export function Vagas({ onOpenPipeline }: { onOpenPipeline: () => void }) {
                   >
                     <Users className="h-4 w-4" /> {applicants.length} candidaturas
                   </button>
+                  {v.contact && (
+                    <a
+                      href={
+                        v.contact.includes("@")
+                          ? `mailto:${v.contact}`
+                          : `https://wa.me/${v.contact.replace(/\D/g, "")}`
+                      }
+                      className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-semibold text-ink"
+                    >
+                      <Mail className="h-4 w-4" /> Contato
+                    </a>
+                  )}
                   <div className={`flex gap-2 ${manage ? "" : "hidden"}`}>
                     {v.status === "Publicada" ? (
                       <button
