@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { PauseCircle, PlayCircle, Plus, Trash2, Users } from "lucide-react";
+import { Mail, PauseCircle, PlayCircle, Plus, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 import { brl, useCompanyStore, type Vacancy, type VacancyType } from "../store";
 
