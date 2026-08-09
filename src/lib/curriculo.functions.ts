@@ -21,37 +21,36 @@ export type ResumeDraft = {
   education: string[];
 };
 
-const jsonSchema = {
-  type: "object",
-  additionalProperties: false,
+// Schema no formato aceito pela API oficial do Google (subset OpenAPI)
+const responseSchema = {
+  type: "OBJECT",
   required: ["headline", "summary", "experiences", "skills", "education"],
   properties: {
-    headline: { type: "string" },
-    summary: { type: "string" },
+    headline: { type: "STRING" },
+    summary: { type: "STRING" },
     experiences: {
-      type: "array",
+      type: "ARRAY",
       items: {
-        type: "object",
-        additionalProperties: false,
+        type: "OBJECT",
         required: ["role", "company", "period", "bullets"],
         properties: {
-          role: { type: "string" },
-          company: { type: "string" },
-          period: { type: "string" },
-          bullets: { type: "array", items: { type: "string" } },
+          role: { type: "STRING" },
+          company: { type: "STRING" },
+          period: { type: "STRING" },
+          bullets: { type: "ARRAY", items: { type: "STRING" } },
         },
       },
     },
-    skills: { type: "array", items: { type: "string" } },
-    education: { type: "array", items: { type: "string" } },
+    skills: { type: "ARRAY", items: { type: "STRING" } },
+    education: { type: "ARRAY", items: { type: "STRING" } },
   },
 } as const;
 
 export const generateResume = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => inputSchema.parse(input))
   .handler(async ({ data }): Promise<ResumeDraft> => {
-    const apiKey = process.env["LOVABLE_API_KEY"];
-    if (!apiKey) throw new Error("LOVABLE_API_KEY ausente");
+    const apiKey = process.env["GEMINI_API_KEY"];
+    if (!apiKey) throw new Error("GEMINI_API_KEY ausente");
 
     const prompt = `Monte um currículo profissional em português do Brasil com base nas informações abaixo.
 Nome: ${data.name}
@@ -72,30 +71,33 @@ Regras:
 - O campo headline é o título profissional (ex.: "Analista Administrativo Pleno · Joinville"); nunca repita o nome da pessoa nele.
 - Responda apenas com json válido no schema pedido.`;
 
-
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-        "X-Lovable-AIG-SDK": "fetch",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          {
-            role: "system",
-            content:
-              "Você é um especialista em carreira e escreve currículos claros, objetivos e em português do Brasil. Responda sempre em json.",
-          },
-          { role: "user", content: prompt },
-        ],
-        response_format: {
-          type: "json_schema",
-          json_schema: { name: "curriculo", strict: true, schema: jsonSchema },
+    const model = "gemini-2.5-flash";
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": apiKey,
         },
-      }),
-    });
+        body: JSON.stringify({
+          systemInstruction: {
+            parts: [
+              {
+                text:
+                  "Você é um especialista em carreira e escreve currículos claros, objetivos e em português do Brasil. Responda sempre em json.",
+              },
+            ],
+          },
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.7,
+            responseMimeType: "application/json",
+            responseSchema,
+          },
+        }),
+      },
+    );
 
     if (!res.ok) {
       const body = await res.text();
@@ -103,10 +105,13 @@ Regras:
     }
 
     const payload = (await res.json()) as {
-      choices?: { message?: { content?: string } }[];
+      candidates?: { content?: { parts?: { text?: string }[] } }[];
     };
-    const raw = payload.choices?.[0]?.message?.content ?? "";
+    const raw =
+      payload.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
     const cleaned = raw.replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
+    if (!cleaned) throw new Error("Resposta vazia do modelo");
     const parsed = JSON.parse(cleaned) as ResumeDraft;
     return parsed;
   });
+
