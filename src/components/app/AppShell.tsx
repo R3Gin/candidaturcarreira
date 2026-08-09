@@ -102,6 +102,10 @@ export function AppShell({
     { fallbackEmail: account.email, onOpen: () => go("reunioes") },
   );
 
+  const pendingRsvp = meetingInvites.filter(
+    (i) => i.status === "agendada" && i.rsvp === "pendente",
+  ).length;
+
   const initials = account.name
     .split(" ")
     .slice(0, 2)
@@ -357,7 +361,11 @@ export function AppShell({
                 >
                   <item.icon className="h-4.5 w-4.5 text-ink-soft" strokeWidth={1.75} />
                   {item.label}
-                  {item.view === "mensagens" && chatUnread > 0 ? (
+                  {item.view === "reunioes" && pendingRsvp > 0 ? (
+                    <span className="ml-auto rounded-full bg-accent px-2 py-0.5 text-[11px] font-bold text-accent-foreground">
+                      {pendingRsvp} confirmar
+                    </span>
+                  ) : item.view === "mensagens" && chatUnread > 0 ? (
                     <span className="ml-auto rounded-full bg-accent px-2 py-0.5 text-[11px] font-bold text-accent-foreground">
                       {chatUnread} nova{chatUnread > 1 ? "s" : ""}
                     </span>
