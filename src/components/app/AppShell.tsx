@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import {
+  MessageSquare,
   Bell,
   Bookmark,
   Building2,
@@ -23,6 +24,7 @@ export type View =
   | "conta"
   | "curriculo"
   | "candidaturas"
+  | "mensagens"
   | "salvas"
   | "empresas"
   | "preferencias"
@@ -33,6 +35,7 @@ const menu: { label: string; icon: typeof UserRound; view: View; badge?: string 
   { label: "Minha conta", icon: UserRound, view: "conta" },
   { label: "Meu currículo", icon: FileText, view: "curriculo", badge: "IA" },
   { label: "Minhas candidaturas", icon: LayoutDashboard, view: "candidaturas" },
+  { label: "Mensagens", icon: MessageSquare, view: "mensagens" },
   { label: "Recomendadas para você", icon: Sparkles, view: "recomendadas", badge: "Novo" },
   { label: "Vagas salvas", icon: Bookmark, view: "salvas" },
   { label: "Empresas que sigo", icon: Building2, view: "empresas" },
