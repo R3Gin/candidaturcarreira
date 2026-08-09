@@ -169,12 +169,14 @@ export const permissions = [
   "ver_vagas",
   "ver_banco",
   "ver_entrevistas",
+  "ver_reunioes",
   "ver_marca",
   "ver_equipe",
   "mover_candidato",
   "reprovar_candidato",
   "gerenciar_vagas",
   "agendar_entrevista",
+  "gerenciar_reunioes",
   "editar_marca",
   "gerenciar_equipe",
 ] as const;
@@ -188,12 +190,14 @@ export const rolePermissions: Record<Role, Permission[]> = {
     "ver_vagas",
     "ver_banco",
     "ver_entrevistas",
+    "ver_reunioes",
     "ver_marca",
     "ver_equipe",
     "mover_candidato",
     "reprovar_candidato",
     "gerenciar_vagas",
     "agendar_entrevista",
+    "gerenciar_reunioes",
     "editar_marca",
   ],
   Recrutador: [
@@ -204,16 +208,19 @@ export const rolePermissions: Record<Role, Permission[]> = {
     "ver_entrevistas",
     "mover_candidato",
     "agendar_entrevista",
+    "ver_reunioes",
+    "gerenciar_reunioes",
   ],
   Gestor: [
     "ver_visao",
     "ver_pipeline",
     "ver_entrevistas",
+    "ver_reunioes",
     "ver_vagas",
     "mover_candidato",
     "reprovar_candidato",
   ],
-  Observador: ["ver_visao", "ver_vagas", "ver_entrevistas"],
+  Observador: ["ver_visao", "ver_vagas", "ver_entrevistas", "ver_reunioes"],
 };
 
 export const roleDescription: Record<Role, string> = {
@@ -397,6 +404,42 @@ export const seedInterviews: Interview[] = [
   { id: "i4", candidateId: "c5", vacancyId: "v2", date: "2026-08-13", time: "14:00", kind: "Alinhamento de proposta", interviewer: "Fernanda (People)", link: "meet.candidatu.com/let-140" },
 ];
 
+export const seedMeetings: Meeting[] = [
+  {
+    id: "r1",
+    titulo: "Alinhamento semanal de recrutamento",
+    pauta: "Revisar funil das vagas abertas, gargalos de triagem e prioridades da semana.",
+    tipo: "video",
+    inicio: "2026-08-10T14:00:00.000Z",
+    duracaoMin: 45,
+    participantes: ["Fernanda Lopes", "Rita Menezes", "Diego Ramos"],
+    link: "meet.candidatu.com/rh-semanal",
+    status: "agendada",
+  },
+  {
+    id: "r2",
+    titulo: "Comitê de contratação · Front-end sênior",
+    pauta: "Decisão final entre finalistas e definição de faixa de proposta.",
+    tipo: "video",
+    inicio: "2026-08-12T18:30:00.000Z",
+    duracaoMin: 60,
+    participantes: ["Fernanda Lopes", "Marcos (Tech Lead)"],
+    link: "meet.candidatu.com/comite-frontend",
+    status: "agendada",
+  },
+  {
+    id: "r3",
+    titulo: "Retrospectiva do processo de Design",
+    pauta: "Feedback das pessoas candidatas e ajustes nas etapas.",
+    tipo: "presencial",
+    inicio: "2026-08-05T13:00:00.000Z",
+    duracaoMin: 30,
+    participantes: ["Rita Menezes"],
+    link: "",
+    status: "realizada",
+  },
+];
+
 const defaultProfile: CompanyProfile = {
   name: "Candidatu Labs",
   segment: "Tecnologia · Produto digital",
@@ -474,6 +517,7 @@ type CompanyState = {
   vacancies: Vacancy[];
   candidates: Candidate[];
   interviews: Interview[];
+  meetings: Meeting[];
   profile: CompanyProfile;
   logs: ActivityLog[];
   notifications: CompanyNotification[];
@@ -498,6 +542,10 @@ type CompanyState = {
   setScorecard: (candidateId: string, s: NonNullable<Candidate["scorecard"]>) => void;
   scheduleInterview: (i: Omit<Interview, "id">) => void;
   cancelInterview: (id: string) => void;
+  addMeeting: (m: Omit<Meeting, "id">) => void;
+  updateMeeting: (id: string, m: Partial<Omit<Meeting, "id">>) => void;
+  setMeetingStatus: (id: string, status: string) => void;
+  removeMeeting: (id: string) => void;
   addVacancy: (v: Omit<Vacancy, "id" | "published" | "status">) => void;
   setVacancyStatus: (id: string, status: Vacancy["status"]) => void;
   removeVacancy: (id: string) => void;
@@ -513,6 +561,7 @@ type Persisted = {
   vacancies: Vacancy[];
   candidates: Candidate[];
   interviews: Interview[];
+  meetings: Meeting[];
   profile: CompanyProfile;
   logs: ActivityLog[];
   notifications: CompanyNotification[];
@@ -525,6 +574,7 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
     vacancies: seedVacancies,
     candidates: seedCandidates,
     interviews: seedInterviews,
+    meetings: seedMeetings,
     profile: defaultProfile,
     logs: [],
     notifications: [],
@@ -545,6 +595,7 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
             ...s,
             ...parsed,
             profile: { ...defaultProfile, ...(parsed.profile ?? {}) },
+            meetings: parsed.meetings ?? s.meetings,
             // garante acesso de administrador ao abrir o painel
             currentMemberId: admin?.id ?? parsed.currentMemberId ?? s.currentMemberId,
           };
@@ -743,6 +794,29 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
       },
       cancelInterview: (id) =>
         setState((s) => ({ ...s, interviews: s.interviews.filter((i) => i.id !== id) })),
+      addMeeting: (m) => {
+        setState((s) => ({ ...s, meetings: [{ ...m, id: uid() }, ...s.meetings] }));
+        log(
+          "Reunião agendada",
+          `${m.titulo} · ${new Date(m.inicio).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}`,
+        );
+      },
+      updateMeeting: (id, patch) => {
+        setState((s) => ({
+          ...s,
+          meetings: s.meetings.map((m) => (m.id === id ? { ...m, ...patch } : m)),
+        }));
+        log("Reunião atualizada", "Dados da reunião foram alterados.");
+      },
+      setMeetingStatus: (id, status) => {
+        setState((s) => ({
+          ...s,
+          meetings: s.meetings.map((m) => (m.id === id ? { ...m, status } : m)),
+        }));
+        log("Status da reunião", `Reunião marcada como ${labelOf(REUNIAO_STATUS, status)}.`);
+      },
+      removeMeeting: (id) =>
+        setState((s) => ({ ...s, meetings: s.meetings.filter((m) => m.id !== id) })),
       addVacancy: (v) => {
         setState((s) => ({
           ...s,
