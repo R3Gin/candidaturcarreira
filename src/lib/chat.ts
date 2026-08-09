@@ -277,15 +277,29 @@ export function autoStageMessage(
     text = `${first}, sua entrevista foi agendada. ${data.detail ?? ""} Qualquer imprevisto, avise por aqui.`.trim();
   }
 
+  const status: ChatThread["status"] =
+    kind === "aprovado" ? "Contratado" : kind === "reprovado" ? "Encerrado" : thread.status;
+
   update((all) =>
     all.map((t) =>
       t.id === thread.id
         ? {
             ...t,
             stage: stage ?? t.stage,
-            status:
-              kind === "aprovado" ? "Contratado" : kind === "reprovado" ? "Encerrado" : t.status,
+            status,
             unreadForCandidate: t.unreadForCandidate + 1,
+            stageHistory: [
+              ...(t.stageHistory ?? []),
+              {
+                id: uid(),
+                at: now(),
+                stage: stage ?? t.stage,
+                status,
+                by: data.author ?? "Atualização automática",
+                kind,
+                ...(data.detail ? { detail: data.detail } : {}),
+              },
+            ],
             messages: [
               ...t.messages,
               {
