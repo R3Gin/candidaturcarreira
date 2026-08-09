@@ -300,8 +300,30 @@ export function Vagas({ onOpenPipeline }: { onOpenPipeline: () => void }) {
         </section>
       )}
 
+      <div className="flex flex-wrap gap-2">
+        {(["Todas", "Contratual", "Freelance"] as const).map((t) => (
+          <button
+            key={t}
+            type="button"
+            aria-pressed={tab === t}
+            onClick={() => setTab(t)}
+            className={`rounded-full px-4 py-2 text-xs font-bold transition-colors ${
+              tab === t
+                ? "bg-brand text-primary-foreground"
+                : "border border-border text-ink-soft hover:bg-secondary"
+            }`}
+          >
+            {t === "Todas"
+              ? `Todas (${vacancies.length})`
+              : t === "Contratual"
+                ? `Contratuais (${contratuais})`
+                : `Freelas (${freelas})`}
+          </button>
+        ))}
+      </div>
+
       <ul className="space-y-3">
-        {vacancies.map((v) => {
+        {visiveis.map((v) => {
           const applicants = candidates.filter((c) => c.vacancyId === v.id);
           return (
             <li key={v.id} className="rounded-2xl border border-border bg-card p-5 shadow-card">
