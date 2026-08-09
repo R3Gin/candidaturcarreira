@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { PauseCircle, PlayCircle, Plus, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
-import { brl, useCompanyStore, type Vacancy } from "../store";
+import { brl, useCompanyStore, type Vacancy, type VacancyType } from "../store";
 
 const empty = {
+  type: "Contratual" as VacancyType,
   role: "",
   area: "Tecnologia",
   city: "",
@@ -12,6 +13,10 @@ const empty = {
   seniority: "Pleno" as Vacancy["seniority"],
   salaryMin: 5000,
   salaryMax: 8000,
+  dailyRate: 250,
+  hours: "8h",
+  period: "09h às 18h",
+  contact: "",
   openings: 1,
   skills: "",
   description: "",
@@ -23,25 +28,35 @@ export function Vagas({ onOpenPipeline }: { onOpenPipeline: () => void }) {
   const manage = can("gerenciar_vagas");
   const [form, setForm] = useState(empty);
   const [open, setOpen] = useState(false);
+  const isFreela = form.type === "Freelance";
 
   const submit = () => {
     if (form.role.trim().length < 3 || !form.city.trim()) {
       toast.error("Informe o título da vaga e a localidade");
       return;
     }
-    if (form.salaryMax < form.salaryMin) {
+    if (!isFreela && form.salaryMax < form.salaryMin) {
       toast.error("A faixa salarial máxima deve ser maior que a mínima");
       return;
     }
+    if (isFreela && Number(form.dailyRate) <= 0) {
+      toast.error("Informe o valor da diária do freela");
+      return;
+    }
     addVacancy({
+      type: form.type,
       role: form.role.trim(),
       area: form.area,
       city: form.city.trim(),
       model: form.model,
       contract: form.contract,
       seniority: form.seniority,
-      salaryMin: Number(form.salaryMin),
-      salaryMax: Number(form.salaryMax),
+      salaryMin: isFreela ? Number(form.dailyRate) : Number(form.salaryMin),
+      salaryMax: isFreela ? Number(form.dailyRate) : Number(form.salaryMax),
+      dailyRate: isFreela ? Number(form.dailyRate) : undefined,
+      hours: isFreela ? form.hours.trim() : undefined,
+      period: isFreela ? form.period.trim() : undefined,
+      contact: form.contact.trim() || undefined,
       openings: Number(form.openings),
       skills: form.skills
         .split(",")
@@ -51,7 +66,11 @@ export function Vagas({ onOpenPipeline }: { onOpenPipeline: () => void }) {
     });
     setForm(empty);
     setOpen(false);
-    toast.success("Vaga publicada com salário aberto");
+    toast.success(
+      isFreela
+        ? "Freela publicado — já aparece na página de Freelas"
+        : "Vaga contratual publicada — já aparece no painel dos candidatos",
+    );
   };
 
   return (
