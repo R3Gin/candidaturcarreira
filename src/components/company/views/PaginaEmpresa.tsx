@@ -271,6 +271,129 @@ export function PaginaEmpresa() {
             </div>
           )}
 
+          {tab === "documentos" && (
+            <div className="grid gap-4">
+              <div>
+                <h2 className="font-display text-base font-semibold text-ink">
+                  Documentos e políticas de RH
+                </h2>
+                <p className="mt-1 text-sm text-ink-soft">
+                  Anexe PDFs e arquivos que as pessoas candidatas podem baixar direto na página da
+                  empresa: políticas internas, código de conduta, guia de benefícios e detalhes do
+                  processo seletivo.
+                </p>
+              </div>
+
+              {canEdit && (
+                <div className="grid gap-3 rounded-xl border border-dashed border-border p-4">
+                  <Field label="Nome do documento">
+                    <input
+                      value={docDraft.name}
+                      onChange={(e) => setDocDraft((d) => ({ ...d, name: e.target.value }))}
+                      placeholder="Política de home office"
+                      className={inputClass}
+                    />
+                  </Field>
+                  <Field label="Categoria">
+                    <select
+                      value={docDraft.category}
+                      onChange={(e) =>
+                        setDocDraft((d) => ({
+                          ...d,
+                          category: e.target.value as CompanyDoc["category"],
+                        }))
+                      }
+                      className={inputClass}
+                    >
+                      {docCategories.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                  <Field label="Descrição" hint="Explique o que a pessoa vai encontrar no arquivo.">
+                    <textarea
+                      rows={3}
+                      value={docDraft.description}
+                      onChange={(e) => setDocDraft((d) => ({ ...d, description: e.target.value }))}
+                      className={inputClass}
+                    />
+                  </Field>
+                  <input
+                    ref={docInputRef}
+                    type="file"
+                    accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) void uploadDoc(file);
+                      e.target.value = "";
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => docInputRef.current?.click()}
+                    className="inline-flex w-fit items-center gap-2 rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-primary-foreground"
+                  >
+                    <Upload className="h-4 w-4" strokeWidth={2} /> Anexar arquivo
+                  </button>
+                </div>
+              )}
+
+              <ul className="grid gap-3">
+                {profile.documents.length === 0 && (
+                  <li className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-ink-soft">
+                    Nenhum documento anexado ainda.
+                  </li>
+                )}
+                {profile.documents.map((doc) => (
+                  <li
+                    key={doc.id}
+                    className="flex flex-wrap items-start gap-3 rounded-xl border border-border p-4"
+                  >
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary">
+                      <FileText className="h-5 w-5 text-brand-cyan" strokeWidth={1.9} />
+                    </span>
+                    <div className="min-w-[12rem] flex-1">
+                      <p className="text-sm font-semibold text-ink">{doc.name}</p>
+                      <p className="text-xs text-ink-soft">
+                        {doc.category} · {doc.fileName} · {formatSize(doc.size)} · atualizado em{" "}
+                        {new Date(doc.updatedAt).toLocaleDateString("pt-BR")}
+                      </p>
+                      {doc.description && (
+                        <p className="mt-1 text-sm text-ink-soft">{doc.description}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {doc.url ? (
+                        <a
+                          href={doc.url}
+                          download={doc.fileName}
+                          className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-ink"
+                        >
+                          <Download className="h-3.5 w-3.5" strokeWidth={2} /> Baixar
+                        </a>
+                      ) : (
+                        <span className="text-xs font-semibold text-ink-soft">Exemplo</span>
+                      )}
+                      {canEdit && (
+                        <button
+                          type="button"
+                          onClick={() => removeDocument(doc.id)}
+                          aria-label={`Remover ${doc.name}`}
+                          className="inline-flex items-center rounded-full border border-border p-1.5 text-ink-soft hover:text-coral"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" strokeWidth={2} />
+                        </button>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {canEdit ? (
             <button
               type="button"
