@@ -4,6 +4,7 @@
  */
 
 import { fillTemplate, readTemplates } from "./messageTemplates";
+import { queueEmail, readEmailPrefs } from "./emailPrefs";
 
 export type ChatSender = "empresa" | "candidato";
 
@@ -320,6 +321,17 @@ export function autoStageMessage(
   };
   const text = fillTemplate(template.body, vars);
   const title = fillTemplate(template.title, vars);
+
+  const prefs = readEmailPrefs("candidato");
+  if (prefs.enabled && prefs.stageUpdates && prefs.email) {
+    const emailTpl = readTemplates().email.mudancaEtapa;
+    queueEmail(
+      "candidato",
+      prefs.email,
+      fillTemplate(emailTpl.subject, vars),
+      fillTemplate(emailTpl.body, vars),
+    );
+  }
 
 
   const status: ChatThread["status"] =
