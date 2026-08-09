@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Building2, Clock, MapPin, MessageCircle, Search, Trash2, Wallet } from "lucide-react";
+import { Building2, Clock, MapPin, MessageCircle, Search, Star, Trash2, Trophy, Wallet } from "lucide-react";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { Reveal } from "@/components/site/Reveal";
 import { allFreelas, brlDiaria, contactHref, freelasBase, type Freela } from "@/lib/freelas";
+import { brl, computeMetrics, readAccount, seedAccount, subscribeAccount, type FreelaAccount } from "@/lib/freelaAccount";
 import {
   readFreelaContacts,
   removeFreelaContact,
@@ -334,6 +335,45 @@ function ContatosPanel({ contatos }: { contatos: FreelaContact[] }) {
           </li>
         ))}
       </ul>
+    </section>
+  );
+}
+
+function MinhaContaCard() {
+  const [acc, setAcc] = useState<FreelaAccount>(seedAccount);
+  useEffect(() => {
+    const sync = () => setAcc(readAccount());
+    sync();
+    return subscribeAccount(sync);
+  }, []);
+  const m = computeMetrics(acc);
+
+  return (
+    <section className="surface-card mt-6 flex flex-col gap-4 rounded-2xl p-5 sm:flex-row sm:items-center">
+      <div className="min-w-0">
+        <p className="eyebrow">Minha conta freela</p>
+        <h2 className="mt-1 font-display text-lg font-semibold text-ink">
+          Nível {m.level.nome} · #{m.posicao} no ranking
+        </h2>
+        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-semibold text-ink-soft">
+          <span className="inline-flex items-center gap-1.5">
+            <Star className="h-3.5 w-3.5 fill-accent text-accent" strokeWidth={0} />
+            {m.rating.toFixed(2)} ({m.avaliacoes})
+          </span>
+          <span>{m.diarias} diárias</span>
+          <span>{brl(m.ganho)} ganhos</span>
+          <span className="inline-flex items-center gap-1.5">
+            <Trophy className="h-3.5 w-3.5 text-accent" strokeWidth={2} />
+            Chance {m.chance}
+          </span>
+        </div>
+      </div>
+      <Link
+        to="/freelance/conta"
+        className="sm:ml-auto shrink-0 rounded-full bg-primary px-5 py-2.5 text-center text-sm font-semibold text-primary-foreground"
+      >
+        Ver minha conta
+      </Link>
     </section>
   );
 }
