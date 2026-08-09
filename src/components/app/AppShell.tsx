@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import {
   MessageSquare,
+  Video,
   Bell,
   Bookmark,
   Building2,
@@ -18,6 +19,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { useAppStore } from "./store";
 import { useChatMessageNotifications, useChatUnread } from "@/lib/useChat";
+import { useMeetingInvites, useMeetingReminders } from "@/lib/useMeetings";
 
 
 export type View =
@@ -26,6 +28,7 @@ export type View =
   | "curriculo"
   | "candidaturas"
   | "mensagens"
+  | "reunioes"
   | "salvas"
   | "empresas"
   | "preferencias"
@@ -37,6 +40,7 @@ const menu: { label: string; icon: typeof UserRound; view: View; badge?: string 
   { label: "Meu currículo", icon: FileText, view: "curriculo", badge: "IA" },
   { label: "Minhas candidaturas", icon: LayoutDashboard, view: "candidaturas" },
   { label: "Mensagens", icon: MessageSquare, view: "mensagens" },
+  { label: "Reuniões", icon: Video, view: "reunioes" },
   { label: "Recomendadas para você", icon: Sparkles, view: "recomendadas", badge: "Novo" },
   { label: "Vagas salvas", icon: Bookmark, view: "salvas" },
   { label: "Empresas que sigo", icon: Building2, view: "empresas" },
@@ -83,6 +87,24 @@ export function AppShell({
 
   // Notificação em tempo real de novas mensagens no chat com as empresas.
   useChatMessageNotifications("candidato", { onOpen: () => go("mensagens") });
+
+  // Lembretes automáticos antes de cada reunião confirmada com as empresas.
+  const meetingInvites = useMeetingInvites();
+  useMeetingReminders(
+    "candidato",
+    meetingInvites.map((i) => ({
+      id: i.id,
+      titulo: i.titulo,
+      inicio: i.inicio,
+      status: i.status,
+      detail: `${i.companyName}${i.link ? ` · ${i.link}` : ""}`,
+    })),
+    { fallbackEmail: account.email, onOpen: () => go("reunioes") },
+  );
+
+  const pendingRsvp = meetingInvites.filter(
+    (i) => i.status === "agendada" && i.rsvp === "pendente",
+  ).length;
 
   const initials = account.name
     .split(" ")
@@ -339,7 +361,11 @@ export function AppShell({
                 >
                   <item.icon className="h-4.5 w-4.5 text-ink-soft" strokeWidth={1.75} />
                   {item.label}
-                  {item.view === "mensagens" && chatUnread > 0 ? (
+                  {item.view === "reunioes" && pendingRsvp > 0 ? (
+                    <span className="ml-auto rounded-full bg-accent px-2 py-0.5 text-[11px] font-bold text-accent-foreground">
+                      {pendingRsvp} confirmar
+                    </span>
+                  ) : item.view === "mensagens" && chatUnread > 0 ? (
                     <span className="ml-auto rounded-full bg-accent px-2 py-0.5 text-[11px] font-bold text-accent-foreground">
                       {chatUnread} nova{chatUnread > 1 ? "s" : ""}
                     </span>
