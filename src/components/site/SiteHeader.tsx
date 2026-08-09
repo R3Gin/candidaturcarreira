@@ -74,13 +74,6 @@ export function SiteHeader() {
               Freelas
               <span className="absolute inset-x-3 -bottom-0.5 h-0.5 origin-left scale-x-0 rounded-full bg-accent transition-transform duration-300 group-hover:scale-x-100" />
             </Link>
-            <Link
-              to="/freelance/conta"
-              className="group relative rounded-full px-3 py-2 text-sm font-semibold text-ink-soft transition-colors hover:text-accent"
-            >
-              Conta freela
-              <span className="absolute inset-x-3 -bottom-0.5 h-0.5 origin-left scale-x-0 rounded-full bg-accent transition-transform duration-300 group-hover:scale-x-100" />
-            </Link>
           </nav>
 
 
@@ -137,13 +130,6 @@ export function SiteHeader() {
               className="block py-2.5 text-sm font-semibold text-ink-soft"
             >
               Freelas
-            </Link>
-            <Link
-              to="/freelance/conta"
-              onClick={() => setOpen(false)}
-              className="block py-2.5 text-sm font-semibold text-ink-soft"
-            >
-              Conta freela
             </Link>
 
 

@@ -1,17 +1,33 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Building2, Clock, MapPin, MessageCircle, Search, Star, Trash2, Trophy, Wallet } from "lucide-react";
+import { Building2, Clock, MapPin, Search, Star, Trophy, Wallet } from "lucide-react";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { Reveal } from "@/components/site/Reveal";
 import { allFreelas, brlDiaria, contactHref, freelasBase, type Freela } from "@/lib/freelas";
-import { brl, computeMetrics, readAccount, seedAccount, subscribeAccount, type FreelaAccount } from "@/lib/freelaAccount";
+import {
+  brl,
+  computeMetrics,
+  readAccount,
+  seedAccount,
+  subscribeAccount,
+  type FreelaAccount,
+} from "@/lib/freelaAccount";
 import {
   readFreelaContacts,
-  removeFreelaContact,
   subscribeFreelaContacts,
   type FreelaContact,
 } from "@/lib/freelaContacts";
+import { FreelaMenu, FreelaMenuTrigger, type FreelaView } from "@/components/freela/FreelaMenu";
+import {
+  AvaliacoesPanel,
+  ContatosPanel,
+  GanhosPanel,
+  JobsPanel,
+  NovoJobForm,
+  RankingPanel,
+  StatsRow,
+} from "@/components/freela/FreelaPanels";
 
 const title = "Freelas do dia | Candidatu";
 const description =
@@ -46,6 +62,15 @@ const ordens = [
 
 const modelos = ["Todos", "Remoto", "Presencial"] as const;
 
+const titulos: Record<Exclude<FreelaView, "freelas">, string> = {
+  jobs: "Trabalhos já feitos",
+  avaliacoes: "Avaliações das empresas",
+  ranking: "Nível e ranking",
+  ganhos: "Diárias e ganhos",
+  contatos: "Contatos e chats",
+  novo: "Registrar job",
+};
+
 function FreelancePage() {
   const [lista, setLista] = useState<Freela[]>(freelasBase);
   const [filtro, setFiltro] = useState<(typeof filtros)[number]["key"]>("hoje");
@@ -55,12 +80,22 @@ function FreelancePage() {
   const [minDiaria, setMinDiaria] = useState(0);
 
   const [contatos, setContatos] = useState<FreelaContact[]>([]);
+  const [acc, setAcc] = useState<FreelaAccount | null>(null);
+  const [view, setView] = useState<FreelaView>("freelas");
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     setLista(allFreelas());
-    const sync = () => setContatos(readFreelaContacts());
-    sync();
-    return subscribeFreelaContacts(sync);
+    const syncContatos = () => setContatos(readFreelaContacts());
+    const syncAcc = () => setAcc(readAccount());
+    syncContatos();
+    syncAcc();
+    const un1 = subscribeFreelaContacts(syncContatos);
+    const un2 = subscribeAccount(syncAcc);
+    return () => {
+      un1();
+      un2();
+    };
   }, []);
 
   const resultado = useMemo(() => {
@@ -83,6 +118,12 @@ function FreelancePage() {
   }, [lista, filtro, modelo, minDiaria, query, ordem]);
 
   const hoje = lista.filter((f) => f.quando === "hoje").length;
+  const conta = acc ?? seedAccount;
+
+  const navigate = (v: FreelaView) => {
+    setView(v);
+    setMenuOpen(false);
+  };
 
   return (
     <main>
@@ -102,250 +143,233 @@ function FreelancePage() {
       </section>
 
       <section className="mx-auto max-w-6xl px-5 py-12 md:py-16">
-        <div className="surface-card rounded-2xl p-4">
-          <label className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2">
-            <Search className="h-4 w-4 text-ink-soft" strokeWidth={1.75} />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Busque por cargo, empresa ou cidade"
-              aria-label="Buscar freelas"
-              className="w-full bg-transparent text-sm text-ink outline-none"
-            />
-          </label>
-
-          <div className="mt-3 flex flex-wrap gap-2">
-            {filtros.map((f) => (
-              <button
-                key={f.key}
-                type="button"
-                onClick={() => setFiltro(f.key)}
-                aria-pressed={filtro === f.key}
-                className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
-                  filtro === f.key
-                    ? "bg-primary text-primary-foreground"
-                    : "border border-border text-ink-soft hover:bg-secondary"
-                }`}
-              >
-                {f.label}
-              </button>
-            ))}
+        <div className="mb-6 flex flex-wrap items-center gap-3">
+          {view !== "freelas" && (
+            <button
+              type="button"
+              onClick={() => setView("freelas")}
+              className="rounded-full border border-border px-4 py-2 text-sm font-semibold text-ink hover:bg-secondary"
+            >
+              ← Voltar aos freelas
+            </button>
+          )}
+          <div className="ml-auto">
+            <FreelaMenuTrigger acc={acc} onOpen={() => setMenuOpen(true)} />
           </div>
-
-          <div className="mt-3 grid gap-3 sm:grid-cols-3">
-            <label className="block">
-              <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-ink-soft">
-                Ordenar por
-              </span>
-              <select
-                value={ordem}
-                onChange={(e) => setOrdem(e.target.value as typeof ordem)}
-                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-ink outline-none"
-              >
-                {ordens.map((o) => (
-                  <option key={o.key} value={o.key}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="block">
-              <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-ink-soft">
-                Modelo
-              </span>
-              <select
-                value={modelo}
-                onChange={(e) => setModelo(e.target.value as typeof modelo)}
-                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-ink outline-none"
-              >
-                {modelos.map((m) => (
-                  <option key={m} value={m}>
-                    {m}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="block">
-              <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-ink-soft">
-                Diária mínima: {brlDiaria(minDiaria)}
-              </span>
-              <input
-                type="range"
-                min={0}
-                max={600}
-                step={20}
-                value={minDiaria}
-                onChange={(e) => setMinDiaria(Number(e.target.value))}
-                className="mt-2 w-full accent-[hsl(var(--accent))]"
-              />
-            </label>
-          </div>
-
-          <p className="mt-3 text-xs font-semibold text-ink-soft">
-            {resultado.length} {resultado.length === 1 ? "freela encontrado" : "freelas encontrados"}
-          </p>
         </div>
 
-        <MinhaContaCard />
+        {view !== "freelas" ? (
+          <div className="space-y-6">
+            <header>
+              <p className="eyebrow">Conta de freelancer</p>
+              <h2 className="mt-1 font-display text-2xl font-bold text-ink">{titulos[view]}</h2>
+            </header>
+            <StatsRow acc={conta} />
+            {view === "jobs" && <JobsPanel acc={conta} />}
+            {view === "avaliacoes" && <AvaliacoesPanel acc={conta} />}
+            {view === "ranking" && <RankingPanel acc={conta} />}
+            {view === "ganhos" && <GanhosPanel acc={conta} />}
+            {view === "contatos" && <ContatosPanel contatos={contatos} />}
+            {view === "novo" && <NovoJobForm />}
+          </div>
+        ) : (
+          <>
+            <div className="surface-card rounded-2xl p-4">
+              <label className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2">
+                <Search className="h-4 w-4 text-ink-soft" strokeWidth={1.75} />
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Busque por cargo, empresa ou cidade"
+                  aria-label="Buscar freelas"
+                  className="w-full bg-transparent text-sm text-ink outline-none"
+                />
+              </label>
 
-        <ContatosPanel contatos={contatos} />
-
-
-        <ul className="mt-8 grid gap-4 md:grid-cols-2">
-          {resultado.map((f, i) => (
-            <Reveal
-              as="li"
-              key={f.id}
-              delay={i * 60}
-              className="surface-card flex flex-col rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lift"
-            >
-              <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-3 gap-y-2">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary">
-                  <Building2 className="h-5 w-5 text-ink-soft" strokeWidth={1.75} />
-                </span>
-                <div className="min-w-0">
-                  <h2 className="text-base font-semibold leading-snug">
-                    <Link to="/freelance/$id" params={{ id: f.id }} className="hover:underline">
-                      {f.cargo}
-                    </Link>
-                  </h2>
-                  <p className="mt-0.5 text-sm text-muted-foreground">{f.empresa}</p>
-                  <p className="mt-1 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <MapPin className="h-3.5 w-3.5" strokeWidth={1.75} />
-                    {f.local}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-4 grid gap-2 rounded-xl bg-secondary p-3 sm:grid-cols-2">
-                <p className="flex items-center gap-2 text-sm font-semibold text-ink">
-                  <Wallet className="h-4 w-4 text-accent" strokeWidth={2} />
-                  {brlDiaria(f.diariaValor)} / diária
-                </p>
-                <p className="flex items-center gap-2 text-sm font-semibold text-ink">
-                  <Clock className="h-4 w-4 text-accent" strokeWidth={2} />
-                  {f.carga} · {f.periodo}
-                </p>
-              </div>
-
-              <p className="mt-4 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
-                {f.descricao}
-              </p>
-
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {f.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded-md bg-secondary px-2 py-1 text-xs font-medium text-ink-soft"
+              <div className="mt-3 flex flex-wrap gap-2">
+                {filtros.map((f) => (
+                  <button
+                    key={f.key}
+                    type="button"
+                    onClick={() => setFiltro(f.key)}
+                    aria-pressed={filtro === f.key}
+                    className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                      filtro === f.key
+                        ? "bg-primary text-primary-foreground"
+                        : "border border-border text-ink-soft hover:bg-secondary"
+                    }`}
                   >
-                    {tag}
-                  </span>
+                    {f.label}
+                  </button>
                 ))}
               </div>
 
-              <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-3">
-                <Link
-                  to="/freelance/$id"
-                  params={{ id: f.id }}
-                  className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
-                >
-                  Ver detalhes
-                </Link>
-                {f.contato && (
-                  <a
-                    href={contactHref(f.contato)}
-                    className="rounded-full border border-border px-4 py-2 text-sm font-semibold text-ink hover:bg-secondary"
+              <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                <label className="block">
+                  <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-ink-soft">
+                    Ordenar por
+                  </span>
+                  <select
+                    value={ordem}
+                    onChange={(e) => setOrdem(e.target.value as typeof ordem)}
+                    className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-ink outline-none"
                   >
-                    Contato
-                  </a>
-                )}
-                <span className="ml-auto text-xs font-semibold text-ink-soft">{f.data}</span>
-                <span
-                  className={`rounded-full px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wider ${
-                    f.aberto && f.quando === "hoje"
-                      ? "bg-mint text-ink"
-                      : "bg-secondary text-ink-soft"
-                  }`}
-                >
-                  {f.aberto && f.quando === "hoje" ? "Aberto" : "Encerrado"}
-                </span>
+                    {ordens.map((o) => (
+                      <option key={o.key} value={o.key}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-ink-soft">
+                    Modelo
+                  </span>
+                  <select
+                    value={modelo}
+                    onChange={(e) => setModelo(e.target.value as typeof modelo)}
+                    className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-ink outline-none"
+                  >
+                    {modelos.map((m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-ink-soft">
+                    Diária mínima: {brlDiaria(minDiaria)}
+                  </span>
+                  <input
+                    type="range"
+                    min={0}
+                    max={600}
+                    step={20}
+                    value={minDiaria}
+                    onChange={(e) => setMinDiaria(Number(e.target.value))}
+                    className="mt-2 w-full accent-[hsl(var(--accent))]"
+                  />
+                </label>
               </div>
-            </Reveal>
-          ))}
-        </ul>
 
-        {resultado.length === 0 && (
-          <p className="mt-8 rounded-2xl border border-dashed border-border p-10 text-center text-sm text-ink-soft">
-            Nenhum freela encontrado com esses filtros.
-          </p>
+              <p className="mt-3 text-xs font-semibold text-ink-soft">
+                {resultado.length}{" "}
+                {resultado.length === 1 ? "freela encontrado" : "freelas encontrados"}
+              </p>
+            </div>
+
+            <MinhaContaCard acc={acc} onOpen={() => setMenuOpen(true)} />
+
+            <ul className="mt-8 grid gap-4 md:grid-cols-2">
+              {resultado.map((f, i) => (
+                <Reveal
+                  as="li"
+                  key={f.id}
+                  delay={i * 60}
+                  className="surface-card flex flex-col rounded-2xl p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lift"
+                >
+                  <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-3 gap-y-2">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary">
+                      <Building2 className="h-5 w-5 text-ink-soft" strokeWidth={1.75} />
+                    </span>
+                    <div className="min-w-0">
+                      <h2 className="text-base font-semibold leading-snug">
+                        <Link to="/freelance/$id" params={{ id: f.id }} className="hover:underline">
+                          {f.cargo}
+                        </Link>
+                      </h2>
+                      <p className="mt-0.5 text-sm text-muted-foreground">{f.empresa}</p>
+                      <p className="mt-1 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <MapPin className="h-3.5 w-3.5" strokeWidth={1.75} />
+                        {f.local}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid gap-2 rounded-xl bg-secondary p-3 sm:grid-cols-2">
+                    <p className="flex items-center gap-2 text-sm font-semibold text-ink">
+                      <Wallet className="h-4 w-4 text-accent" strokeWidth={2} />
+                      {brlDiaria(f.diariaValor)} / diária
+                    </p>
+                    <p className="flex items-center gap-2 text-sm font-semibold text-ink">
+                      <Clock className="h-4 w-4 text-accent" strokeWidth={2} />
+                      {f.carga} · {f.periodo}
+                    </p>
+                  </div>
+
+                  <p className="mt-4 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+                    {f.descricao}
+                  </p>
+
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {f.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-md bg-secondary px-2 py-1 text-xs font-medium text-ink-soft"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-3">
+                    <Link
+                      to="/freelance/$id"
+                      params={{ id: f.id }}
+                      className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+                    >
+                      Ver detalhes
+                    </Link>
+                    {f.contato && (
+                      <a
+                        href={contactHref(f.contato)}
+                        className="rounded-full border border-border px-4 py-2 text-sm font-semibold text-ink hover:bg-secondary"
+                      >
+                        Contato
+                      </a>
+                    )}
+                    <span className="ml-auto text-xs font-semibold text-ink-soft">{f.data}</span>
+                    <span
+                      className={`rounded-full px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wider ${
+                        f.aberto && f.quando === "hoje"
+                          ? "bg-mint text-ink"
+                          : "bg-secondary text-ink-soft"
+                      }`}
+                    >
+                      {f.aberto && f.quando === "hoje" ? "Aberto" : "Encerrado"}
+                    </span>
+                  </div>
+                </Reveal>
+              ))}
+            </ul>
+
+            {resultado.length === 0 && (
+              <p className="mt-8 rounded-2xl border border-dashed border-border p-10 text-center text-sm text-ink-soft">
+                Nenhum freela encontrado com esses filtros.
+              </p>
+            )}
+          </>
         )}
       </section>
+
+      {menuOpen && acc && (
+        <FreelaMenu
+          acc={acc}
+          view={view}
+          contatos={contatos.length}
+          onNavigate={navigate}
+          onClose={() => setMenuOpen(false)}
+        />
+      )}
 
       <SiteFooter />
     </main>
   );
 }
 
-function ContatosPanel({ contatos }: { contatos: FreelaContact[] }) {
-  if (contatos.length === 0) return null;
-  return (
-    <section className="surface-card mt-6 rounded-2xl p-5">
-      <header className="flex flex-wrap items-end justify-between gap-2">
-        <div>
-          <p className="eyebrow">Painel de contatos</p>
-          <h2 className="mt-1 font-display text-lg font-semibold text-ink">
-            {contatos.length} {contatos.length === 1 ? "solicitação enviada" : "solicitações enviadas"}
-          </h2>
-        </div>
-        <Link to="/painel" className="text-xs font-semibold text-brand hover:underline">
-          Abrir chats no painel
-        </Link>
-      </header>
-      <ul className="mt-4 space-y-2">
-        {contatos.map((c) => (
-          <li
-            key={c.id}
-            className="rounded-xl bg-secondary p-3"
-          >
-            <div className="flex items-start gap-2">
-              <MessageCircle className="mt-0.5 h-4 w-4 shrink-0 text-accent" strokeWidth={2} />
-              <p className="min-w-0 flex-1 text-sm font-semibold leading-snug text-ink">
-                <Link to="/freelance/$id" params={{ id: c.freelaId }} className="hover:underline">
-                  {c.cargo}
-                </Link>{" "}
-                · {c.empresa}
-              </p>
-            </div>
-            <p className="mt-1 text-xs text-ink-soft">
-              Enviada em {new Date(c.at).toLocaleString("pt-BR")} · resposta em {c.contato}
-            </p>
-            <div className="mt-2 flex items-center gap-2">
-              <span className="rounded-full bg-mint px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wider text-ink">
-                Chat aberto
-              </span>
-              <button
-                type="button"
-                aria-label={`Remover solicitação de ${c.cargo}`}
-                onClick={() => removeFreelaContact(c.id)}
-                className="ml-auto inline-flex h-8 w-8 items-center justify-center rounded-full text-destructive hover:bg-destructive/10"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </div>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
-}
-
-function MinhaContaCard() {
-  const [acc, setAcc] = useState<FreelaAccount>(seedAccount);
-  useEffect(() => {
-    const sync = () => setAcc(readAccount());
-    sync();
-    return subscribeAccount(sync);
-  }, []);
+function MinhaContaCard({ acc, onOpen }: { acc: FreelaAccount | null; onOpen: () => void }) {
+  if (!acc) return null;
   const m = computeMetrics(acc);
 
   return (
@@ -368,12 +392,13 @@ function MinhaContaCard() {
           </span>
         </div>
       </div>
-      <Link
-        to="/freelance/conta"
-        className="sm:ml-auto shrink-0 rounded-full bg-primary px-5 py-2.5 text-center text-sm font-semibold text-primary-foreground"
+      <button
+        type="button"
+        onClick={onOpen}
+        className="sm:ml-auto shrink-0 rounded-full bg-primary px-5 py-2.5 text-center text-sm font-semibold text-primary-foreground transition-transform duration-200 active:scale-[0.96]"
       >
-        Ver minha conta
-      </Link>
+        Abrir menu da conta
+      </button>
     </section>
   );
 }
