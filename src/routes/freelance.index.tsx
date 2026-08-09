@@ -349,11 +349,20 @@ function FreelancePage() {
               ))}
             </ul>
 
-            {resultado.length === 0 && (
+            {carregando && (
               <p className="mt-8 rounded-2xl border border-dashed border-border p-10 text-center text-sm text-ink-soft">
-                Nenhum freela encontrado com esses filtros.
+                Carregando freelas...
               </p>
             )}
+
+            {!carregando && resultado.length === 0 && (
+              <p className="mt-8 rounded-2xl border border-dashed border-border p-10 text-center text-sm text-ink-soft">
+                {lista.length === 0
+                  ? "Nenhum freela publicado ainda. Empresas podem publicar freelas no painel empresarial."
+                  : "Nenhum freela encontrado com esses filtros."}
+              </p>
+            )}
+
           </>
         )}
       </section>
