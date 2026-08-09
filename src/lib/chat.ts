@@ -294,7 +294,7 @@ export function recordStageEvent(
   );
 }
 
-/** Mensagens automáticas de andamento do processo. */
+/** Mensagens automáticas de andamento do processo (usam os modelos editáveis). */
 export function autoStageMessage(
   candidateId: string,
   kind: "etapa" | "aprovado" | "reprovado" | "entrevista" | "reuniao" | "cancelamento",
@@ -302,22 +302,20 @@ export function autoStageMessage(
 ) {
   const thread = findThreadByCandidate(candidateId);
   if (!thread || !thread.autoEnabled || thread.status === "Encerrado") return;
-  const first = thread.candidateName.split(" ")[0];
+  const first = thread.candidateName.split(" ")[0] ?? thread.candidateName;
   const stage = data.stage ?? thread.stage;
-  let text = "";
-  if (kind === "etapa") {
-    text = `Atualização do processo: ${first}, você avançou para a etapa "${stage}" na vaga de ${data.role ?? thread.role}. Em breve enviamos os próximos detalhes por aqui.`;
-  } else if (kind === "aprovado") {
-    text = `Parabéns, ${first}! 🎉 Você foi aprovada(o) no processo de ${data.role ?? thread.role}. Vamos alinhar os detalhes da contratação por este chat.`;
-  } else if (kind === "reprovado") {
-    text = `${first}, agradecemos muito sua participação no processo de ${data.role ?? thread.role}. Nesta etapa (${stage}) seguimos com outro perfil, mas seu currículo fica no nosso banco de talentos.`;
-  } else if (kind === "cancelamento") {
-    text = `${first}, houve uma alteração na sua reunião. ${data.detail ?? ""}`.trim();
-  } else if (kind === "reuniao") {
-    text = `${first}, você foi convidada(o) para uma reunião do processo de ${data.role ?? thread.role}. ${data.detail ?? ""} Confirme sua presença por aqui.`.trim();
-  } else {
-    text = `${first}, sua entrevista foi agendada. ${data.detail ?? ""} Qualquer imprevisto, avise por aqui.`.trim();
-  }
+  const template = readTemplates().chat[kind];
+  const vars = {
+    nome: first,
+    vaga: data.role ?? thread.role,
+    etapa: stage ?? thread.stage,
+    empresa: thread.companyName,
+    detalhe: data.detail ?? "",
+    responsavel: data.author ?? "Equipe de recrutamento",
+  };
+  const text = fillTemplate(template.body, vars);
+  const title = fillTemplate(template.title, vars);
+
 
   const status: ChatThread["status"] =
     kind === "aprovado" ? "Contratado" : kind === "reprovado" ? "Encerrado" : thread.status;
