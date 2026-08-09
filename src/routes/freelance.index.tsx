@@ -108,12 +108,13 @@ function FreelancePage() {
         return false;
       return true;
     });
-    const byDate = (a: Freela, b: Freela) => +new Date(b.publishedAt) - +new Date(a.publishedAt);
+    const byDate = (a: Freela, b: Freela) =>
+      +new Date(b.publishedAt) - +new Date(a.publishedAt) || a.id.localeCompare(b.id);
     return out.sort((a, b) => {
       if (ordem === "recentes") return byDate(a, b);
       if (ordem === "antigos") return -byDate(a, b);
-      if (ordem === "diaria-desc") return b.diariaValor - a.diariaValor;
-      return a.diariaValor - b.diariaValor;
+      if (ordem === "diaria-desc") return b.diariaValor - a.diariaValor || a.id.localeCompare(b.id);
+      return a.diariaValor - b.diariaValor || a.id.localeCompare(b.id);
     });
   }, [lista, filtro, modelo, minDiaria, query, ordem]);
 
