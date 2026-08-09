@@ -105,14 +105,185 @@ export function MeuCurriculo({ onGoToJobs }: { onGoToJobs: () => void }) {
       ].join("\n")
     : "";
 
-  const download = () => {
-    const blob = new Blob([plainText], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `curriculo-${account.name.toLowerCase().replace(/\s+/g, "-")}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const download = async () => {
+    if (!resume) return;
+    const { jsPDF } = await import("jspdf");
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
+
+    const ACCENT: [number, number, number] = [16, 185, 129];
+    const INK: [number, number, number] = [55, 65, 81];
+    const SOFT: [number, number, number] = [120, 130, 140];
+    const PILL: [number, number, number] = [236, 253, 245];
+
+    const W = doc.internal.pageSize.getWidth();
+    const H = doc.internal.pageSize.getHeight();
+    const M = 40;
+    const HEADER_H = 96;
+    const GAP = 22;
+    const mainW = (W - M * 2 - GAP) * 0.63;
+    const sideW = (W - M * 2 - GAP) * 0.37;
+    const sideX = M + mainW + GAP;
+
+    let page = 1;
+
+    const drawBanner = () => {
+      doc.setFillColor(...ACCENT);
+      doc.rect(0, 0, W, HEADER_H, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(24);
+      doc.text(account.name, M, 44);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(11.5);
+      doc.text(resume.headline ?? "", M, 64);
+      const contact = [account.email, account.phone, form.city].filter(Boolean).join("   ·   ");
+      doc.setFontSize(9);
+      doc.text(contact, M, 81);
+    };
+
+    const drawSmallHeader = () => {
+      doc.setFillColor(...ACCENT);
+      doc.rect(0, 0, W, 34, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.text(account.name, M, 22);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.text(`Página ${page}`, W - M, 22, { align: "right" });
+    };
+
+    drawBanner();
+    let yMain = HEADER_H + 30;
+    let ySide = HEADER_H + 30;
+
+    const newPage = () => {
+      doc.addPage();
+      page += 1;
+      drawSmallHeader();
+      yMain = 34 + 26;
+      ySide = 34 + 26;
+    };
+
+    const ensureSpace = (need: number, col: "main" | "side") => {
+      const y = col === "main" ? yMain : ySide;
+      if (y + need > H - M) newPage();
+    };
+
+    const sectionTitle = (label: string, x: number, w: number, col: "main" | "side") => {
+      ensureSpace(34, col);
+      let y = col === "main" ? yMain : ySide;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10.5);
+      doc.setTextColor(...ACCENT);
+      doc.text(label.toUpperCase(), x, y);
+      doc.setDrawColor(...ACCENT);
+      doc.setLineWidth(1.4);
+      doc.line(x, y + 5, x + w, y + 5);
+      y += 20;
+      if (col === "main") yMain = y;
+      else ySide = y;
+    };
+
+    const body = (text: string, x: number, w: number, col: "main" | "side", size = 9.5) => {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(size);
+      doc.setTextColor(...INK);
+      const lines = doc.splitTextToSize(text, w) as string[];
+      for (const line of lines) {
+        ensureSpace(14, col);
+        const y = col === "main" ? yMain : ySide;
+        doc.text(line, x, y);
+        if (col === "main") yMain = y + 13;
+        else ySide = y + 13;
+      }
+    };
+
+    // ---- Coluna principal
+    sectionTitle("Resumo", M, mainW, "main");
+    body(resume.summary, M, mainW, "main");
+    yMain += 12;
+
+    sectionTitle("Experiência", M, mainW, "main");
+    resume.experiences.forEach((e, i) => {
+      ensureSpace(46, "main");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10.5);
+      doc.setTextColor(30, 41, 59);
+      doc.text(e.role, M, yMain);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8.5);
+      doc.setTextColor(...SOFT);
+      doc.text(e.period, M + mainW, yMain, { align: "right" });
+      yMain += 13;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9.5);
+      doc.setTextColor(...ACCENT);
+      doc.text(e.company, M, yMain);
+      yMain += 15;
+
+      for (const b of e.bullets) {
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9.5);
+        doc.setTextColor(...INK);
+        const lines = doc.splitTextToSize(b, mainW - 14) as string[];
+        lines.forEach((line, li) => {
+          ensureSpace(14, "main");
+          if (li === 0) {
+            doc.setFillColor(...ACCENT);
+            doc.circle(M + 3, yMain - 3, 2, "F");
+          }
+          doc.setTextColor(...INK);
+          doc.text(line, M + 14, yMain);
+          yMain += 13;
+        });
+        yMain += 2;
+      }
+      if (i < resume.experiences.length - 1) yMain += 10;
+    });
+
+    // ---- Coluna lateral
+    sectionTitle("Habilidades", sideX, sideW, "side");
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    let px = sideX;
+    let rowH = 18;
+    for (const s of resume.skills) {
+      const tw = doc.getTextWidth(s) + 14;
+      if (px + tw > sideX + sideW) {
+        px = sideX;
+        ySide += rowH + 5;
+      }
+      ensureSpace(rowH + 6, "side");
+      doc.setFillColor(...PILL);
+      doc.setDrawColor(...ACCENT);
+      doc.setLineWidth(0.5);
+      doc.roundedRect(px, ySide - 11, tw, rowH, 8, 8, "FD");
+      doc.setTextColor(6, 95, 70);
+      doc.text(s, px + 7, ySide + 1);
+      px += tw + 5;
+    }
+    ySide += rowH + 18;
+
+    sectionTitle("Formação", sideX, sideW, "side");
+    for (const ed of resume.education) {
+      const lines = doc.splitTextToSize(ed, sideW - 12) as string[];
+      lines.forEach((line, li) => {
+        ensureSpace(14, "side");
+        if (li === 0) {
+          doc.setFillColor(...ACCENT);
+          doc.rect(sideX, ySide - 6, 3, 7, "F");
+        }
+        doc.setFont("helvetica", li === 0 ? "bold" : "normal");
+        doc.setFontSize(9.5);
+        doc.setTextColor(...INK);
+        doc.text(line, sideX + 10, ySide);
+        ySide += 13;
+      });
+      ySide += 6;
+    }
+
+    doc.save(`curriculo-${account.name.toLowerCase().replace(/\s+/g, "-")}.pdf`);
   };
 
   return (
