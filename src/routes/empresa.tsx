@@ -4,6 +4,7 @@ import { CompanyShell, type CompanyView } from "@/components/company/CompanyShel
 import { CompanyStoreProvider, useCompanyStore, type Permission } from "@/components/company/store";
 import { Banco } from "@/components/company/views/Banco";
 import { Entrevistas } from "@/components/company/views/Entrevistas";
+import { Reunioes } from "@/components/company/views/Reunioes";
 import { Equipe } from "@/components/company/views/Equipe";
 import { Marca } from "@/components/company/views/Marca";
 import { PaginaEmpresa } from "@/components/company/views/PaginaEmpresa";
@@ -45,6 +46,7 @@ const viewPermission: Record<CompanyView, Permission> = {
   vagas: "ver_vagas",
   banco: "ver_banco",
   entrevistas: "ver_entrevistas",
+  reunioes: "ver_reunioes",
   marca: "ver_marca",
   pagina: "ver_marca",
   equipe: "ver_equipe",
@@ -75,6 +77,7 @@ function EmpresaDashboard() {
       {allowed && view === "vagas" && <Vagas onOpenPipeline={() => setView("pipeline")} />}
       {allowed && view === "banco" && <Banco />}
       {allowed && view === "entrevistas" && <Entrevistas />}
+      {allowed && view === "reunioes" && <Reunioes />}
       {allowed && view === "marca" && <Marca />}
       {allowed && view === "pagina" && <PaginaEmpresa />}
       {allowed && view === "equipe" && <Equipe />}

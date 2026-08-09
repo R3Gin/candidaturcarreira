@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   Sparkles,
   Users,
+  Video,
   X,
   XCircle,
 } from "lucide-react";
@@ -123,6 +124,7 @@ export type CompanyView =
   | "vagas"
   | "banco"
   | "entrevistas"
+  | "reunioes"
   | "marca"
   | "pagina"
   | "equipe";
@@ -138,6 +140,7 @@ const menu: { label: string; icon: typeof Users; view: CompanyView; permission: 
     view: "entrevistas",
     permission: "ver_entrevistas",
   },
+  { label: "Reuniões", icon: Video, view: "reunioes", permission: "ver_reunioes" },
   { label: "Marca empregadora", icon: Building2, view: "marca", permission: "ver_marca" },
   { label: "Página da empresa", icon: Sparkles, view: "pagina", permission: "ver_marca" },
   { label: "Equipe e permissões", icon: ShieldCheck, view: "equipe", permission: "ver_equipe" },
