@@ -53,10 +53,14 @@ export function Vagas({ onOpenPipeline }: { onOpenPipeline: () => void }) {
       seniority: form.seniority,
       salaryMin: isFreela ? Number(form.dailyRate) : Number(form.salaryMin),
       salaryMax: isFreela ? Number(form.dailyRate) : Number(form.salaryMax),
-      dailyRate: isFreela ? Number(form.dailyRate) : undefined,
-      hours: isFreela ? form.hours.trim() : undefined,
-      period: isFreela ? form.period.trim() : undefined,
-      contact: form.contact.trim() || undefined,
+      ...(isFreela
+        ? {
+            dailyRate: Number(form.dailyRate),
+            hours: form.hours.trim(),
+            period: form.period.trim(),
+          }
+        : {}),
+      ...(form.contact.trim() ? { contact: form.contact.trim() } : {}),
       openings: Number(form.openings),
       skills: form.skills
         .split(",")
