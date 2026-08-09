@@ -585,14 +585,14 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
       const role = state.vacancies.find((v) => v.id === before?.vacancyId)?.role ?? "vaga";
       if (stage === "Contratado") {
         notify("aprovado", `${name} foi aprovada(o)! 🎉`, `Contratação confirmada para ${role}.`);
-        autoStageMessage(candidateId, "aprovado", { stage, role });
+        autoStageMessage(candidateId, "aprovado", { stage, role, author: (state.members.find((m) => m.id === state.currentMemberId)?.name ?? "Equipe de recrutamento") });
       } else if (previous !== stage) {
         notify(
           "etapa",
           `${name} avançou para ${stage}`,
           `Processo de ${role}${previous ? ` · saiu de ${previous}` : ""}.`,
         );
-        autoStageMessage(candidateId, "etapa", { stage, role });
+        autoStageMessage(candidateId, "etapa", { stage, role, author: (state.members.find((m) => m.id === state.currentMemberId)?.name ?? "Equipe de recrutamento") });
       }
     };
 
@@ -674,6 +674,7 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
         autoStageMessage(candidateId, "reprovado", {
           ...(before ? { stage: before.stage } : {}),
           role: state.vacancies.find((v) => v.id === before?.vacancyId)?.role ?? "vaga",
+          author: (state.members.find((m) => m.id === state.currentMemberId)?.name ?? "Equipe de recrutamento"),
         });
       },
       restore: (candidateId) =>
@@ -707,6 +708,7 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
         notify("entrevista", `Entrevista agendada com ${name}`, when);
         autoStageMessage(i.candidateId, "entrevista", {
           detail: `${when} Link: ${i.link}`,
+          author: (state.members.find((m) => m.id === state.currentMemberId)?.name ?? "Equipe de recrutamento"),
         });
       },
       cancelInterview: (id) =>

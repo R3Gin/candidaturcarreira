@@ -17,6 +17,7 @@ import {
 import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { useAppStore } from "./store";
+import { useChatMessageNotifications, useChatUnread } from "@/lib/useChat";
 
 
 export type View =
@@ -56,6 +57,7 @@ export function AppShell({
   onSignOut: () => void;
 }) {
   const [openAccount, setOpenAccount] = useState(false);
+  const chatUnread = useChatUnread("candidato");
   const [openAlerts, setOpenAlerts] = useState(false);
   const {
     account,
@@ -78,6 +80,9 @@ export function AppShell({
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [alerts[0]?.id]);
+
+  // Notificação em tempo real de novas mensagens no chat com as empresas.
+  useChatMessageNotifications("candidato", { onOpen: () => go("mensagens") });
 
   const initials = account.name
     .split(" ")
@@ -144,6 +149,19 @@ export function AppShell({
           </nav>
 
           <div className="ml-auto flex items-center gap-1.5">
+            <button
+              type="button"
+              aria-label={`Mensagens${chatUnread ? ` (${chatUnread} não lidas)` : ""}`}
+              onClick={() => go("mensagens")}
+              className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-secondary"
+            >
+              <MessageSquare className="h-5 w-5" strokeWidth={1.75} />
+              {chatUnread > 0 && (
+                <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-accent-foreground">
+                  {chatUnread > 9 ? "9+" : chatUnread}
+                </span>
+              )}
+            </button>
             <button
               type="button"
               aria-label="Buscar vagas"
@@ -321,10 +339,16 @@ export function AppShell({
                 >
                   <item.icon className="h-4.5 w-4.5 text-ink-soft" strokeWidth={1.75} />
                   {item.label}
-                  {item.badge && (
-                    <span className="ml-auto rounded-full bg-mint px-2 py-0.5 text-[11px] font-bold text-ink">
-                      {item.badge}
+                  {item.view === "mensagens" && chatUnread > 0 ? (
+                    <span className="ml-auto rounded-full bg-accent px-2 py-0.5 text-[11px] font-bold text-accent-foreground">
+                      {chatUnread} nova{chatUnread > 1 ? "s" : ""}
                     </span>
+                  ) : (
+                    item.badge && (
+                      <span className="ml-auto rounded-full bg-mint px-2 py-0.5 text-[11px] font-bold text-ink">
+                        {item.badge}
+                      </span>
+                    )
                   )}
                 </button>
               ))}

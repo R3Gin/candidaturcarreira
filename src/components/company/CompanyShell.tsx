@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { useCompanyStore, type NotificationKind, type Permission } from "./store";
+import { useChatMessageNotifications, useChatUnread } from "@/lib/useChat";
+import { MessageSquare } from "lucide-react";
 
 const notifIcon: Record<NotificationKind, typeof Bell> = {
   etapa: MoveRight,
@@ -151,6 +153,9 @@ export function CompanyShell({
   onNavigate: (v: CompanyView) => void;
 }) {
   const { profile, candidates, interviews, currentMember, can } = useCompanyStore();
+  const chatUnread = useChatUnread("empresa");
+  // Avisa a equipe quando um candidato responde no chat.
+  useChatMessageNotifications("empresa", { onOpen: () => onNavigate("pipeline") });
   const [open, setOpen] = useState(false);
   const active = candidates.filter((c) => !c.rejected && c.stage !== "Contratado").length;
   const visible = menu.filter((item) => can(item.permission));
@@ -188,6 +193,19 @@ export function CompanyShell({
           </div>
 
           <div className="flex items-center gap-2 sm:ml-3">
+            <button
+              type="button"
+              aria-label={`Mensagens de candidatos${chatUnread ? ` (${chatUnread} não lidas)` : ""}`}
+              onClick={() => onNavigate("pipeline")}
+              className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border text-ink hover:bg-secondary"
+            >
+              <MessageSquare className="h-5 w-5" strokeWidth={1.9} />
+              {chatUnread > 0 && (
+                <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-cyan px-1 text-[10px] font-bold text-ink">
+                  {chatUnread > 9 ? "9+" : chatUnread}
+                </span>
+              )}
+            </button>
             <NotificationBell />
 
             <div className="hidden text-right sm:block">

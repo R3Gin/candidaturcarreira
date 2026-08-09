@@ -5,6 +5,14 @@
 
 export type ChatSender = "empresa" | "candidato";
 
+export type ChatAttachment = {
+  id: string;
+  name: string;
+  size: number;
+  type: string;
+  dataUrl: string;
+};
+
 export type ChatMessage = {
   id: string;
   from: ChatSender;
@@ -13,6 +21,17 @@ export type ChatMessage = {
   at: string;
   author?: string;
   stage?: string;
+  attachments?: ChatAttachment[];
+};
+
+export type StageEvent = {
+  id: string;
+  at: string;
+  stage: string;
+  status: string;
+  by: string;
+  kind: "abertura" | "etapa" | "aprovado" | "reprovado" | "entrevista";
+  detail?: string;
 };
 
 export type ChatThread = {
@@ -28,6 +47,7 @@ export type ChatThread = {
   status: "Em andamento" | "Contratado" | "Encerrado";
   autoEnabled: boolean;
   messages: ChatMessage[];
+  stageHistory: StageEvent[];
   unreadForCompany: number;
   unreadForCandidate: number;
 };
@@ -38,13 +58,44 @@ const EVENT = "candidatu-chats-updated";
 const uid = () => `m-${Date.now()}-${Math.round(Math.random() * 1e6)}`;
 const now = () => new Date().toISOString();
 
+export const MAX_ATTACHMENT_BYTES = 2 * 1024 * 1024;
+
+export function fileToAttachment(file: File): Promise<ChatAttachment> {
+  return new Promise((resolve, reject) => {
+    if (file.size > MAX_ATTACHMENT_BYTES) {
+      reject(new Error("Arquivo maior que 2 MB."));
+      return;
+    }
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Não foi possível ler o arquivo."));
+    reader.onload = () =>
+      resolve({
+        id: uid(),
+        name: file.name,
+        size: file.size,
+        type: file.type || "application/octet-stream",
+        dataUrl: String(reader.result ?? ""),
+      });
+    reader.readAsDataURL(file);
+  });
+}
+
+export function formatBytes(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
+
+
 export function readThreads(): ChatThread[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as ChatThread[];
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    // Compatibilidade com conversas salvas antes do histórico de etapas.
+    return parsed.map((t) => ({ ...t, stageHistory: t.stageHistory ?? [] }));
   } catch {
     return [];
   }
@@ -105,6 +156,17 @@ export function acceptCandidate(input: {
     autoEnabled: true,
     unreadForCompany: 0,
     unreadForCandidate: 1,
+    stageHistory: [
+      {
+        id: uid(),
+        at: now(),
+        stage: input.stage,
+        status: "Em andamento",
+        by: input.responsible ?? "Equipe de recrutamento",
+        kind: "abertura",
+        detail: "Currículo aceito e chat aberto com o candidato.",
+      },
+    ],
     messages: [
       {
         id: uid(),
@@ -125,10 +187,16 @@ export function sendMessage(
   threadId: string,
   from: ChatSender,
   text: string,
-  opts?: { kind?: ChatMessage["kind"]; author?: string; stage?: string },
+  opts?: {
+    kind?: ChatMessage["kind"];
+    author?: string;
+    stage?: string;
+    attachments?: ChatAttachment[];
+  },
 ) {
   const clean = text.trim();
-  if (!clean) return;
+  const files = opts?.attachments ?? [];
+  if (!clean && files.length === 0) return;
   update((all) =>
     all.map((t) =>
       t.id === threadId
@@ -144,6 +212,7 @@ export function sendMessage(
                 at: now(),
                 ...(opts?.author ? { author: opts.author } : {}),
                 ...(opts?.stage ? { stage: opts.stage } : {}),
+                ...(files.length ? { attachments: files } : {}),
               },
             ],
             unreadForCandidate:
@@ -154,6 +223,16 @@ export function sendMessage(
     ),
   );
 }
+
+/** Total de mensagens não lidas de um lado (para badges do cabeçalho). */
+export function totalUnread(side: ChatSender, threads?: ChatThread[]) {
+  const list = threads ?? readThreads();
+  return list.reduce(
+    (acc, t) => acc + (side === "empresa" ? t.unreadForCompany : t.unreadForCandidate),
+    0,
+  );
+}
+
 
 export function markRead(threadId: string, side: ChatSender) {
   update((all) =>
@@ -198,15 +277,29 @@ export function autoStageMessage(
     text = `${first}, sua entrevista foi agendada. ${data.detail ?? ""} Qualquer imprevisto, avise por aqui.`.trim();
   }
 
+  const status: ChatThread["status"] =
+    kind === "aprovado" ? "Contratado" : kind === "reprovado" ? "Encerrado" : thread.status;
+
   update((all) =>
     all.map((t) =>
       t.id === thread.id
         ? {
             ...t,
             stage: stage ?? t.stage,
-            status:
-              kind === "aprovado" ? "Contratado" : kind === "reprovado" ? "Encerrado" : t.status,
+            status,
             unreadForCandidate: t.unreadForCandidate + 1,
+            stageHistory: [
+              ...(t.stageHistory ?? []),
+              {
+                id: uid(),
+                at: now(),
+                stage: stage ?? t.stage,
+                status,
+                by: data.author ?? "Atualização automática",
+                kind,
+                ...(data.detail ? { detail: data.detail } : {}),
+              },
+            ],
             messages: [
               ...t.messages,
               {
