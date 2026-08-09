@@ -71,7 +71,7 @@ Regras:
 - O campo headline é o título profissional (ex.: "Analista Administrativo Pleno · Joinville"); nunca repita o nome da pessoa nele.
 - Responda apenas com json válido no schema pedido.`;
 
-    const model = "gemini-2.5-flash";
+    const model = "gemini-3.6-flash";
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
       {
