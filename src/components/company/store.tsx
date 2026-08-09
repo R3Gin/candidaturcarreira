@@ -84,6 +84,36 @@ export type Interview = {
   link: string;
 };
 
+export const REUNIAO_TIPOS = [
+  { id: "video", label: "Vídeo" },
+  { id: "audio", label: "Áudio" },
+  { id: "presencial", label: "Presencial" },
+] as const;
+
+export const REUNIAO_STATUS = [
+  { id: "agendada", label: "Agendada" },
+  { id: "realizada", label: "Realizada" },
+  { id: "cancelada", label: "Cancelada" },
+] as const;
+
+export const labelOf = (
+  list: readonly { id: string; label: string }[],
+  id: string,
+) => list.find((i) => i.id === id)?.label ?? id;
+
+export type Meeting = {
+  id: string;
+  titulo: string;
+  pauta: string;
+  tipo: string;
+  inicio: string;
+  duracaoMin: number;
+  participantes: string[];
+  link: string;
+  status: string;
+};
+
+
 export type CompanyDoc = {
   id: string;
   name: string;
