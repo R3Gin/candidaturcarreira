@@ -96,7 +96,7 @@ function ContaFreelaPage() {
                 {acc.headline} · {acc.cidade}
               </p>
               <div className="mt-3 flex flex-wrap items-center gap-2">
-                <span className={`rounded-full px-3 py-1 text-xs font-bold ${m.level.cor}`}>
+                <span className="rounded-full bg-primary-foreground px-3 py-1 text-xs font-bold text-primary">
                   Nível {m.level.nome} · {m.level.faixa}
                 </span>
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-foreground/10 px-3 py-1 text-xs font-bold">
