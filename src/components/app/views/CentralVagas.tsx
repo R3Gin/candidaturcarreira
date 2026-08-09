@@ -281,9 +281,10 @@ function JobDetail({
             </span>
           </div>
         </div>
-        <span className="rounded-full bg-mint px-2.5 py-1 text-[11px] font-bold text-ink">
+        <span className="col-start-2 w-fit shrink-0 rounded-full bg-mint px-2.5 py-1 text-[11px] font-bold text-ink sm:col-auto">
           {job.match} de match
         </span>
+
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
