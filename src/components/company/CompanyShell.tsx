@@ -14,7 +14,6 @@ import {
   Sparkles,
   Users,
   Video,
-  MessageSquare,
   X,
   XCircle,
 } from "lucide-react";
