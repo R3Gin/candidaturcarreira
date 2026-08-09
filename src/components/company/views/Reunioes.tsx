@@ -16,6 +16,7 @@ type Form = {
   inicio: string;
   duracaoMin: string;
   participantes: string;
+  candidatos: string[];
   link: string;
   status: string;
 };
@@ -33,6 +34,7 @@ const vazio = (): Form => ({
   inicio: toLocalInput(new Date().toISOString()),
   duracaoMin: "30",
   participantes: "",
+  candidatos: [],
   link: "",
   status: "agendada",
 });
@@ -47,8 +49,16 @@ const fieldClass =
   "w-full rounded-xl border border-border bg-card px-3 py-2 text-sm text-ink outline-none focus:border-brand";
 
 export function Reunioes() {
-  const { meetings, members, addMeeting, updateMeeting, setMeetingStatus, removeMeeting, can } =
-    useCompanyStore();
+  const {
+    meetings,
+    members,
+    candidates,
+    addMeeting,
+    updateMeeting,
+    setMeetingStatus,
+    removeMeeting,
+    can,
+  } = useCompanyStore();
   const canManage = can("gerenciar_reunioes");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Meeting | null>(null);
@@ -56,6 +66,15 @@ export function Reunioes() {
 
   const sorted = [...meetings].sort((a, b) => b.inicio.localeCompare(a.inicio));
   const agendadas = meetings.filter((m) => m.status === "agendada").length;
+  const candidatosAtivos = candidates.filter((c) => !c.rejected);
+  const nomeCandidato = (id: string) => candidates.find((c) => c.id === id)?.name ?? id;
+  const toggleCandidato = (id: string) =>
+    setForm((f) => ({
+      ...f,
+      candidatos: f.candidatos.includes(id)
+        ? f.candidatos.filter((c) => c !== id)
+        : [...f.candidatos, id],
+    }));
 
   const submit = () => {
     if (!form.titulo.trim()) {
@@ -72,6 +91,7 @@ export function Reunioes() {
         .split(",")
         .map((p) => p.trim())
         .filter(Boolean),
+      candidatos: form.candidatos,
       link: form.link.trim(),
       status: form.status,
     };
@@ -169,6 +189,12 @@ export function Reunioes() {
               <p className="text-xs text-ink-soft">{r.participantes.join(", ")}</p>
             )}
 
+            {(r.candidatos?.length ?? 0) > 0 && (
+              <p className="text-xs font-semibold text-brand">
+                Candidatos avisados: {(r.candidatos ?? []).map(nomeCandidato).join(", ")}
+              </p>
+            )}
+
             {canManage && (
               <div className="mt-auto flex flex-wrap items-center gap-2 border-t border-border pt-3">
                 <select
@@ -194,6 +220,7 @@ export function Reunioes() {
                       inicio: toLocalInput(r.inicio),
                       duracaoMin: String(r.duracaoMin),
                       participantes: r.participantes.join(", "),
+                      candidatos: r.candidatos ?? [],
                       link: r.link,
                       status: r.status,
                     });
@@ -329,6 +356,32 @@ export function Reunioes() {
                     .join(", ")}
                 />
               </label>
+              <div className="grid gap-1.5 text-xs font-semibold text-ink-soft">
+                Convidar candidatos (recebem notificação e mensagem no chat)
+                <div className="max-h-40 space-y-1 overflow-y-auto rounded-xl border border-border bg-card p-2">
+                  {candidatosAtivos.map((c) => (
+                    <label
+                      key={c.id}
+                      className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-medium text-ink hover:bg-secondary"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={form.candidatos.includes(c.id)}
+                        onChange={() => toggleCandidato(c.id)}
+                      />
+                      {c.name}
+                      <span className="ml-auto text-[11px] font-normal text-ink-soft">
+                        {c.headline}
+                      </span>
+                    </label>
+                  ))}
+                  {candidatosAtivos.length === 0 && (
+                    <p className="px-2 py-1.5 text-xs font-normal text-ink-soft">
+                      Nenhum candidato ativo.
+                    </p>
+                  )}
+                </div>
+              </div>
               <label className="grid gap-1.5 text-xs font-semibold text-ink-soft">
                 Link da chamada
                 <input

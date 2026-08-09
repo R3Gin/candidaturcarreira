@@ -27,6 +27,7 @@ const notifIcon: Record<NotificationKind, typeof Bell> = {
   aprovado: CheckCircle2,
   reprovado: XCircle,
   entrevista: CalendarDays,
+  reuniao: Video,
 };
 
 function NotificationBell() {

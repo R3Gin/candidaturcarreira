@@ -10,7 +10,7 @@ import {
 import { toast } from "sonner";
 import { autoStageMessage } from "@/lib/chat";
 
-export type NotificationKind = "etapa" | "aprovado" | "reprovado" | "entrevista";
+export type NotificationKind = "etapa" | "aprovado" | "reprovado" | "entrevista" | "reuniao";
 
 export type CompanyNotification = {
   id: string;
@@ -109,6 +109,8 @@ export type Meeting = {
   inicio: string;
   duracaoMin: number;
   participantes: string[];
+  /** Candidatos convidados (ids) — recebem notificação e mensagem no chat. */
+  candidatos?: string[];
   link: string;
   status: string;
 };
@@ -796,10 +798,27 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
         setState((s) => ({ ...s, interviews: s.interviews.filter((i) => i.id !== id) })),
       addMeeting: (m) => {
         setState((s) => ({ ...s, meetings: [{ ...m, id: uid() }, ...s.meetings] }));
-        log(
-          "Reunião agendada",
-          `${m.titulo} · ${new Date(m.inicio).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}`,
-        );
+        const quando = new Date(m.inicio).toLocaleString("pt-BR", {
+          dateStyle: "short",
+          timeStyle: "short",
+        });
+        log("Reunião agendada", `${m.titulo} · ${quando}`);
+        const author =
+          state.members.find((mm) => mm.id === state.currentMemberId)?.name ??
+          "Equipe de recrutamento";
+        const convidados = m.candidatos ?? [];
+        convidados.forEach((candidateId) => {
+          const cand = state.candidates.find((c) => c.id === candidateId);
+          notify(
+            "reuniao",
+            `Reunião marcada com ${cand?.name ?? "candidato"}`,
+            `${m.titulo} em ${quando} (${m.duracaoMin} min).`,
+          );
+          autoStageMessage(candidateId, "reuniao", {
+            detail: `${m.titulo} em ${quando} · ${m.duracaoMin} min${m.pauta ? ` · Pauta: ${m.pauta}` : ""}${m.link ? ` · Link: ${m.link}` : ""}`,
+            author,
+          });
+        });
       },
       updateMeeting: (id, patch) => {
         setState((s) => ({
@@ -807,6 +826,29 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
           meetings: s.meetings.map((m) => (m.id === id ? { ...m, ...patch } : m)),
         }));
         log("Reunião atualizada", "Dados da reunião foram alterados.");
+        const atual = state.meetings.find((m) => m.id === id);
+        const merged = { ...atual, ...patch } as Meeting;
+        const author =
+          state.members.find((mm) => mm.id === state.currentMemberId)?.name ??
+          "Equipe de recrutamento";
+        const quando = merged.inicio
+          ? new Date(merged.inicio).toLocaleString("pt-BR", {
+              dateStyle: "short",
+              timeStyle: "short",
+            })
+          : "";
+        (merged.candidatos ?? []).forEach((candidateId) => {
+          const cand = state.candidates.find((c) => c.id === candidateId);
+          notify(
+            "reuniao",
+            `Reunião atualizada · ${cand?.name ?? "candidato"}`,
+            `${merged.titulo} em ${quando}.`,
+          );
+          autoStageMessage(candidateId, "reuniao", {
+            detail: `Atualizamos a reunião "${merged.titulo}": ${quando} · ${merged.duracaoMin} min${merged.link ? ` · Link: ${merged.link}` : ""}`,
+            author,
+          });
+        });
       },
       setMeetingStatus: (id, status) => {
         setState((s) => ({

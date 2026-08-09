@@ -8,6 +8,7 @@ import {
   Paperclip,
   Send,
   Sparkles,
+  Video,
   X,
   XCircle,
 } from "lucide-react";
@@ -184,6 +185,7 @@ const stageIcon: Record<StageEvent["kind"], typeof MoveRight> = {
   aprovado: CheckCircle2,
   reprovado: XCircle,
   entrevista: CalendarDays,
+  reuniao: Video,
 };
 
 /** Histórico detalhado das mudanças de etapa dentro do chat. */
