@@ -3,6 +3,8 @@ import { MessageSquare } from "lucide-react";
 import { ChatMessages } from "@/components/company/CandidateChat";
 import { markRead } from "@/lib/chat";
 import { ChatComposer, StageHistory } from "@/components/chat/ChatPieces";
+import { EmailNotificationPrefs } from "@/components/chat/EmailNotificationPrefs";
+
 import { useAppStore } from "@/components/app/store";
 import { useChatThreads } from "@/lib/useChat";
 
