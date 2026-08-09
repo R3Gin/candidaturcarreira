@@ -189,6 +189,12 @@ export function Reunioes() {
               <p className="text-xs text-ink-soft">{r.participantes.join(", ")}</p>
             )}
 
+            {(r.candidatos?.length ?? 0) > 0 && (
+              <p className="text-xs font-semibold text-brand">
+                Candidatos avisados: {(r.candidatos ?? []).map(nomeCandidato).join(", ")}
+              </p>
+            )}
+
             {canManage && (
               <div className="mt-auto flex flex-wrap items-center gap-2 border-t border-border pt-3">
                 <select
