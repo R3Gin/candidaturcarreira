@@ -136,19 +136,26 @@ export function SiteHeader() {
 
 
             <div className="mt-2 flex gap-2 border-t border-border pt-3">
-              <Link
-                to="/auth"
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  openAuthModal({ mode: "entrar" });
+                }}
                 className="flex-1 rounded-full border border-border py-2.5 text-center text-sm font-semibold text-ink"
               >
                 Entrar
-              </Link>
-              <Link
-                to="/auth"
-
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  openAuthModal({ mode: "criar" });
+                }}
                 className="flex-1 rounded-full bg-primary py-2.5 text-center text-sm font-semibold text-primary-foreground"
               >
                 Criar perfil
-              </Link>
+              </button>
             </div>
           </nav>
         )}
