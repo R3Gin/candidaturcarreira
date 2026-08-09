@@ -10,7 +10,7 @@ import {
 import { toast } from "sonner";
 import { autoStageMessage } from "@/lib/chat";
 
-export type NotificationKind = "etapa" | "aprovado" | "reprovado" | "entrevista";
+export type NotificationKind = "etapa" | "aprovado" | "reprovado" | "entrevista" | "reuniao";
 
 export type CompanyNotification = {
   id: string;
