@@ -6,6 +6,8 @@ const colunas = [
     titulo: "Para candidatos",
     links: [
       { label: "Buscar vagas", href: "#vagas" },
+      { label: "Freelas do dia", href: "/freelance" },
+
       { label: "Avaliações de empresas", href: "#empresas" },
       { label: "Currículo com IA", href: "#processo" },
       { label: "Como funciona", href: "#processo" },
