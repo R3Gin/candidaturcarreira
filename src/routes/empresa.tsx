@@ -6,6 +6,7 @@ import { Banco } from "@/components/company/views/Banco";
 import { Entrevistas } from "@/components/company/views/Entrevistas";
 import { Reunioes } from "@/components/company/views/Reunioes";
 import { Equipe } from "@/components/company/views/Equipe";
+import { Modelos } from "@/components/company/views/Modelos";
 import { Marca } from "@/components/company/views/Marca";
 import { PaginaEmpresa } from "@/components/company/views/PaginaEmpresa";
 import { Pipeline } from "@/components/company/views/Pipeline";
@@ -49,6 +50,7 @@ const viewPermission: Record<CompanyView, Permission> = {
   reunioes: "ver_reunioes",
   marca: "ver_marca",
   pagina: "ver_marca",
+  modelos: "ver_modelos",
   equipe: "ver_equipe",
 };
 
@@ -80,6 +82,7 @@ function EmpresaDashboard() {
       {allowed && view === "reunioes" && <Reunioes />}
       {allowed && view === "marca" && <Marca />}
       {allowed && view === "pagina" && <PaginaEmpresa />}
+      {allowed && view === "modelos" && <Modelos />}
       {allowed && view === "equipe" && <Equipe />}
     </CompanyShell>
   );

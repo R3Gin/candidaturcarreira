@@ -179,6 +179,7 @@ export const permissions = [
   "ver_entrevistas",
   "ver_reunioes",
   "ver_marca",
+  "ver_modelos",
   "ver_equipe",
   "mover_candidato",
   "reprovar_candidato",
@@ -186,6 +187,7 @@ export const permissions = [
   "agendar_entrevista",
   "gerenciar_reunioes",
   "editar_marca",
+  "editar_modelos",
   "gerenciar_equipe",
 ] as const;
 export type Permission = (typeof permissions)[number];
@@ -200,6 +202,7 @@ export const rolePermissions: Record<Role, Permission[]> = {
     "ver_entrevistas",
     "ver_reunioes",
     "ver_marca",
+    "ver_modelos",
     "ver_equipe",
     "mover_candidato",
     "reprovar_candidato",
@@ -207,6 +210,7 @@ export const rolePermissions: Record<Role, Permission[]> = {
     "agendar_entrevista",
     "gerenciar_reunioes",
     "editar_marca",
+    "editar_modelos",
   ],
   Recrutador: [
     "ver_visao",

@@ -145,6 +145,9 @@ export function ChatMessages({
                   {m.stage ? ` · ${m.stage}` : ""}
                 </p>
               )}
+              {m.kind === "auto" && m.title && (
+                <p className="font-display text-sm font-bold text-ink">{m.title}</p>
+              )}
               {m.text && <p className="whitespace-pre-line">{m.text}</p>}
               {m.attachments && m.attachments.length > 0 && (
                 <AttachmentList
