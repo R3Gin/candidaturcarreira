@@ -797,24 +797,39 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
       cancelInterview: (id) =>
         setState((s) => ({ ...s, interviews: s.interviews.filter((i) => i.id !== id) })),
       addMeeting: (m) => {
-        setState((s) => ({ ...s, meetings: [{ ...m, id: uid() }, ...s.meetings] }));
-        const quando = new Date(m.inicio).toLocaleString("pt-BR", {
-          dateStyle: "short",
-          timeStyle: "short",
-        });
+        const id = uid();
+        setState((s) => ({ ...s, meetings: [{ ...m, id }, ...s.meetings] }));
+        const quando = formatWhen(m.inicio);
         log("Reunião agendada", `${m.titulo} · ${quando}`);
         const author =
           state.members.find((mm) => mm.id === state.currentMemberId)?.name ??
           "Equipe de recrutamento";
-        const convidados = m.candidatos ?? [];
-        convidados.forEach((candidateId) => {
-          const cand = state.candidates.find((c) => c.id === candidateId);
+        const convidados = (m.candidatos ?? []).map((cid) => ({
+          id: cid,
+          name: state.candidates.find((c) => c.id === cid)?.name ?? "Candidato",
+        }));
+        syncMeetingInvites({
+          meetingId: id,
+          titulo: m.titulo,
+          pauta: m.pauta,
+          tipo: m.tipo,
+          inicio: m.inicio,
+          duracaoMin: m.duracaoMin,
+          link: m.link,
+          status: m.status,
+          companyName: state.profile.name,
+          candidatos: convidados,
+          by: author,
+          kind: "criada",
+          detail: `Reunião criada para ${quando}.`,
+        });
+        convidados.forEach((cand) => {
           notify(
             "reuniao",
-            `Reunião marcada com ${cand?.name ?? "candidato"}`,
-            `${m.titulo} em ${quando} (${m.duracaoMin} min).`,
+            `Reunião marcada com ${cand.name}`,
+            `${m.titulo} em ${quando} (${m.duracaoMin} min). Aguardando confirmação de presença.`,
           );
-          autoStageMessage(candidateId, "reuniao", {
+          autoStageMessage(cand.id, "reuniao", {
             detail: `${m.titulo} em ${quando} · ${m.duracaoMin} min${m.pauta ? ` · Pauta: ${m.pauta}` : ""}${m.link ? ` · Link: ${m.link}` : ""}`,
             author,
           });
@@ -831,21 +846,116 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
         const author =
           state.members.find((mm) => mm.id === state.currentMemberId)?.name ??
           "Equipe de recrutamento";
-        const quando = merged.inicio
-          ? new Date(merged.inicio).toLocaleString("pt-BR", {
-              dateStyle: "short",
-              timeStyle: "short",
-            })
-          : "";
-        (merged.candidatos ?? []).forEach((candidateId) => {
-          const cand = state.candidates.find((c) => c.id === candidateId);
+        const remarcada = Boolean(patch.inicio && atual && patch.inicio !== atual.inicio);
+        const quando = merged.inicio ? formatWhen(merged.inicio) : "";
+        const convidados = (merged.candidatos ?? []).map((cid) => ({
+          id: cid,
+          name: state.candidates.find((c) => c.id === cid)?.name ?? "Candidato",
+        }));
+        syncMeetingInvites({
+          meetingId: id,
+          titulo: merged.titulo,
+          pauta: merged.pauta,
+          tipo: merged.tipo,
+          inicio: merged.inicio,
+          duracaoMin: merged.duracaoMin,
+          link: merged.link,
+          status: merged.status,
+          companyName: state.profile.name,
+          candidatos: convidados,
+          by: author,
+          kind: remarcada ? "reagendada" : "atualizada",
+          detail: remarcada
+            ? `Reunião reagendada para ${quando}.`
+            : `Dados da reunião atualizados (${quando}).`,
+          ...(remarcada ? { resetRsvp: true } : {}),
+        });
+        convidados.forEach((cand) => {
           notify(
             "reuniao",
-            `Reunião atualizada · ${cand?.name ?? "candidato"}`,
+            `Reunião ${remarcada ? "reagendada" : "atualizada"} · ${cand.name}`,
             `${merged.titulo} em ${quando}.`,
           );
-          autoStageMessage(candidateId, "reuniao", {
-            detail: `Atualizamos a reunião "${merged.titulo}": ${quando} · ${merged.duracaoMin} min${merged.link ? ` · Link: ${merged.link}` : ""}`,
+          autoStageMessage(cand.id, remarcada ? "cancelamento" : "reuniao", {
+            detail: remarcada
+              ? `A reunião "${merged.titulo}" foi reagendada para ${quando} · ${merged.duracaoMin} min${merged.link ? ` · Link: ${merged.link}` : ""}. Confirme novamente sua presença.`
+              : `Atualizamos a reunião "${merged.titulo}": ${quando} · ${merged.duracaoMin} min${merged.link ? ` · Link: ${merged.link}` : ""}`,
+            author,
+          });
+        });
+      },
+      rescheduleMeeting: (id, inicio, motivo) => {
+        const atual = state.meetings.find((m) => m.id === id);
+        if (!atual) return;
+        setState((s) => ({
+          ...s,
+          meetings: s.meetings.map((m) => (m.id === id ? { ...m, inicio, status: "agendada" } : m)),
+        }));
+        const author =
+          state.members.find((mm) => mm.id === state.currentMemberId)?.name ??
+          "Equipe de recrutamento";
+        const quando = formatWhen(inicio);
+        const antes = formatWhen(atual.inicio);
+        log("Reunião reagendada", `${atual.titulo}: ${antes} → ${quando}.`);
+        const convidados = (atual.candidatos ?? []).map((cid) => ({
+          id: cid,
+          name: state.candidates.find((c) => c.id === cid)?.name ?? "Candidato",
+        }));
+        syncMeetingInvites({
+          meetingId: id,
+          titulo: atual.titulo,
+          pauta: atual.pauta,
+          tipo: atual.tipo,
+          inicio,
+          duracaoMin: atual.duracaoMin,
+          link: atual.link,
+          status: "agendada",
+          companyName: state.profile.name,
+          candidatos: convidados,
+          by: author,
+          kind: "reagendada",
+          detail: `De ${antes} para ${quando}.${motivo ? ` Motivo: ${motivo}` : ""}`,
+          resetRsvp: true,
+        });
+        convidados.forEach((cand) => {
+          notify(
+            "reuniao",
+            `Reunião reagendada · ${cand.name}`,
+            `${atual.titulo}: ${antes} → ${quando}.`,
+          );
+          autoStageMessage(cand.id, "cancelamento", {
+            detail: `A reunião "${atual.titulo}" foi reagendada de ${antes} para ${quando}.${motivo ? ` Motivo: ${motivo}.` : ""} Confirme novamente sua presença.`,
+            author,
+          });
+        });
+      },
+      cancelMeeting: (id, motivo) => {
+        const atual = state.meetings.find((m) => m.id === id);
+        if (!atual) return;
+        setState((s) => ({
+          ...s,
+          meetings: s.meetings.map((m) => (m.id === id ? { ...m, status: "cancelada" } : m)),
+        }));
+        const author =
+          state.members.find((mm) => mm.id === state.currentMemberId)?.name ??
+          "Equipe de recrutamento";
+        const quando = formatWhen(atual.inicio);
+        log("Reunião cancelada", `${atual.titulo} · ${quando}.${motivo ? ` Motivo: ${motivo}` : ""}`);
+        setMeetingInvitesStatus(
+          id,
+          "cancelada",
+          author,
+          `Reunião cancelada.${motivo ? ` Motivo: ${motivo}` : ""}`,
+        );
+        (atual.candidatos ?? []).forEach((cid) => {
+          const cand = state.candidates.find((c) => c.id === cid);
+          notify(
+            "reuniao",
+            `Reunião cancelada · ${cand?.name ?? "candidato"}`,
+            `${atual.titulo} de ${quando} foi cancelada.`,
+          );
+          autoStageMessage(cid, "cancelamento", {
+            detail: `A reunião "${atual.titulo}" marcada para ${quando} foi cancelada.${motivo ? ` Motivo: ${motivo}.` : ""} Em breve enviamos uma nova data.`,
             author,
           });
         });
@@ -855,10 +965,21 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
           ...s,
           meetings: s.meetings.map((m) => (m.id === id ? { ...m, status } : m)),
         }));
+        const author =
+          state.members.find((mm) => mm.id === state.currentMemberId)?.name ??
+          "Equipe de recrutamento";
         log("Status da reunião", `Reunião marcada como ${labelOf(REUNIAO_STATUS, status)}.`);
+        setMeetingInvitesStatus(
+          id,
+          status,
+          author,
+          `Status alterado para ${labelOf(REUNIAO_STATUS, status)}.`,
+        );
       },
-      removeMeeting: (id) =>
-        setState((s) => ({ ...s, meetings: s.meetings.filter((m) => m.id !== id) })),
+      removeMeeting: (id) => {
+        setState((s) => ({ ...s, meetings: s.meetings.filter((m) => m.id !== id) }));
+        removeMeetingInvites(id);
+      },
       addVacancy: (v) => {
         setState((s) => ({
           ...s,
