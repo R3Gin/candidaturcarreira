@@ -30,6 +30,11 @@ const rows: { key: keyof EmailPrefs; label: string; hint: string }[] = [
     hint: "Aviso quando um documento for anexado à conversa.",
   },
   {
+    key: "meetingReminders",
+    label: "Lembretes de reunião",
+    hint: "Aviso automático antes de cada reunião agendada.",
+  },
+  {
     key: "stageUpdates",
     label: "Mudanças de etapa",
     hint: "Resumo por email a cada atualização do processo.",
@@ -72,6 +77,23 @@ export function EmailNotificationPrefs({
           disabled={!prefs.enabled}
           placeholder="nome@empresa.com"
           onChange={(e) => saveEmailPrefs(side, { email: e.target.value })}
+          className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-ink outline-none focus:border-brand disabled:opacity-50"
+        />
+      </label>
+
+      <label className="mt-3 block">
+        <span className="text-[11px] font-bold uppercase tracking-wide text-ink-soft">
+          Antecedência do lembrete (minutos)
+        </span>
+        <input
+          type="number"
+          min={5}
+          step={5}
+          value={prefs.reminderMinutes}
+          disabled={!prefs.enabled || !prefs.meetingReminders}
+          onChange={(e) =>
+            saveEmailPrefs(side, { reminderMinutes: Math.max(5, Number(e.target.value) || 60) })
+          }
           className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-ink outline-none focus:border-brand disabled:opacity-50"
         />
       </label>
