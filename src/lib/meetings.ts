@@ -30,8 +30,6 @@ export type MeetingInvite = {
   rsvp: Rsvp;
   rsvpAt?: string;
   createdAt: string;
-  /** lembretes já disparados (minutos de antecedência) */
-  remindersSent: number[];
   changes: MeetingChange[];
 };
 
@@ -50,7 +48,6 @@ export function readInvites(): MeetingInvite[] {
     if (!Array.isArray(parsed)) return [];
     return parsed.map((i) => ({
       ...i,
-      remindersSent: i.remindersSent ?? [],
       changes: i.changes ?? [],
       rsvp: i.rsvp ?? "pendente",
     }));
@@ -149,7 +146,6 @@ export function syncMeetingInvites(input: SyncInput) {
         status: input.status,
         rsvp: input.resetRsvp ? "pendente" : (prev?.rsvp ?? "pendente"),
         createdAt: prev?.createdAt ?? now(),
-        remindersSent: input.resetRsvp ? [] : (prev?.remindersSent ?? []),
         changes: [...(prev?.changes ?? []), change],
       };
       if (!input.resetRsvp && prev?.rsvpAt) base.rsvpAt = prev.rsvpAt;
@@ -212,23 +208,4 @@ export function setRsvp(inviteId: string, rsvp: Rsvp, by: string) {
         : i,
     ),
   );
-}
-
-export function markReminderSent(inviteId: string, minutes: number) {
-  update((all) =>
-    all.map((i) =>
-      i.id === inviteId ? { ...i, remindersSent: [...i.remindersSent, minutes] } : i,
-    ),
-  );
-}
-
-/** Convites agendados que entram na janela de lembrete e ainda não foram avisados. */
-export function dueReminders(minutesBefore: number, list?: MeetingInvite[]) {
-  const nowMs = Date.now();
-  return (list ?? readInvites()).filter((i) => {
-    if (i.status !== "agendada") return false;
-    if (i.remindersSent.includes(minutesBefore)) return false;
-    const diff = new Date(i.inicio).getTime() - nowMs;
-    return diff > 0 && diff <= minutesBefore * 60 * 1000;
-  });
 }
