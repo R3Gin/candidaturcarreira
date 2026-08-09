@@ -185,7 +185,10 @@ function FreelancePage() {
           </p>
         </div>
 
+        <MinhaContaCard />
+
         <ContatosPanel contatos={contatos} />
+
 
         <ul className="mt-8 grid gap-4 md:grid-cols-2">
           {resultado.map((f, i) => (
