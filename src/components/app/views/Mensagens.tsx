@@ -109,7 +109,10 @@ export function Mensagens({ onGoToJobs }: { onGoToJobs: () => void }) {
                 value={text}
                 onValueChange={setText}
               />
+
+              <EmailNotificationPrefs side="candidato" defaultEmail={account.email} />
             </section>
+
           )}
         </div>
       )}
