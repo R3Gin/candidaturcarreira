@@ -31,3 +31,13 @@ export function vacancyToJob(v: Vacancy, company = "Movva"): Job {
 export function companyJobs(): Job[] {
   return companyVacancies("Contratual").map((v) => vacancyToJob(v));
 }
+
+/** Contato exibido no botão "Contato" da vaga. */
+export function jobContact(job: Pick<Job, "company">) {
+  const slug = job.company
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+  return `mailto:vagas@${slug}.com.br`;
+}

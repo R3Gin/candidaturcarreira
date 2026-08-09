@@ -6,6 +6,7 @@ import {
   Check,
   Clock,
   Heart,
+  Mail,
   MapPin,
   Star,
   Zap,
@@ -19,7 +20,7 @@ import {
   jobAreas,
   type JobFilterState,
 } from "./JobFilters";
-import { companyJobs } from "@/lib/companyJobs";
+import { companyJobs, jobContact } from "@/lib/companyJobs";
 
 const flowSteps = ["Qualificações", "Dados", "Mensagem", "Revisão"];
 
