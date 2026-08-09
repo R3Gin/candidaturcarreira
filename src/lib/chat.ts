@@ -349,6 +349,8 @@ export function autoStageMessage(
                 from: "empresa" as ChatSender,
                 kind: "auto" as const,
                 text,
+                ...(title ? { title } : {}),
+
                 at: now(),
                 author: data.author ?? "Atualização automática",
                 ...(stage ? { stage } : {}),
