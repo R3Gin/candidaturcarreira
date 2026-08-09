@@ -350,6 +350,32 @@ export function Reunioes() {
                     .join(", ")}
                 />
               </label>
+              <div className="grid gap-1.5 text-xs font-semibold text-ink-soft">
+                Convidar candidatos (recebem notificação e mensagem no chat)
+                <div className="max-h-40 space-y-1 overflow-y-auto rounded-xl border border-border bg-card p-2">
+                  {candidatosAtivos.map((c) => (
+                    <label
+                      key={c.id}
+                      className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-medium text-ink hover:bg-secondary"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={form.candidatos.includes(c.id)}
+                        onChange={() => toggleCandidato(c.id)}
+                      />
+                      {c.name}
+                      <span className="ml-auto text-[11px] font-normal text-ink-soft">
+                        {c.headline}
+                      </span>
+                    </label>
+                  ))}
+                  {candidatosAtivos.length === 0 && (
+                    <p className="px-2 py-1.5 text-xs font-normal text-ink-soft">
+                      Nenhum candidato ativo.
+                    </p>
+                  )}
+                </div>
+              </div>
               <label className="grid gap-1.5 text-xs font-semibold text-ink-soft">
                 Link da chamada
                 <input
