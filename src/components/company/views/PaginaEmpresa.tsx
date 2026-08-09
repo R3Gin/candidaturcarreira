@@ -183,6 +183,174 @@ export function PaginaEmpresa() {
 
       <div className="grid gap-4 lg:grid-cols-[1.15fr_1fr]">
         <section className="rounded-2xl border border-border bg-card p-5 shadow-card">
+          {tab === "perfil" && (
+            <div className="grid gap-4">
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex items-center gap-3">
+                  {form.logoUrl ? (
+                    <img
+                      src={form.logoUrl}
+                      alt={`Logo da ${form.name}`}
+                      className="h-16 w-16 rounded-2xl border border-border object-cover"
+                    />
+                  ) : (
+                    <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary">
+                      <Building2 className="h-7 w-7 text-brand-cyan" strokeWidth={1.9} />
+                    </span>
+                  )}
+                  <div>
+                    <p className="text-sm font-semibold text-ink">Logo da empresa</p>
+                    <input
+                      ref={logoInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) void uploadImage(file, "logoUrl");
+                        e.target.value = "";
+                      }}
+                    />
+                    {canEdit && (
+                      <button
+                        type="button"
+                        onClick={() => logoInputRef.current?.click()}
+                        className="mt-1 inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-ink"
+                      >
+                        <Upload className="h-3.5 w-3.5" strokeWidth={2} /> Enviar logo
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  {form.hrPhotoUrl ? (
+                    <img
+                      src={form.hrPhotoUrl}
+                      alt={form.hrContact}
+                      className="h-16 w-16 rounded-full border border-border object-cover"
+                    />
+                  ) : (
+                    <span className="flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
+                      <User className="h-7 w-7 text-brand-cyan" strokeWidth={1.9} />
+                    </span>
+                  )}
+                  <div>
+                    <p className="text-sm font-semibold text-ink">Foto do responsável</p>
+                    <input
+                      ref={photoInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) void uploadImage(file, "hrPhotoUrl");
+                        e.target.value = "";
+                      }}
+                    />
+                    {canEdit && (
+                      <button
+                        type="button"
+                        onClick={() => photoInputRef.current?.click()}
+                        className="mt-1 inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-ink"
+                      >
+                        <Upload className="h-3.5 w-3.5" strokeWidth={2} /> Enviar foto
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="Nome da empresa">
+                  <input
+                    value={form.name}
+                    onChange={(e) => set("name", e.target.value)}
+                    className={inputClass}
+                  />
+                </Field>
+                <Field label="Segmento">
+                  <input
+                    value={form.segment}
+                    onChange={(e) => set("segment", e.target.value)}
+                    className={inputClass}
+                  />
+                </Field>
+                <Field label="Tamanho do time">
+                  <input
+                    value={form.size}
+                    onChange={(e) => set("size", e.target.value)}
+                    className={inputClass}
+                  />
+                </Field>
+                <Field label="Cidade">
+                  <input
+                    value={form.city}
+                    onChange={(e) => set("city", e.target.value)}
+                    className={inputClass}
+                  />
+                </Field>
+                <Field label="Site">
+                  <input
+                    value={form.site}
+                    onChange={(e) => set("site", e.target.value)}
+                    className={inputClass}
+                  />
+                </Field>
+                <Field label="LinkedIn">
+                  <input
+                    value={form.hrLinkedin}
+                    onChange={(e) => set("hrLinkedin", e.target.value)}
+                    className={inputClass}
+                  />
+                </Field>
+              </div>
+
+              <Field label="Sobre a empresa">
+                <textarea
+                  rows={4}
+                  value={form.about}
+                  onChange={(e) => set("about", e.target.value)}
+                  className={inputClass}
+                />
+              </Field>
+
+              <p className="text-xs font-bold uppercase tracking-wide text-ink-soft">
+                Dados pessoais do responsável
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="Nome completo">
+                  <input
+                    value={form.hrContact}
+                    onChange={(e) => set("hrContact", e.target.value)}
+                    className={inputClass}
+                  />
+                </Field>
+                <Field label="Cargo">
+                  <input
+                    value={form.hrRole}
+                    onChange={(e) => set("hrRole", e.target.value)}
+                    className={inputClass}
+                  />
+                </Field>
+                <Field label="E-mail">
+                  <input
+                    value={form.hrEmail}
+                    onChange={(e) => set("hrEmail", e.target.value)}
+                    className={inputClass}
+                  />
+                </Field>
+                <Field label="Telefone">
+                  <input
+                    value={form.hrPhone}
+                    onChange={(e) => set("hrPhone", e.target.value)}
+                    className={inputClass}
+                  />
+                </Field>
+              </div>
+            </div>
+          )}
+
           {tab === "historia" && (
             <div className="grid gap-3">
               <Field label="Ano de fundação">
