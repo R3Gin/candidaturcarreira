@@ -86,7 +86,8 @@ export function Vagas({ onOpenPipeline }: { onOpenPipeline: () => void }) {
             {vacancies.length} vagas no seu perfil
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-ink-soft">
-            Toda vaga publicada no Candidatu exige faixa salarial e etapas visíveis.
+            {contratuais} contratuais no painel dos candidatos · {freelas} freelas na página de
+            Freelas. Toda vaga exige faixa salarial ou diária e etapas visíveis.
           </p>
         </div>
         {manage ? (
