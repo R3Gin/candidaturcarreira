@@ -109,7 +109,9 @@ export function CandidateChat({ candidate }: { candidate: Candidate }) {
         onValueChange={setText}
       />
 
+      <EmailNotificationPrefs side="empresa" defaultEmail={profile.hrEmail ?? ""} />
     </section>
+
   );
 }
 
