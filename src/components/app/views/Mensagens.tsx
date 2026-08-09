@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { MessageSquare, Send } from "lucide-react";
+import { MessageSquare } from "lucide-react";
 import { ChatMessages } from "@/components/company/CandidateChat";
 import { markRead } from "@/lib/chat";
 import { ChatComposer, StageHistory } from "@/components/chat/ChatPieces";
