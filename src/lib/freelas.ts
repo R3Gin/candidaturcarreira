@@ -23,9 +23,11 @@ export const brlDiaria = (v: number) =>
 
 const COMPANY_KEY = "candidatu-company";
 
+// Ancorado à meia-noite UTC do dia para manter SSR e cliente idênticos.
 const iso = (daysAgo: number) => {
-  const d = new Date();
-  d.setDate(d.getDate() - daysAgo);
+  const now = new Date();
+  const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  d.setUTCDate(d.getUTCDate() - daysAgo);
   return d.toISOString();
 };
 
