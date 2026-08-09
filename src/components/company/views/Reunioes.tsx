@@ -91,7 +91,7 @@ export function Reunioes() {
       status: m.status,
       detail: `${labelOf(REUNIAO_TIPOS, m.tipo)} · ${m.duracaoMin} min${m.link ? ` · ${m.link}` : ""}`,
     })),
-    { fallbackEmail: profile.contactEmail ?? "" },
+    { fallbackEmail: profile.hrEmail },
   );
   const canManage = can("gerenciar_reunioes");
   const [open, setOpen] = useState(false);
