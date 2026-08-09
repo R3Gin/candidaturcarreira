@@ -93,7 +93,21 @@ export type CompanyProfile = {
   rating: number;
   recommend: number;
   benefits: string[];
+  /* Página pública da empresa */
+  founded: string;
+  history: string;
+  milestones: string[];
+  cultureText: string;
+  values: string[];
+  workModel: string;
+  benefitsDetail: string;
+  hrContact: string;
+  hrEmail: string;
+  responseTime: string;
+  processSteps: string[];
+  diversity: string;
 };
+
 
 export type ActivityLog = { id: string; title: string; detail: string; at: string };
 
@@ -345,6 +359,38 @@ const defaultProfile: CompanyProfile = {
   rating: 4.6,
   recommend: 92,
   benefits: ["Salário aberto", "Home office flexível", "Plano de saúde", "Auxílio educação"],
+  founded: "2019",
+  history:
+    "A Candidatu Labs nasceu em 2019, dentro de um squad de produto que se cansou de processos seletivos sem retorno. Começamos com uma planilha compartilhada entre três recrutadores e hoje somos um time de 180 pessoas atendendo empresas em todo o Brasil, com salário aberto em 100% das vagas.",
+  milestones: [
+    "2019 · Primeira versão do painel de vagas com salário aberto",
+    "2021 · 10 mil candidaturas com feedback garantido",
+    "2023 · Termômetro Candidatu de avaliações de processos",
+    "2025 · Time de People distribuído em 6 estados",
+  ],
+  cultureText:
+    "Trabalhamos em times pequenos e autônomos, com decisões documentadas e feedback direto. Ninguém precisa adivinhar em que etapa está — dentro ou fora do processo seletivo.",
+  values: [
+    "Transparência radical",
+    "Feedback em toda etapa",
+    "Autonomia com contexto",
+    "Diversidade na prática",
+  ],
+  workModel: "Híbrido flexível · 2 dias presenciais opcionais",
+  benefitsDetail:
+    "Plano de saúde e odontológico sem coparticipação, vale-refeição de R$ 1.100, auxílio home office de R$ 200, R$ 3.000/ano de auxílio educação, licença parental estendida e day off no aniversário.",
+  hrContact: "Marina Prado · Head de People & Cultura",
+  hrEmail: "people@candidatu.com.br",
+  responseTime: "Resposta em até 5 dias úteis em cada etapa",
+  processSteps: [
+    "Inscrição e triagem de perfil",
+    "Conversa com RH (30 min)",
+    "Entrevista técnica com o time",
+    "Conversa com a liderança",
+    "Proposta com faixa salarial aberta",
+  ],
+  diversity:
+    "Processos com currículo às cegas na triagem inicial, metas públicas de diversidade e vagas afirmativas sinalizadas na descrição.",
 };
 
 type CompanyState = {
@@ -413,7 +459,11 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
       const raw = localStorage.getItem(KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as Partial<Persisted>;
-        setState((s) => ({ ...s, ...parsed }));
+        setState((s) => ({
+          ...s,
+          ...parsed,
+          profile: { ...defaultProfile, ...(parsed.profile ?? {}) },
+        }));
       }
     } catch {
       /* ignore */
