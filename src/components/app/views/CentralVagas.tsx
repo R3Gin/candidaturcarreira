@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   BadgeCheck,
   Bookmark,
@@ -19,6 +19,7 @@ import {
   jobAreas,
   type JobFilterState,
 } from "./JobFilters";
+import { companyJobs } from "@/lib/companyJobs";
 
 const flowSteps = ["Qualificações", "Dados", "Mensagem", "Revisão"];
 
@@ -31,20 +32,26 @@ export function CentralVagas({
 }) {
   const { savedJobs, toggleSaved, followed, toggleFollow, applyToJob, hasApplied } = useAppStore();
   const [filters, setFilters] = useState<JobFilterState>(emptyFilters);
+  const [pool, setPool] = useState<Job[]>(jobPool);
 
-  const list = useMemo(() => filterJobs(jobPool, filters), [filters]);
+  // vagas contratuais publicadas pelas empresas entram na central
+  useEffect(() => {
+    setPool([...companyJobs(), ...jobPool]);
+  }, []);
+
+  const list = useMemo(() => filterJobs(pool, filters), [pool, filters]);
 
   const companies = useMemo(() => {
     const q = filters.query.trim().toLowerCase();
     const map = new Map<string, { job: Job; count: number }>();
-    for (const j of jobPool) {
+    for (const j of pool) {
       if (filters.hiddenCompanies.includes(j.company)) continue;
       if (q && !`${j.company} ${j.segment}`.toLowerCase().includes(q)) continue;
       const prev = map.get(j.company);
       map.set(j.company, { job: prev?.job ?? j, count: (prev?.count ?? 0) + 1 });
     }
     return [...map.values()];
-  }, [filters.query, filters.hiddenCompanies]);
+  }, [pool, filters.query, filters.hiddenCompanies]);
 
   const [selectedId, setSelectedId] = useState<string>(jobPool[0]!.id);
   const selected = list.find((j) => j.id === selectedId) ?? list[0] ?? null;
