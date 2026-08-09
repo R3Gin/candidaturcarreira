@@ -1,5 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState, type ReactNode } from "react";
+import { Loader2 } from "lucide-react";
+
 import { CompanyShell, type CompanyView } from "@/components/company/CompanyShell";
 import { CompanyStoreProvider, useCompanyStore, type Permission } from "@/components/company/store";
 import { Banco } from "@/components/company/views/Banco";
