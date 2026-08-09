@@ -1,13 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { MessageSquare, Send, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import {
-  acceptCandidate,
-  markRead,
-  sendMessage,
-  setAutoEnabled,
-  type ChatThread,
-} from "@/lib/chat";
+import { acceptCandidate, markRead, setAutoEnabled, type ChatThread } from "@/lib/chat";
+import { AttachmentList, ChatComposer, StageHistory } from "@/components/chat/ChatPieces";
 import { useChatThreadByCandidate } from "@/lib/useChat";
 import { useCompanyStore, type Candidate } from "./store";
 
@@ -90,6 +85,8 @@ export function CandidateChat({ candidate }: { candidate: Candidate }) {
       <ChatMessages thread={thread} side="empresa" />
       <div ref={endRef} />
 
+      <StageHistory thread={thread} />
+
       <div className="mt-3 flex flex-wrap gap-1.5">
         {quickReplies.map((q) => (
           <button
@@ -103,28 +100,15 @@ export function CandidateChat({ candidate }: { candidate: Candidate }) {
         ))}
       </div>
 
-      <form
-        className="mt-3 flex gap-2"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (!text.trim()) return;
-          sendMessage(thread.id, "empresa", text, { author: currentMember.name });
-          setText("");
-        }}
-      >
-        <input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Escreva uma mensagem para o candidato..."
-          className="flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm text-ink outline-none focus:border-brand-cyan"
-        />
-        <button
-          type="submit"
-          className="inline-flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-primary-foreground"
-        >
-          <Send className="h-4 w-4" /> Enviar
-        </button>
-      </form>
+      <ChatComposer
+        threadId={thread.id}
+        side="empresa"
+        author={currentMember.name}
+        placeholder="Escreva uma mensagem para o candidato..."
+        value={text}
+        onValueChange={setText}
+      />
+
     </section>
   );
 }
@@ -157,7 +141,13 @@ export function ChatMessages({
                   {m.stage ? ` · ${m.stage}` : ""}
                 </p>
               )}
-              <p className="whitespace-pre-line">{m.text}</p>
+              {m.text && <p className="whitespace-pre-line">{m.text}</p>}
+              {m.attachments && m.attachments.length > 0 && (
+                <AttachmentList
+                  attachments={m.attachments}
+                  tone={mine && m.kind !== "auto" ? "mine" : "other"}
+                />
+              )}
               <p
                 className={`mt-1 text-[10px] ${
                   mine && m.kind !== "auto" ? "text-primary-foreground/70" : "text-ink-soft"
