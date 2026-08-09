@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Bell, Check } from "lucide-react";
-import { jobPool, useAppStore, type Preferences } from "../store";
+import { useAppStore, type Preferences } from "../store";
 import { Chip, PageHead, SectionCard } from "./ui";
 
 const models = ["Remoto", "Híbrido", "Presencial"];
@@ -14,14 +14,14 @@ function parseSalary(text: string) {
 }
 
 export function PreferenciasVagas({ onGoToJobs }: { onGoToJobs: () => void }) {
-  const { preferences, savePreferences, defaultPreferences } = useAppStore();
+  const { jobs, preferences, savePreferences, defaultPreferences } = useAppStore();
   const [form, setForm] = useState<Preferences>(preferences ?? defaultPreferences);
   const [saved, setSaved] = useState(false);
 
   const matches = useMemo(() => {
     if (!preferences) return [];
     const min = parseSalary(preferences.minSalary);
-    return jobPool.filter((j) => {
+    return jobs.filter((j) => {
       const roleOk =
         !preferences.role.trim() ||
         j.role.toLowerCase().includes(preferences.role.trim().toLowerCase());
@@ -34,7 +34,7 @@ export function PreferenciasVagas({ onGoToJobs }: { onGoToJobs: () => void }) {
       const salaryOk = min === 0 || parseSalary(j.salary) >= min;
       return roleOk && modelOk && cityOk && salaryOk;
     });
-  }, [preferences]);
+  }, [preferences, jobs]);
 
   const toggle = (key: "models" | "contracts", value: string) =>
     setForm((f) => ({

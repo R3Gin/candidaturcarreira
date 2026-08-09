@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Check, ChevronDown, ChevronUp, Search } from "lucide-react";
-import { jobPool, type Job } from "../store";
+import type { Job } from "../store";
 
 export type SearchMode = "vagas" | "empresas";
 
@@ -70,13 +70,15 @@ const extraTags = [
   "Bônus por indicação",
 ];
 
-export const allTags = Array.from(
-  new Set([...jobPool.flatMap((j) => j.tags), ...extraTags]),
-).sort((a, b) => a.localeCompare(b, "pt-BR"));
+export function computeAllTags(jobs: Job[]) {
+  return Array.from(new Set([...jobs.flatMap((j) => j.tags), ...extraTags])).sort((a, b) =>
+    a.localeCompare(b, "pt-BR"),
+  );
+}
 
-export const allCompanies = Array.from(new Set(jobPool.map((j) => j.company))).sort((a, b) =>
-  a.localeCompare(b, "pt-BR"),
-);
+export function computeAllCompanies(jobs: Job[]) {
+  return Array.from(new Set(jobs.map((j) => j.company))).sort((a, b) => a.localeCompare(b, "pt-BR"));
+}
 
 export function jobTagPool(job: Job): string[] {
   const pool = [...job.tags];
@@ -239,11 +241,15 @@ export function JobFilterBar({
   filters,
   onChange,
   resultLabel,
+  jobs,
 }: {
   filters: JobFilterState;
   onChange: (next: JobFilterState) => void;
   resultLabel: string;
+  jobs: Job[];
 }) {
+  const allTags = useMemo(() => computeAllTags(jobs), [jobs]);
+  const allCompanies = useMemo(() => computeAllCompanies(jobs), [jobs]);
   const set = <K extends keyof JobFilterState>(k: K, v: JobFilterState[K]) =>
     onChange({ ...filters, [k]: v });
   const toggle = (k: "areas" | "tags" | "hiddenCompanies", v: string) =>

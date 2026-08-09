@@ -13,7 +13,7 @@ import {
 import { toast } from "sonner";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
-import { allFreelas, brlDiaria, contactHref, freelasBase, type Freela } from "@/lib/freelas";
+import { allFreelas, brlDiaria, contactHref, type Freela } from "@/lib/freelas";
 import {
   candidateDefaults,
   contactForFreela,
@@ -23,10 +23,11 @@ import {
 } from "@/lib/freelaContacts";
 
 export const Route = createFileRoute("/freelance/$id")({
-  loader: ({ params }) => {
-    const found = freelasBase.find((f) => f.id === params.id);
-    return { id: params.id, cargo: found?.cargo ?? null, empresa: found?.empresa ?? null };
-  },
+  loader: ({ params }) => ({
+    id: params.id,
+    cargo: null as string | null,
+    empresa: null as string | null,
+  }),
   head: ({ loaderData }) => {
     if (!loaderData?.cargo) {
       return {
@@ -66,14 +67,38 @@ export const Route = createFileRoute("/freelance/$id")({
 
 function FreelaDetalhe() {
   const { id } = Route.useParams();
-  const [freela, setFreela] = useState<Freela | null>(
-    () => freelasBase.find((f) => f.id === id) ?? null,
-  );
+  const [freela, setFreela] = useState<Freela | null>(null);
+  const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
-    const found = allFreelas().find((f) => f.id === id) ?? null;
-    setFreela(found);
+    let ativo = true;
+    allFreelas()
+      .then((lista) => {
+        if (!ativo) return;
+        setFreela(lista.find((f) => f.id === id) ?? null);
+      })
+      .catch(() => {
+        if (ativo) setFreela(null);
+      })
+      .finally(() => {
+        if (ativo) setCarregando(false);
+      });
+    return () => {
+      ativo = false;
+    };
   }, [id]);
+
+  if (carregando) {
+    return (
+      <main>
+        <SiteHeader />
+        <section className="mx-auto max-w-3xl px-5 py-24 text-center text-sm text-muted-foreground">
+          Carregando freela...
+        </section>
+        <SiteFooter />
+      </main>
+    );
+  }
 
   if (!freela) throw notFound();
 

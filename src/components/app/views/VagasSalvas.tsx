@@ -1,10 +1,10 @@
 import { BadgeCheck, Bookmark, MapPin, Star } from "lucide-react";
-import { jobPool, useAppStore } from "../store";
+import { useAppStore } from "../store";
 import { EmptyState, PageHead } from "./ui";
 
 export function VagasSalvas({ onGoToJobs }: { onGoToJobs: () => void }) {
-  const { savedJobs, toggleSaved } = useAppStore();
-  const list = jobPool.filter((j) => savedJobs.includes(j.id));
+  const { jobs, savedJobs, toggleSaved } = useAppStore();
+  const list = jobs.filter((j) => savedJobs.includes(j.id));
 
   return (
     <div className="space-y-5">

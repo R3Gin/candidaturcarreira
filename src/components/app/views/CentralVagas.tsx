@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   BadgeCheck,
   Bookmark,
@@ -11,7 +11,7 @@ import {
   Star,
   Zap,
 } from "lucide-react";
-import { companyFromJob, jobPool, useAppStore, type Job } from "../store";
+import { companyFromJob, useAppStore, type Job } from "../store";
 import { toast } from "sonner";
 import {
   JobFilterBar,
@@ -20,7 +20,7 @@ import {
   jobAreas,
   type JobFilterState,
 } from "./JobFilters";
-import { companyJobs, jobContact } from "@/lib/companyJobs";
+import { jobContact } from "@/lib/companyJobs";
 
 const flowSteps = ["Qualificações", "Dados", "Mensagem", "Revisão"];
 
@@ -31,14 +31,8 @@ export function CentralVagas({
   onGoToApplications: () => void;
   onOpenJob: (jobId: string) => void;
 }) {
-  const { savedJobs, toggleSaved, followed, toggleFollow, applyToJob, hasApplied } = useAppStore();
+  const { jobs: pool, savedJobs, toggleSaved, followed, toggleFollow, applyToJob, hasApplied } = useAppStore();
   const [filters, setFilters] = useState<JobFilterState>(emptyFilters);
-  const [pool, setPool] = useState<Job[]>(jobPool);
-
-  // vagas contratuais publicadas pelas empresas entram na central
-  useEffect(() => {
-    setPool([...companyJobs(), ...jobPool]);
-  }, []);
 
   const list = useMemo(() => filterJobs(pool, filters), [pool, filters]);
 
@@ -54,7 +48,7 @@ export function CentralVagas({
     return [...map.values()];
   }, [pool, filters.query, filters.hiddenCompanies]);
 
-  const [selectedId, setSelectedId] = useState<string>(jobPool[0]!.id);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = list.find((j) => j.id === selectedId) ?? list[0] ?? null;
 
   const resultLabel =
@@ -71,7 +65,7 @@ export function CentralVagas({
         </h1>
       </header>
 
-      <JobFilterBar filters={filters} onChange={setFilters} resultLabel={resultLabel} />
+      <JobFilterBar filters={filters} onChange={setFilters} resultLabel={resultLabel} jobs={pool} />
 
       {filters.mode === "empresas" ? (
         <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

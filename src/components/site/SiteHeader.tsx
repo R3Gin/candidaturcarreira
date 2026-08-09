@@ -80,13 +80,14 @@ export function SiteHeader() {
 
           <div className="ml-auto flex items-center gap-2">
             <Link
-              to="/painel"
+              to="/auth"
               className="hidden rounded-full px-4 py-2 text-sm font-semibold text-ink transition-colors hover:bg-secondary sm:inline-flex"
             >
               Entrar
             </Link>
             <Link
-              to="/painel"
+              to="/auth"
+
               className="group hidden items-center gap-1.5 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-card transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.96] sm:inline-flex"
             >
               Criar perfil grátis
@@ -135,13 +136,14 @@ export function SiteHeader() {
 
             <div className="mt-2 flex gap-2 border-t border-border pt-3">
               <Link
-                to="/painel"
+                to="/auth"
                 className="flex-1 rounded-full border border-border py-2.5 text-center text-sm font-semibold text-ink"
               >
                 Entrar
               </Link>
               <Link
-                to="/painel"
+                to="/auth"
+
                 className="flex-1 rounded-full bg-primary py-2.5 text-center text-sm font-semibold text-primary-foreground"
               >
                 Criar perfil

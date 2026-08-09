@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 import { autoStageMessage } from "@/lib/chat";
 import {
   formatWhen,
@@ -15,6 +16,20 @@ import {
   setMeetingInvitesStatus,
   syncMeetingInvites,
 } from "@/lib/meetings";
+import {
+  createCompany,
+  fetchMyCompany,
+  loadCompanyCandidates,
+  loadCompanyVacancies,
+  moveApplicationStage,
+  rejectApplication,
+  removeVacancyDb,
+  restoreApplication,
+  setVacancyStatusDb,
+  updateCompany,
+  createVacancy,
+  type CompanyRow,
+} from "@/lib/db/company";
 
 export type NotificationKind = "etapa" | "aprovado" | "reprovado" | "entrevista" | "reuniao";
 
@@ -263,315 +278,53 @@ export type Member = {
   invitedAt: string;
 };
 
-export const seedMembers: Member[] = [
-  {
-    id: "m1",
-    name: "Fernanda Lopes",
-    email: "fernanda@candidatu.com.br",
-    role: "Administrador",
-    status: "Ativo",
-    invitedAt: "2026-01-12T12:00:00.000Z",
-  },
-  {
-    id: "m2",
-    name: "Rita Menezes",
-    email: "rita@candidatu.com.br",
-    role: "RH",
-    status: "Ativo",
-    invitedAt: "2026-02-02T12:00:00.000Z",
-  },
-  {
-    id: "m3",
-    name: "Diego Ramos",
-    email: "diego@candidatu.com.br",
-    role: "Recrutador",
-    status: "Ativo",
-    invitedAt: "2026-03-18T12:00:00.000Z",
-  },
-  {
-    id: "m4",
-    name: "Marcos Prado",
-    email: "marcos@candidatu.com.br",
-    role: "Gestor",
-    status: "Convite pendente",
-    invitedAt: "2026-07-29T12:00:00.000Z",
-  },
-];
-
 const uid = () => Math.random().toString(36).slice(2, 10);
 const now = () => new Date().toISOString();
 
-export const seedVacancies: Vacancy[] = [
-  {
-    id: "v1",
-    role: "Pessoa Desenvolvedora Front-end",
-    area: "Tecnologia",
-    city: "São Paulo, SP",
-    model: "Remoto",
-    contract: "CLT",
-    salaryMin: 8000,
-    salaryMax: 11500,
-    seniority: "Pleno",
-    status: "Publicada",
-    openings: 2,
-    published: "há 3 dias",
-    publishedAt: "2026-08-06T12:00:00Z",
-    type: "Contratual",
-    contact: "vagas@movva.com.br",
-    skills: ["React", "TypeScript", "Design System", "Testes"],
-    description:
-      "Squad de produto responsável pela experiência de candidatura. Processo com 4 etapas e feedback em até 5 dias.",
-  },
-  {
-    id: "v2",
-    role: "Analista de People & Cultura",
-    area: "Recursos Humanos",
-    city: "Belo Horizonte, MG",
-    model: "Híbrido",
-    contract: "CLT",
-    salaryMin: 5200,
-    salaryMax: 7000,
-    seniority: "Pleno",
-    status: "Publicada",
-    openings: 1,
-    published: "há 8 dias",
-    publishedAt: "2026-08-01T12:00:00Z",
-    type: "Contratual",
-    contact: "vagas@movva.com.br",
-    skills: ["Recrutamento", "Employer branding", "Indicadores", "Onboarding"],
-    description:
-      "Conduzir processos ponta a ponta, cuidar da experiência da pessoa candidata e dos indicadores de contratação.",
-  },
-  {
-    id: "v3",
-    role: "Designer de Produto",
-    area: "Design",
-    city: "Remoto (Brasil)",
-    model: "Remoto",
-    contract: "PJ",
-    salaryMin: 9000,
-    salaryMax: 13000,
-    seniority: "Sênior",
-    status: "Publicada",
-    openings: 1,
-    published: "há 1 dia",
-    publishedAt: "2026-08-08T12:00:00Z",
-    type: "Contratual",
-    contact: "vagas@movva.com.br",
-    skills: ["Pesquisa", "Figma", "Acessibilidade", "Product Discovery"],
-    description:
-      "Liderar discovery e entregar fluxos de ponta a ponta junto com engenharia e dados.",
-  },
-  {
-    id: "v4",
-    role: "Analista de Dados",
-    area: "Dados",
-    city: "Curitiba, PR",
-    model: "Presencial",
-    contract: "CLT",
-    salaryMin: 6500,
-    salaryMax: 9000,
-    seniority: "Júnior",
-    status: "Pausada",
-    openings: 1,
-    published: "há 21 dias",
-    publishedAt: "2026-07-19T12:00:00Z",
-    type: "Contratual",
-    contact: "vagas@movva.com.br",
-    skills: ["SQL", "Python", "Dashboards"],
-    description: "Construir dashboards de funil de contratação e apoiar decisões de People Analytics.",
-  },
-  {
-    id: "v5",
-    role: "Designer para peças de campanha (freela)",
-    area: "Design",
-    city: "Remoto (Brasil)",
-    model: "Remoto",
-    contract: "PJ",
-    salaryMin: 480,
-    salaryMax: 480,
-    seniority: "Pleno",
-    status: "Publicada",
-    openings: 1,
-    published: "hoje",
-    publishedAt: "2026-08-09T09:00:00Z",
-    type: "Freelance",
-    dailyRate: 480,
-    hours: "8h",
-    period: "Horário flexível",
-    contact: "freelas@movva.com.br",
-    skills: ["Figma", "Social media"],
-    description:
-      "Adaptação de 12 peças de campanha aprovada para formatos de redes sociais, com briefing pronto.",
-  },
-];
-
 const tones = ["bg-brand", "bg-brand-cyan", "bg-ink", "bg-coral", "bg-mint"];
 
-function makeCandidate(
-  i: number,
-  vacancyId: string,
-  name: string,
-  headline: string,
-  city: string,
-  model: Candidate["model"],
-  salaryExpectation: number,
-  experience: number,
-  skills: string[],
-  score: number,
-  stage: Stage,
-  appliedAt: string,
-): Candidate {
-  return {
-    id: `c${i}`,
-    vacancyId,
-    name,
-    headline,
-    city,
-    model,
-    salaryExpectation,
-    experience,
-    skills,
-    score,
-    stage,
-    appliedAt,
-    avatarTone: tones[i % tones.length] ?? "bg-brand",
-    favorite: score >= 90,
-    notes: [],
-    timeline: [{ id: uid(), label: "Candidatura recebida", at: appliedAt }],
-  };
-}
-
-export const seedCandidates: Candidate[] = [
-  makeCandidate(1, "v1", "Marina Alves", "Front-end pleno · 5 anos", "São Paulo, SP", "Remoto", 10500, 5, ["React", "TypeScript", "Testes"], 94, "Entrevista gestor", "há 3 dias"),
-  makeCandidate(2, "v1", "Rafael Duarte", "Front-end pleno · 4 anos", "Campinas, SP", "Remoto", 9500, 4, ["React", "Design System"], 88, "Teste técnico", "há 4 dias"),
-  makeCandidate(3, "v1", "Camila Souza", "Full-stack · 6 anos", "Recife, PE", "Remoto", 11500, 6, ["React", "Node", "TypeScript"], 82, "Entrevista RH", "há 2 dias"),
-  makeCandidate(4, "v1", "Bruno Martins", "Front-end júnior · 2 anos", "Porto Alegre, RS", "Híbrido", 7000, 2, ["React", "CSS"], 61, "Triagem", "há 1 dia"),
-  makeCandidate(5, "v2", "Letícia Prado", "Analista de RH · 4 anos", "Belo Horizonte, MG", "Híbrido", 6400, 4, ["Recrutamento", "Indicadores"], 91, "Proposta", "há 9 dias"),
-  makeCandidate(6, "v2", "Diego Ramos", "Recrutador tech · 3 anos", "Contagem, MG", "Híbrido", 5800, 3, ["Recrutamento", "Hunting"], 76, "Entrevista RH", "há 6 dias"),
-  makeCandidate(7, "v3", "Aline Ferreira", "Product Designer · 8 anos", "Remoto", "Remoto", 12500, 8, ["Figma", "Pesquisa", "Acessibilidade"], 96, "Entrevista gestor", "há 1 dia"),
-  makeCandidate(8, "v3", "Thiago Lima", "Designer de produto · 5 anos", "Florianópolis, SC", "Remoto", 10500, 5, ["Figma", "Discovery"], 79, "Triagem", "há 1 dia"),
-  makeCandidate(9, "v4", "Juliana Reis", "Analista de dados · 2 anos", "Curitiba, PR", "Presencial", 7200, 2, ["SQL", "Python"], 84, "Teste técnico", "há 12 dias"),
-  makeCandidate(10, "v1", "Pedro Nogueira", "Front-end sênior · 9 anos", "São Paulo, SP", "Remoto", 13000, 9, ["React", "TypeScript", "Arquitetura"], 87, "Contratado", "há 20 dias"),
-];
-
-export const seedInterviews: Interview[] = [
-  { id: "i1", candidateId: "c1", vacancyId: "v1", date: "2026-08-11", time: "10:00", kind: "Entrevista gestor", interviewer: "Marcos (Tech Lead)", link: "meet.candidatu.com/mar-101" },
-  { id: "i2", candidateId: "c7", vacancyId: "v3", date: "2026-08-11", time: "15:30", kind: "Entrevista gestor", interviewer: "Rita (Head de Design)", link: "meet.candidatu.com/ali-330" },
-  { id: "i3", candidateId: "c3", vacancyId: "v1", date: "2026-08-12", time: "09:00", kind: "Entrevista RH", interviewer: "Fernanda (People)", link: "meet.candidatu.com/cam-900" },
-  { id: "i4", candidateId: "c5", vacancyId: "v2", date: "2026-08-13", time: "14:00", kind: "Alinhamento de proposta", interviewer: "Fernanda (People)", link: "meet.candidatu.com/let-140" },
-];
-
-export const seedMeetings: Meeting[] = [
-  {
-    id: "r1",
-    titulo: "Alinhamento semanal de recrutamento",
-    pauta: "Revisar funil das vagas abertas, gargalos de triagem e prioridades da semana.",
-    tipo: "video",
-    inicio: "2026-08-10T14:00:00.000Z",
-    duracaoMin: 45,
-    participantes: ["Fernanda Lopes", "Rita Menezes", "Diego Ramos"],
-    link: "meet.candidatu.com/rh-semanal",
-    status: "agendada",
-  },
-  {
-    id: "r2",
-    titulo: "Comitê de contratação · Front-end sênior",
-    pauta: "Decisão final entre finalistas e definição de faixa de proposta.",
-    tipo: "video",
-    inicio: "2026-08-12T18:30:00.000Z",
-    duracaoMin: 60,
-    participantes: ["Fernanda Lopes", "Marcos (Tech Lead)"],
-    link: "meet.candidatu.com/comite-frontend",
-    status: "agendada",
-  },
-  {
-    id: "r3",
-    titulo: "Retrospectiva do processo de Design",
-    pauta: "Feedback das pessoas candidatas e ajustes nas etapas.",
-    tipo: "presencial",
-    inicio: "2026-08-05T13:00:00.000Z",
-    duracaoMin: 30,
-    participantes: ["Rita Menezes"],
-    link: "",
-    status: "realizada",
-  },
-];
-
 const defaultProfile: CompanyProfile = {
-  name: "Candidatu Labs",
-  segment: "Tecnologia · Produto digital",
-  size: "180 pessoas",
-  city: "São Paulo, SP",
-  site: "candidatu.com.br",
-  about:
-    "Time de produto que constrói ferramentas de recrutamento transparente. Salário aberto em 100% das vagas e feedback garantido em até 5 dias.",
-  rating: 4.6,
-  recommend: 92,
-  benefits: ["Salário aberto", "Home office flexível", "Plano de saúde", "Auxílio educação"],
-  founded: "2019",
-  history:
-    "A Candidatu Labs nasceu em 2019, dentro de um squad de produto que se cansou de processos seletivos sem retorno. Começamos com uma planilha compartilhada entre três recrutadores e hoje somos um time de 180 pessoas atendendo empresas em todo o Brasil, com salário aberto em 100% das vagas.",
-  milestones: [
-    "2019 · Primeira versão do painel de vagas com salário aberto",
-    "2021 · 10 mil candidaturas com feedback garantido",
-    "2023 · Termômetro Candidatu de avaliações de processos",
-    "2025 · Time de People distribuído em 6 estados",
-  ],
-  cultureText:
-    "Trabalhamos em times pequenos e autônomos, com decisões documentadas e feedback direto. Ninguém precisa adivinhar em que etapa está — dentro ou fora do processo seletivo.",
-  values: [
-    "Transparência radical",
-    "Feedback em toda etapa",
-    "Autonomia com contexto",
-    "Diversidade na prática",
-  ],
-  workModel: "Híbrido flexível · 2 dias presenciais opcionais",
-  benefitsDetail:
-    "Plano de saúde e odontológico sem coparticipação, vale-refeição de R$ 1.100, auxílio home office de R$ 200, R$ 3.000/ano de auxílio educação, licença parental estendida e day off no aniversário.",
-  hrContact: "Marina Prado · Head de People & Cultura",
-  hrEmail: "people@candidatu.com.br",
-  responseTime: "Resposta em até 5 dias úteis em cada etapa",
-  processSteps: [
-    "Inscrição e triagem de perfil",
-    "Conversa com RH (30 min)",
-    "Entrevista técnica com o time",
-    "Conversa com a liderança",
-    "Proposta com faixa salarial aberta",
-  ],
-  diversity:
-    "Processos com currículo às cegas na triagem inicial, metas públicas de diversidade e vagas afirmativas sinalizadas na descrição.",
+  name: "",
+  segment: "",
+  size: "",
+  city: "",
+  site: "",
+  about: "",
+  rating: 0,
+  recommend: 0,
+  benefits: [],
+  founded: "",
+  history: "",
+  milestones: [],
+  cultureText: "",
+  values: [],
+  workModel: "",
+  benefitsDetail: "",
+  hrContact: "",
+  hrEmail: "",
+  responseTime: "",
+  processSteps: [],
+  diversity: "",
   logoUrl: "",
   hrPhotoUrl: "",
-  hrRole: "Head de People & Cultura",
-  hrPhone: "(11) 99999-0000",
-  hrLinkedin: "linkedin.com/company/candidatu",
-  documents: [
-    {
-      id: "d1",
-      name: "Política de RH e conduta interna",
-      category: "Política de RH",
-      description:
-        "Regras de convivência, jornada, home office, licenças e canais de denúncia da Candidatu Labs.",
-      fileName: "politica-rh-candidatu.pdf",
-      size: 482000,
-      url: "",
-      updatedAt: "2026-05-14T12:00:00.000Z",
-    },
-    {
-      id: "d2",
-      name: "Guia de benefícios 2026",
-      category: "Benefícios",
-      description: "Detalhamento de plano de saúde, VR, auxílios e day off.",
-      fileName: "guia-beneficios-2026.pdf",
-      size: 310000,
-      url: "",
-      updatedAt: "2026-03-02T12:00:00.000Z",
-    },
-  ],
+  hrRole: "",
+  hrPhone: "",
+  hrLinkedin: "",
+  documents: [],
 };
 
 type CompanyState = {
+  loading: boolean;
+  authenticated: boolean;
+  company: CompanyRow | null;
+  createCompanyProfile: (input: {
+    name: string;
+    segment: string;
+    city: string;
+    about?: string;
+    website?: string;
+  }) => Promise<void>;
+  reload: () => Promise<void>;
   vacancies: Vacancy[];
   candidates: Candidate[];
   interviews: Interview[];
@@ -615,11 +368,9 @@ type CompanyState = {
 };
 
 const Ctx = createContext<CompanyState | null>(null);
-const KEY = "candidatu-company";
+const KEY = "candidatu-company-extra";
 
 type Persisted = {
-  vacancies: Vacancy[];
-  candidates: Candidate[];
   interviews: Interview[];
   meetings: Meeting[];
   profile: CompanyProfile;
@@ -629,18 +380,25 @@ type Persisted = {
   currentMemberId: string;
 };
 
+const emptyPersisted: Persisted = {
+  interviews: [],
+  meetings: [],
+  profile: defaultProfile,
+  logs: [],
+  notifications: [],
+  members: [],
+  currentMemberId: "me",
+};
+
 export function CompanyStoreProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<Persisted>({
-    vacancies: seedVacancies,
-    candidates: seedCandidates,
-    interviews: seedInterviews,
-    meetings: seedMeetings,
-    profile: defaultProfile,
-    logs: [],
-    notifications: [],
-    members: seedMembers,
-    currentMemberId: "m1",
-  });
+  const { user, profile: authProfile, loading: authLoading } = useAuth();
+
+  const [company, setCompany] = useState<CompanyRow | null>(null);
+  const [companyLoading, setCompanyLoading] = useState(true);
+  const [vacancies, setVacancies] = useState<Vacancy[]>([]);
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
+
+  const [state, setState] = useState<Persisted>(emptyPersisted);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -648,22 +406,11 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
       const raw = localStorage.getItem(KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as Partial<Persisted>;
-        setState((s) => {
-          const members = parsed.members ?? s.members;
-          const admin = members.find((m) => m.role === "Administrador");
-          return {
-            ...s,
-            ...parsed,
-            vacancies: (parsed.vacancies ?? s.vacancies).map((v) => ({
-              ...v,
-              type: v.type ?? "Contratual",
-            })),
-            profile: { ...defaultProfile, ...(parsed.profile ?? {}) },
-            meetings: parsed.meetings ?? s.meetings,
-            // garante acesso de administrador ao abrir o painel
-            currentMemberId: admin?.id ?? parsed.currentMemberId ?? s.currentMemberId,
-          };
-        });
+        setState((s) => ({
+          ...s,
+          ...parsed,
+          profile: { ...defaultProfile, ...(parsed.profile ?? {}) },
+        }));
       }
     } catch {
       /* ignore */
@@ -680,6 +427,70 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
     }
   }, [state, hydrated]);
 
+  const reloadCompany = useCallback(async () => {
+    if (!user) {
+      setCompany(null);
+      setCompanyLoading(false);
+      return;
+    }
+    setCompanyLoading(true);
+    try {
+      const c = await fetchMyCompany(user.id);
+      setCompany(c);
+    } finally {
+      setCompanyLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (authLoading) return;
+    void reloadCompany();
+  }, [authLoading, reloadCompany]);
+
+  // Sincroniza os campos vindos do banco no perfil local.
+  useEffect(() => {
+    if (!company) return;
+    setState((s) => ({
+      ...s,
+      profile: {
+        ...s.profile,
+        name: company.name,
+        segment: company.segment,
+        city: company.city,
+        about: company.about,
+        site: company.website ?? "",
+        logoUrl: company.logo_url ?? "",
+      },
+    }));
+  }, [company]);
+
+  const reloadData = useCallback(async () => {
+    if (!company) {
+      setVacancies([]);
+      setCandidates([]);
+      return;
+    }
+    const [v, c] = await Promise.all([
+      loadCompanyVacancies(company.id),
+      loadCompanyCandidates(company.id),
+    ]);
+    setVacancies(v);
+    setCandidates(c);
+  }, [company]);
+
+  useEffect(() => {
+    void reloadData();
+  }, [reloadData]);
+
+  const createCompanyProfile = useCallback(
+    async (input: { name: string; segment: string; city: string; about?: string; website?: string }) => {
+      if (!user) return;
+      const c = await createCompany(user.id, input);
+      setCompany(c);
+    },
+    [user],
+  );
+
   const log = useCallback((title: string, detail: string) => {
     setState((s) => ({
       ...s,
@@ -687,37 +498,42 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
-  const notify = useCallback(
-    (kind: NotificationKind, title: string, detail: string) => {
-      setState((s) => ({
-        ...s,
-        notifications: [
-          { id: uid(), kind, title, detail, at: now(), read: false },
-          ...s.notifications,
-        ].slice(0, 40),
-      }));
-      if (kind === "reprovado") toast.error(title, { description: detail });
-      else if (kind === "aprovado") toast.success(title, { description: detail });
-      else toast(title, { description: detail });
-    },
-    [],
-  );
+  const notify = useCallback((kind: NotificationKind, title: string, detail: string) => {
+    setState((s) => ({
+      ...s,
+      notifications: [
+        { id: uid(), kind, title, detail, at: now(), read: false },
+        ...s.notifications,
+      ].slice(0, 40),
+    }));
+    if (kind === "reprovado") toast.error(title, { description: detail });
+    else if (kind === "aprovado") toast.success(title, { description: detail });
+    else toast(title, { description: detail });
+  }, []);
 
+  const patchCandidate = useCallback((id: string, fn: (c: Candidate) => Candidate) => {
+    setCandidates((cs) => cs.map((c) => (c.id === id ? fn(c) : c)));
+  }, []);
 
-
-  const patchCandidate = useCallback(
-    (id: string, fn: (c: Candidate) => Candidate) => {
-      setState((s) => ({
-        ...s,
-        candidates: s.candidates.map((c) => (c.id === id ? fn(c) : c)),
-      }));
-    },
-    [],
-  );
+  const membersList = useMemo<Member[]>(() => {
+    const me: Member = {
+      id: "me",
+      name: authProfile?.name ?? "Você",
+      email: authProfile?.email ?? "",
+      role: "Administrador",
+      status: "Ativo",
+      invitedAt: now(),
+    };
+    const rest = state.members.filter((m) => m.id !== "me");
+    return [me, ...rest];
+  }, [authProfile, state.members]);
 
   const value = useMemo<CompanyState>(() => {
+    const authorName = () =>
+      membersList.find((m) => m.id === state.currentMemberId)?.name ?? "Equipe de recrutamento";
+
     const moveStage = (candidateId: string, stage: Stage) => {
-      const before = state.candidates.find((c) => c.id === candidateId);
+      const before = candidates.find((c) => c.id === candidateId);
       const name = before?.name ?? "Candidato";
       const previous = before?.stage ?? null;
       patchCandidate(candidateId, (c) => ({
@@ -726,29 +542,46 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
         rejected: false,
         timeline: [{ id: uid(), label: `Movido para ${stage}`, at: now() }, ...c.timeline],
       }));
+      const role = vacancies.find((v) => v.id === before?.vacancyId)?.role ?? "vaga";
+      void moveApplicationStage(candidateId, stage)
+        .then(() => reloadData())
+        .catch(() => toast.error("Não foi possível atualizar a etapa"));
       log("Etapa atualizada", `${name} foi movida(o) para ${stage}.`);
-      const role = state.vacancies.find((v) => v.id === before?.vacancyId)?.role ?? "vaga";
       if (stage === "Contratado") {
         notify("aprovado", `${name} foi aprovada(o)! 🎉`, `Contratação confirmada para ${role}.`);
-        autoStageMessage(candidateId, "aprovado", { stage, role, author: (state.members.find((m) => m.id === state.currentMemberId)?.name ?? "Equipe de recrutamento") });
+        autoStageMessage(candidateId, "aprovado", { stage, role, author: authorName() });
       } else if (previous !== stage) {
         notify(
           "etapa",
           `${name} avançou para ${stage}`,
           `Processo de ${role}${previous ? ` · saiu de ${previous}` : ""}.`,
         );
-        autoStageMessage(candidateId, "etapa", { stage, role, author: (state.members.find((m) => m.id === state.currentMemberId)?.name ?? "Equipe de recrutamento") });
+        autoStageMessage(candidateId, "etapa", { stage, role, author: authorName() });
       }
     };
 
     const currentMember =
-      state.members.find((m) => m.id === state.currentMemberId) ??
-      state.members[0] ??
-      seedMembers[0]!;
+      membersList.find((m) => m.id === state.currentMemberId) ?? membersList[0]!;
     const allowed = rolePermissions[currentMember.role] ?? [];
 
     return {
-      ...state,
+      loading: authLoading || companyLoading,
+      authenticated: Boolean(user),
+      company,
+      createCompanyProfile,
+      reload: async () => {
+        await reloadCompany();
+        await reloadData();
+      },
+      vacancies,
+      candidates,
+      interviews: state.interviews,
+      meetings: state.meetings,
+      profile: state.profile,
+      logs: state.logs,
+      notifications: state.notifications,
+      members: membersList,
+      currentMemberId: state.currentMemberId,
       currentMember,
       unreadCount: state.notifications.filter((n) => !n.read).length,
       markNotificationsRead: () =>
@@ -787,21 +620,22 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
             ...s,
             members: rest,
             currentMemberId:
-              s.currentMemberId === id ? (rest[0]?.id ?? s.currentMemberId) : s.currentMemberId,
+              s.currentMemberId === id ? "me" : s.currentMemberId,
           };
         }),
       setCurrentMember: (id) => setState((s) => ({ ...s, currentMemberId: id })),
       moveStage,
       advance: (candidateId) => {
-        const c = state.candidates.find((x) => x.id === candidateId);
+        const c = candidates.find((x) => x.id === candidateId);
         if (!c) return;
         const idx = stages.indexOf(c.stage);
         const next = stages[Math.min(idx + 1, stages.length - 1)] ?? c.stage;
         moveStage(candidateId, next);
       },
       reject: (candidateId) => {
-        const before = state.candidates.find((c) => c.id === candidateId);
+        const before = candidates.find((c) => c.id === candidateId);
         const name = before?.name ?? "Candidato";
+        const feedback = `Feedback enviado${before ? ` na etapa ${before.stage}` : ""}.`;
         patchCandidate(candidateId, (c) => ({
           ...c,
           rejected: true,
@@ -810,24 +644,27 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
             ...c.timeline,
           ],
         }));
+        void rejectApplication(candidateId, feedback)
+          .then(() => reloadData())
+          .catch(() => toast.error("Não foi possível registrar a reprovação"));
         log("Feedback enviado", `${name} recebeu retorno de reprovação.`);
-        notify(
-          "reprovado",
-          `${name} foi reprovada(o)`,
-          `Feedback enviado${before ? ` na etapa ${before.stage}` : ""}.`,
-        );
+        notify("reprovado", `${name} foi reprovada(o)`, feedback);
         autoStageMessage(candidateId, "reprovado", {
           ...(before ? { stage: before.stage } : {}),
-          role: state.vacancies.find((v) => v.id === before?.vacancyId)?.role ?? "vaga",
-          author: (state.members.find((m) => m.id === state.currentMemberId)?.name ?? "Equipe de recrutamento"),
+          role: vacancies.find((v) => v.id === before?.vacancyId)?.role ?? "vaga",
+          author: authorName(),
         });
       },
-      restore: (candidateId) =>
+      restore: (candidateId) => {
         patchCandidate(candidateId, (c) => ({
           ...c,
           rejected: false,
           timeline: [{ id: uid(), label: "Reativado no processo", at: now() }, ...c.timeline],
-        })),
+        }));
+        void restoreApplication(candidateId)
+          .then(() => reloadData())
+          .catch(() => toast.error("Não foi possível reativar a candidatura"));
+      },
       toggleFavorite: (candidateId) =>
         patchCandidate(candidateId, (c) => ({ ...c, favorite: !c.favorite })),
       addNote: (candidateId, text) => {
@@ -848,12 +685,12 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
       scheduleInterview: (i) => {
         setState((s) => ({ ...s, interviews: [...s.interviews, { ...i, id: uid() }] }));
         log("Entrevista agendada", `${i.kind} em ${i.date} às ${i.time}.`);
-        const name = state.candidates.find((c) => c.id === i.candidateId)?.name ?? "Candidato";
+        const name = candidates.find((c) => c.id === i.candidateId)?.name ?? "Candidato";
         const when = `${i.kind} em ${new Date(`${i.date}T00:00:00`).toLocaleDateString("pt-BR")} às ${i.time} com ${i.interviewer}.`;
         notify("entrevista", `Entrevista agendada com ${name}`, when);
         autoStageMessage(i.candidateId, "entrevista", {
           detail: `${when} Link: ${i.link}`,
-          author: (state.members.find((m) => m.id === state.currentMemberId)?.name ?? "Equipe de recrutamento"),
+          author: authorName(),
         });
       },
       cancelInterview: (id) =>
@@ -863,12 +700,10 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
         setState((s) => ({ ...s, meetings: [{ ...m, id }, ...s.meetings] }));
         const quando = formatWhen(m.inicio);
         log("Reunião agendada", `${m.titulo} · ${quando}`);
-        const author =
-          state.members.find((mm) => mm.id === state.currentMemberId)?.name ??
-          "Equipe de recrutamento";
+        const author = authorName();
         const convidados = (m.candidatos ?? []).map((cid) => ({
           id: cid,
-          name: state.candidates.find((c) => c.id === cid)?.name ?? "Candidato",
+          name: candidates.find((c) => c.id === cid)?.name ?? "Candidato",
         }));
         syncMeetingInvites({
           meetingId: id,
@@ -905,14 +740,12 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
         log("Reunião atualizada", "Dados da reunião foram alterados.");
         const atual = state.meetings.find((m) => m.id === id);
         const merged = { ...atual, ...patch } as Meeting;
-        const author =
-          state.members.find((mm) => mm.id === state.currentMemberId)?.name ??
-          "Equipe de recrutamento";
+        const author = authorName();
         const remarcada = Boolean(patch.inicio && atual && patch.inicio !== atual.inicio);
         const quando = merged.inicio ? formatWhen(merged.inicio) : "";
         const convidados = (merged.candidatos ?? []).map((cid) => ({
           id: cid,
-          name: state.candidates.find((c) => c.id === cid)?.name ?? "Candidato",
+          name: candidates.find((c) => c.id === cid)?.name ?? "Candidato",
         }));
         syncMeetingInvites({
           meetingId: id,
@@ -953,15 +786,13 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
           ...s,
           meetings: s.meetings.map((m) => (m.id === id ? { ...m, inicio, status: "agendada" } : m)),
         }));
-        const author =
-          state.members.find((mm) => mm.id === state.currentMemberId)?.name ??
-          "Equipe de recrutamento";
+        const author = authorName();
         const quando = formatWhen(inicio);
         const antes = formatWhen(atual.inicio);
         log("Reunião reagendada", `${atual.titulo}: ${antes} → ${quando}.`);
         const convidados = (atual.candidatos ?? []).map((cid) => ({
           id: cid,
-          name: state.candidates.find((c) => c.id === cid)?.name ?? "Candidato",
+          name: candidates.find((c) => c.id === cid)?.name ?? "Candidato",
         }));
         syncMeetingInvites({
           meetingId: id,
@@ -998,9 +829,7 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
           ...s,
           meetings: s.meetings.map((m) => (m.id === id ? { ...m, status: "cancelada" } : m)),
         }));
-        const author =
-          state.members.find((mm) => mm.id === state.currentMemberId)?.name ??
-          "Equipe de recrutamento";
+        const author = authorName();
         const quando = formatWhen(atual.inicio);
         log("Reunião cancelada", `${atual.titulo} · ${quando}.${motivo ? ` Motivo: ${motivo}` : ""}`);
         setMeetingInvitesStatus(
@@ -1010,7 +839,7 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
           `Reunião cancelada.${motivo ? ` Motivo: ${motivo}` : ""}`,
         );
         (atual.candidatos ?? []).forEach((cid) => {
-          const cand = state.candidates.find((c) => c.id === cid);
+          const cand = candidates.find((c) => c.id === cid);
           notify(
             "reuniao",
             `Reunião cancelada · ${cand?.name ?? "candidato"}`,
@@ -1027,9 +856,7 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
           ...s,
           meetings: s.meetings.map((m) => (m.id === id ? { ...m, status } : m)),
         }));
-        const author =
-          state.members.find((mm) => mm.id === state.currentMemberId)?.name ??
-          "Equipe de recrutamento";
+        const author = authorName();
         log("Status da reunião", `Reunião marcada como ${labelOf(REUNIAO_STATUS, status)}.`);
         setMeetingInvitesStatus(
           id,
@@ -1043,30 +870,41 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
         removeMeetingInvites(id);
       },
       addVacancy: (v) => {
-        setState((s) => ({
-          ...s,
-          vacancies: [
-            { ...v, id: uid(), published: "agora", publishedAt: new Date().toISOString(), status: "Publicada" },
-            ...s.vacancies,
-          ],
-        }));
+        if (!company || !user) return;
+        void createVacancy(company.id, user.id, v)
+          .then(() => reloadData())
+          .catch(() => toast.error("Não foi possível publicar a vaga"));
         log("Vaga publicada", `${v.role} · ${v.city}`);
       },
       setVacancyStatus: (id, status) => {
-        setState((s) => ({
-          ...s,
-          vacancies: s.vacancies.map((v) => (v.id === id ? { ...v, status } : v)),
-        }));
+        setVacancies((vs) => vs.map((v) => (v.id === id ? { ...v, status } : v)));
+        void setVacancyStatusDb(id, status)
+          .then(() => reloadData())
+          .catch(() => toast.error("Não foi possível atualizar a vaga"));
         log("Status da vaga", `Vaga marcada como ${status}.`);
       },
-      removeVacancy: (id) =>
-        setState((s) => ({
-          ...s,
-          vacancies: s.vacancies.filter((v) => v.id !== id),
-          candidates: s.candidates.filter((c) => c.vacancyId !== id),
-        })),
+      removeVacancy: (id) => {
+        setVacancies((vs) => vs.filter((v) => v.id !== id));
+        void removeVacancyDb(id)
+          .then(() => reloadData())
+          .catch(() => toast.error("Não foi possível excluir a vaga"));
+      },
       updateProfile: (p) => {
         setState((s) => ({ ...s, profile: { ...s.profile, ...p } }));
+        if (company) {
+          const patch: Partial<CompanyRow> = {};
+          if (p.name !== undefined) patch.name = p.name;
+          if (p.segment !== undefined) patch.segment = p.segment;
+          if (p.city !== undefined) patch.city = p.city;
+          if (p.about !== undefined) patch.about = p.about;
+          if (p.site !== undefined) patch.website = p.site;
+          if (p.logoUrl !== undefined) patch.logo_url = p.logoUrl;
+          if (Object.keys(patch).length > 0) {
+            void updateCompany(company.id, patch).catch(() =>
+              toast.error("Não foi possível salvar o perfil da empresa"),
+            );
+          }
+        }
         log("Perfil da empresa", "Informações atualizadas.");
       },
       addDocument: (d) => {
@@ -1088,7 +926,22 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
           },
         })),
     };
-  }, [state, patchCandidate, log, notify]);
+  }, [
+    state,
+    patchCandidate,
+    log,
+    notify,
+    vacancies,
+    candidates,
+    company,
+    user,
+    authLoading,
+    companyLoading,
+    createCompanyProfile,
+    reloadCompany,
+    reloadData,
+    membersList,
+  ]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

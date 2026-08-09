@@ -4,7 +4,7 @@ import { Building2, Clock, MapPin, Search, Star, Trophy, Wallet } from "lucide-r
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { Reveal } from "@/components/site/Reveal";
-import { allFreelas, brlDiaria, contactHref, freelasBase, type Freela } from "@/lib/freelas";
+import { allFreelas, brlDiaria, contactHref, type Freela } from "@/lib/freelas";
 import {
   brl,
   computeMetrics,
@@ -72,7 +72,8 @@ const titulos: Record<Exclude<FreelaView, "freelas">, string> = {
 };
 
 function FreelancePage() {
-  const [lista, setLista] = useState<Freela[]>(freelasBase);
+  const [lista, setLista] = useState<Freela[]>([]);
+  const [carregando, setCarregando] = useState(true);
   const [filtro, setFiltro] = useState<(typeof filtros)[number]["key"]>("hoje");
   const [ordem, setOrdem] = useState<(typeof ordens)[number]["key"]>("recentes");
   const [modelo, setModelo] = useState<(typeof modelos)[number]>("Todos");
@@ -85,7 +86,10 @@ function FreelancePage() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    setLista(allFreelas());
+    allFreelas()
+      .then(setLista)
+      .catch(() => setLista([]))
+      .finally(() => setCarregando(false));
     const syncContatos = () => setContatos(readFreelaContacts());
     const syncAcc = () => setAcc(readAccount());
     syncContatos();
@@ -345,11 +349,20 @@ function FreelancePage() {
               ))}
             </ul>
 
-            {resultado.length === 0 && (
+            {carregando && (
               <p className="mt-8 rounded-2xl border border-dashed border-border p-10 text-center text-sm text-ink-soft">
-                Nenhum freela encontrado com esses filtros.
+                Carregando freelas...
               </p>
             )}
+
+            {!carregando && resultado.length === 0 && (
+              <p className="mt-8 rounded-2xl border border-dashed border-border p-10 text-center text-sm text-ink-soft">
+                {lista.length === 0
+                  ? "Nenhum freela publicado ainda. Empresas podem publicar freelas no painel empresarial."
+                  : "Nenhum freela encontrado com esses filtros."}
+              </p>
+            )}
+
           </>
         )}
       </section>

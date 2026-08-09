@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as EmpresaRouteImport } from './routes/empresa'
 import { Route as PainelRouteImport } from './routes/painel'
 import { Route as FreelanceIndexRouteImport } from './routes/freelance.index'
@@ -18,6 +19,11 @@ import { Route as FreelanceIdRouteImport } from './routes/freelance.$id'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EmpresaRoute = EmpresaRouteImport.update({
@@ -43,6 +49,7 @@ const FreelanceIdRoute = FreelanceIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/empresa': typeof EmpresaRoute
   '/painel': typeof PainelRoute
   '/freelance/$id': typeof FreelanceIdRoute
@@ -50,6 +57,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/empresa': typeof EmpresaRoute
   '/painel': typeof PainelRoute
   '/freelance/$id': typeof FreelanceIdRoute
@@ -58,6 +66,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/empresa': typeof EmpresaRoute
   '/painel': typeof PainelRoute
   '/freelance/$id': typeof FreelanceIdRoute
@@ -65,15 +74,23 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/empresa' | '/painel' | '/freelance/$id' | '/freelance/'
+  fullPaths:
+    '/' | '/auth' | '/empresa' | '/painel' | '/freelance/$id' | '/freelance/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/empresa' | '/painel' | '/freelance/$id' | '/freelance'
+  to: '/' | '/auth' | '/empresa' | '/painel' | '/freelance/$id' | '/freelance'
   id:
-    '__root__' | '/' | '/empresa' | '/painel' | '/freelance/$id' | '/freelance/'
+    | '__root__'
+    | '/'
+    | '/auth'
+    | '/empresa'
+    | '/painel'
+    | '/freelance/$id'
+    | '/freelance/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRoute
   EmpresaRoute: typeof EmpresaRoute
   PainelRoute: typeof PainelRoute
   FreelanceIdRoute: typeof FreelanceIdRoute
@@ -87,6 +104,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/empresa': {
@@ -122,6 +146,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRoute: AuthRoute,
   EmpresaRoute: EmpresaRoute,
   PainelRoute: PainelRoute,
   FreelanceIdRoute: FreelanceIdRoute,
@@ -130,13 +155,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
