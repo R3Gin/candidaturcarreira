@@ -201,19 +201,59 @@ export function Vagas({ onOpenPipeline }: { onOpenPipeline: () => void }) {
                 ))}
               </select>
             </Field>
-            <Field label="Salário mínimo (R$)">
+            {isFreela ? (
+              <>
+                <Field label="Valor da diária (R$)">
+                  <input
+                    type="number"
+                    min={0}
+                    value={form.dailyRate}
+                    onChange={(e) => setForm({ ...form, dailyRate: Number(e.target.value) })}
+                    className={input}
+                  />
+                </Field>
+                <Field label="Carga horária">
+                  <input
+                    value={form.hours}
+                    onChange={(e) => setForm({ ...form, hours: e.target.value })}
+                    placeholder="Ex.: 8h"
+                    className={input}
+                  />
+                </Field>
+                <Field label="Período">
+                  <input
+                    value={form.period}
+                    onChange={(e) => setForm({ ...form, period: e.target.value })}
+                    placeholder="Ex.: 18h às 02h"
+                    className={input}
+                  />
+                </Field>
+              </>
+            ) : (
+              <>
+                <Field label="Salário mínimo (R$)">
+                  <input
+                    type="number"
+                    value={form.salaryMin}
+                    onChange={(e) => setForm({ ...form, salaryMin: Number(e.target.value) })}
+                    className={input}
+                  />
+                </Field>
+                <Field label="Salário máximo (R$)">
+                  <input
+                    type="number"
+                    value={form.salaryMax}
+                    onChange={(e) => setForm({ ...form, salaryMax: Number(e.target.value) })}
+                    className={input}
+                  />
+                </Field>
+              </>
+            )}
+            <Field label="Contato (e-mail ou WhatsApp)">
               <input
-                type="number"
-                value={form.salaryMin}
-                onChange={(e) => setForm({ ...form, salaryMin: Number(e.target.value) })}
-                className={input}
-              />
-            </Field>
-            <Field label="Salário máximo (R$)">
-              <input
-                type="number"
-                value={form.salaryMax}
-                onChange={(e) => setForm({ ...form, salaryMax: Number(e.target.value) })}
+                value={form.contact}
+                onChange={(e) => setForm({ ...form, contact: e.target.value })}
+                placeholder="vagas@empresa.com.br"
                 className={input}
               />
             </Field>
