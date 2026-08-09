@@ -621,10 +621,21 @@ export function PaginaEmpresa() {
               <p className="text-xs font-bold uppercase tracking-wide opacity-80">
                 Prévia para candidatos
               </p>
-              <h2 className="mt-1 font-display text-lg font-semibold">{form.name}</h2>
-              <p className="text-xs opacity-90">
-                {form.segment} · {form.size} · desde {form.founded}
-              </p>
+              <div className="mt-1 flex items-center gap-3">
+                {form.logoUrl && (
+                  <img
+                    src={form.logoUrl}
+                    alt={`Logo da ${form.name}`}
+                    className="h-10 w-10 rounded-xl border border-white/30 object-cover"
+                  />
+                )}
+                <div>
+                  <h2 className="font-display text-lg font-semibold">{form.name}</h2>
+                  <p className="text-xs opacity-90">
+                    {form.segment} · {form.size} · desde {form.founded}
+                  </p>
+                </div>
+              </div>
             </div>
             <div className="space-y-4 p-5">
               <div>
