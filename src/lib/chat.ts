@@ -30,7 +30,7 @@ export type StageEvent = {
   stage: string;
   status: string;
   by: string;
-  kind: "abertura" | "etapa" | "aprovado" | "reprovado" | "entrevista";
+  kind: "abertura" | "etapa" | "aprovado" | "reprovado" | "entrevista" | "reuniao";
   detail?: string;
 };
 
