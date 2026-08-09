@@ -471,6 +471,8 @@ type CompanyState = {
   setVacancyStatus: (id: string, status: Vacancy["status"]) => void;
   removeVacancy: (id: string) => void;
   updateProfile: (p: Partial<CompanyProfile>) => void;
+  addDocument: (d: Omit<CompanyDoc, "id" | "updatedAt">) => void;
+  removeDocument: (id: string) => void;
 };
 
 const Ctx = createContext<CompanyState | null>(null);
