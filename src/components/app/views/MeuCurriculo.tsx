@@ -422,10 +422,10 @@ export function MeuCurriculo({ onGoToJobs }: { onGoToJobs: () => void }) {
                 </button>
                 <button
                   type="button"
-                  onClick={download}
+                  onClick={() => void download()}
                   className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-ink-soft hover:text-accent"
                 >
-                  <Download className="h-3.5 w-3.5" strokeWidth={1.9} /> Baixar
+                  <Download className="h-3.5 w-3.5" strokeWidth={1.9} /> Baixar PDF
                 </button>
               </div>
             )}
