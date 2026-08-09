@@ -109,6 +109,8 @@ export type Meeting = {
   inicio: string;
   duracaoMin: number;
   participantes: string[];
+  /** Candidatos convidados (ids) — recebem notificação e mensagem no chat. */
+  candidatos?: string[];
   link: string;
   status: string;
 };
