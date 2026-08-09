@@ -187,10 +187,16 @@ export function sendMessage(
   threadId: string,
   from: ChatSender,
   text: string,
-  opts?: { kind?: ChatMessage["kind"]; author?: string; stage?: string },
+  opts?: {
+    kind?: ChatMessage["kind"];
+    author?: string;
+    stage?: string;
+    attachments?: ChatAttachment[];
+  },
 ) {
   const clean = text.trim();
-  if (!clean) return;
+  const files = opts?.attachments ?? [];
+  if (!clean && files.length === 0) return;
   update((all) =>
     all.map((t) =>
       t.id === threadId
@@ -206,6 +212,7 @@ export function sendMessage(
                 at: now(),
                 ...(opts?.author ? { author: opts.author } : {}),
                 ...(opts?.stage ? { stage: opts.stage } : {}),
+                ...(files.length ? { attachments: files } : {}),
               },
             ],
             unreadForCandidate:
@@ -216,6 +223,16 @@ export function sendMessage(
     ),
   );
 }
+
+/** Total de mensagens não lidas de um lado (para badges do cabeçalho). */
+export function totalUnread(side: ChatSender, threads?: ChatThread[]) {
+  const list = threads ?? readThreads();
+  return list.reduce(
+    (acc, t) => acc + (side === "empresa" ? t.unreadForCompany : t.unreadForCandidate),
+    0,
+  );
+}
+
 
 export function markRead(threadId: string, side: ChatSender) {
   update((all) =>
