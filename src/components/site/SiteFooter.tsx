@@ -7,7 +7,7 @@ const colunas = [
     links: [
       { label: "Buscar vagas", href: "#vagas" },
       { label: "Freelas do dia", href: "/freelance" },
-      { label: "Conta de freelancer", href: "/freelance/conta" },
+      { label: "Conta de freelancer", href: "/freelance" },
 
 
 
