@@ -83,7 +83,7 @@ export async function signUpWithEmail(input: {
   name: string;
   accountType: AccountType;
 }) {
-  const redirect = typeof window !== "undefined" ? `${window.location.origin}/auth` : undefined;
+  const redirect = typeof window !== "undefined" ? `${window.location.origin}/` : undefined;
   const { error } = await supabase.auth.signUp({
     email: input.email,
     password: input.password,
@@ -102,7 +102,7 @@ export async function signInWithGoogle(accountType: AccountType) {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${window.location.origin}/auth`,
+      redirectTo: `${window.location.origin}/`,
       queryParams: { prompt: "select_account" },
     },
   });

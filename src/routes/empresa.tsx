@@ -74,12 +74,13 @@ function EmpresaGate() {
           O painel empresarial é exclusivo para contas de empresa. Faça login ou crie sua conta
           empresarial para publicar vagas e selecionar candidatos.
         </p>
-        <Link
-          to="/auth"
+        <button
+          type="button"
+          onClick={() => openAuthModal({ mode: "entrar", accountType: "empresa" })}
           className="mt-5 inline-flex rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground"
         >
           Entrar ou criar conta
-        </Link>
+        </button>
       </Centro>
     );
   }

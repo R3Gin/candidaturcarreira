@@ -73,12 +73,13 @@ function Painel() {
           <p className="mt-2 text-sm text-ink-soft">
             Entre na sua conta de candidato para ver vagas, candidaturas e preferências.
           </p>
-          <Link
-            to="/auth"
+          <button
+            type="button"
+            onClick={() => openAuthModal({ mode: "entrar", accountType: "candidato" })}
             className="mt-5 inline-flex rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-accent-foreground"
           >
             Ir para o login
-          </Link>
+          </button>
         </div>
       </div>
     );
