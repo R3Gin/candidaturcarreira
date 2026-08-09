@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { readInvites, subscribeInvites, type MeetingInvite } from "./meetings";
 import { queueEmail, readEmailPrefs, subscribeEmailPrefs, type EmailPrefs } from "./emailPrefs";
 import type { ChatSender } from "./chat";
+import { fillTemplate, readTemplates } from "./messageTemplates";
 
 export function useMeetingInvites(candidateId?: string): MeetingInvite[] {
   const [invites, setInvites] = useState<MeetingInvite[]>([]);
@@ -97,11 +98,18 @@ export function useMeetingReminders(
         });
 
         if (p.enabled && p.meetingReminders) {
+          const tpl = readTemplates().email.lembreteReuniao;
+          const vars = {
+            titulo: item.titulo,
+            minutos: String(faltam),
+            detalhe: item.detail,
+            inicio: new Date(item.inicio).toLocaleString("pt-BR"),
+          };
           queueEmail(
             side,
             p.email || optsRef.current?.fallbackEmail || "",
-            `Lembrete de reunião: ${item.titulo}`,
-            `Sua reunião começa em ${faltam} minutos. ${item.detail}`,
+            fillTemplate(tpl.subject, vars),
+            fillTemplate(tpl.body, vars),
           );
         }
       }
