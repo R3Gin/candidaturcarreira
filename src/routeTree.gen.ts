@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as EmpresaRouteImport } from './routes/empresa'
 import { Route as PainelRouteImport } from './routes/painel'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as FreelanceIndexRouteImport } from './routes/freelance.index'
 import { Route as FreelanceIdRouteImport } from './routes/freelance.$id'
 
@@ -36,6 +37,11 @@ const PainelRoute = PainelRouteImport.update({
   path: '/painel',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FreelanceIndexRoute = FreelanceIndexRouteImport.update({
   id: '/freelance/',
   path: '/freelance/',
@@ -52,6 +58,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/empresa': typeof EmpresaRoute
   '/painel': typeof PainelRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/freelance/$id': typeof FreelanceIdRoute
   '/freelance/': typeof FreelanceIndexRoute
 }
@@ -60,6 +67,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/empresa': typeof EmpresaRoute
   '/painel': typeof PainelRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/freelance/$id': typeof FreelanceIdRoute
   '/freelance': typeof FreelanceIndexRoute
 }
@@ -69,21 +77,36 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/empresa': typeof EmpresaRoute
   '/painel': typeof PainelRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/freelance/$id': typeof FreelanceIdRoute
   '/freelance/': typeof FreelanceIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/auth' | '/empresa' | '/painel' | '/freelance/$id' | '/freelance/'
+    | '/'
+    | '/auth'
+    | '/empresa'
+    | '/painel'
+    | '/reset-password'
+    | '/freelance/$id'
+    | '/freelance/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/empresa' | '/painel' | '/freelance/$id' | '/freelance'
+  to:
+    | '/'
+    | '/auth'
+    | '/empresa'
+    | '/painel'
+    | '/reset-password'
+    | '/freelance/$id'
+    | '/freelance'
   id:
     | '__root__'
     | '/'
     | '/auth'
     | '/empresa'
     | '/painel'
+    | '/reset-password'
     | '/freelance/$id'
     | '/freelance/'
   fileRoutesById: FileRoutesById
@@ -93,6 +116,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   EmpresaRoute: typeof EmpresaRoute
   PainelRoute: typeof PainelRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   FreelanceIdRoute: typeof FreelanceIdRoute
   FreelanceIndexRoute: typeof FreelanceIndexRoute
 }
@@ -127,6 +151,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PainelRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/freelance/': {
       id: '/freelance/'
       path: '/freelance'
@@ -149,9 +180,20 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   EmpresaRoute: EmpresaRoute,
   PainelRoute: PainelRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   FreelanceIdRoute: FreelanceIdRoute,
   FreelanceIndexRoute: FreelanceIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
