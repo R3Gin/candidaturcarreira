@@ -3,6 +3,8 @@
  * Persistido em localStorage e sincronizado entre abas/telas por eventos.
  */
 
+import { fillTemplate, readTemplates } from "./messageTemplates";
+
 export type ChatSender = "empresa" | "candidato";
 
 export type ChatAttachment = {
