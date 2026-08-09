@@ -3,6 +3,8 @@ import { MessageSquare, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { acceptCandidate, markRead, setAutoEnabled, type ChatThread } from "@/lib/chat";
 import { AttachmentList, ChatComposer, StageHistory } from "@/components/chat/ChatPieces";
+import { EmailNotificationPrefs } from "@/components/chat/EmailNotificationPrefs";
+
 import { useChatThreadByCandidate } from "@/lib/useChat";
 import { useCompanyStore, type Candidate } from "./store";
 
@@ -109,7 +111,9 @@ export function CandidateChat({ candidate }: { candidate: Candidate }) {
         onValueChange={setText}
       />
 
+      <EmailNotificationPrefs side="empresa" defaultEmail={profile.hrEmail ?? ""} />
     </section>
+
   );
 }
 

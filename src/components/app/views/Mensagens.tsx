@@ -3,6 +3,8 @@ import { MessageSquare } from "lucide-react";
 import { ChatMessages } from "@/components/company/CandidateChat";
 import { markRead } from "@/lib/chat";
 import { ChatComposer, StageHistory } from "@/components/chat/ChatPieces";
+import { EmailNotificationPrefs } from "@/components/chat/EmailNotificationPrefs";
+
 import { useAppStore } from "@/components/app/store";
 import { useChatThreads } from "@/lib/useChat";
 
@@ -109,7 +111,10 @@ export function Mensagens({ onGoToJobs }: { onGoToJobs: () => void }) {
                 value={text}
                 onValueChange={setText}
               />
+
+              <EmailNotificationPrefs side="candidato" defaultEmail={account.email} />
             </section>
+
           )}
         </div>
       )}
