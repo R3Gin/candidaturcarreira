@@ -301,31 +301,33 @@ function ContatosPanel({ contatos }: { contatos: FreelaContact[] }) {
         {contatos.map((c) => (
           <li
             key={c.id}
-            className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl bg-secondary p-3"
+            className="rounded-xl bg-secondary p-3"
           >
-            <MessageCircle className="h-4 w-4 shrink-0 text-accent" strokeWidth={2} />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-ink">
+            <div className="flex items-start gap-2">
+              <MessageCircle className="mt-0.5 h-4 w-4 shrink-0 text-accent" strokeWidth={2} />
+              <p className="min-w-0 flex-1 text-sm font-semibold leading-snug text-ink">
                 <Link to="/freelance/$id" params={{ id: c.freelaId }} className="hover:underline">
                   {c.cargo}
                 </Link>{" "}
                 · {c.empresa}
               </p>
-              <p className="truncate text-xs text-ink-soft">
-                Enviada em {new Date(c.at).toLocaleString("pt-BR")} · resposta em {c.contato}
-              </p>
             </div>
-            <span className="rounded-full bg-mint px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wider text-ink">
-              Chat aberto
-            </span>
-            <button
-              type="button"
-              aria-label={`Remover solicitação de ${c.cargo}`}
-              onClick={() => removeFreelaContact(c.id)}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-full text-destructive hover:bg-destructive/10"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
+            <p className="mt-1 text-xs text-ink-soft">
+              Enviada em {new Date(c.at).toLocaleString("pt-BR")} · resposta em {c.contato}
+            </p>
+            <div className="mt-2 flex items-center gap-2">
+              <span className="rounded-full bg-mint px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wider text-ink">
+                Chat aberto
+              </span>
+              <button
+                type="button"
+                aria-label={`Remover solicitação de ${c.cargo}`}
+                onClick={() => removeFreelaContact(c.id)}
+                className="ml-auto inline-flex h-8 w-8 items-center justify-center rounded-full text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
           </li>
         ))}
       </ul>
