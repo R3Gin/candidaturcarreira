@@ -677,8 +677,21 @@ export function PaginaEmpresa() {
                   <HeartHandshake className="h-4 w-4 text-brand-cyan" strokeWidth={1.9} />{" "}
                   Informações de RH
                 </h3>
-                <p className="mt-1 text-sm text-ink">{form.hrContact}</p>
-                <p className="text-sm text-ink-soft">{form.hrEmail}</p>
+                <div className="mt-1 flex items-center gap-3">
+                  {form.hrPhotoUrl && (
+                    <img
+                      src={form.hrPhotoUrl}
+                      alt={form.hrContact}
+                      className="h-10 w-10 rounded-full border border-border object-cover"
+                    />
+                  )}
+                  <div>
+                    <p className="text-sm text-ink">{form.hrContact}</p>
+                    <p className="text-xs text-ink-soft">{form.hrRole}</p>
+                  </div>
+                </div>
+                <p className="mt-1 text-sm text-ink-soft">{form.hrEmail}</p>
+                <p className="text-sm text-ink-soft">{form.hrPhone}</p>
                 <p className="text-sm text-ink-soft">{form.responseTime}</p>
                 <ol className="mt-2 space-y-1.5 text-sm text-ink">
                   {form.processSteps.map((step, i) => (
@@ -690,6 +703,43 @@ export function PaginaEmpresa() {
                     </li>
                   ))}
                 </ol>
+              </div>
+              <div>
+                <h3 className="flex items-center gap-2 font-display text-sm font-semibold text-ink">
+                  <FileText className="h-4 w-4 text-brand-cyan" strokeWidth={1.9} /> Documentos para
+                  download
+                </h3>
+                <ul className="mt-2 space-y-2">
+                  {profile.documents.length === 0 && (
+                    <li className="text-sm text-ink-soft">Nenhum documento publicado.</li>
+                  )}
+                  {profile.documents.map((doc) => (
+                    <li
+                      key={doc.id}
+                      className="flex items-center justify-between gap-2 rounded-xl border border-border px-3 py-2"
+                    >
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-semibold text-ink">
+                          {doc.name}
+                        </span>
+                        <span className="block text-xs text-ink-soft">
+                          {doc.category} · {formatSize(doc.size)}
+                        </span>
+                      </span>
+                      {doc.url ? (
+                        <a
+                          href={doc.url}
+                          download={doc.fileName}
+                          className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-brand px-3 py-1.5 text-xs font-semibold text-primary-foreground"
+                        >
+                          <Download className="h-3.5 w-3.5" strokeWidth={2} /> Baixar
+                        </a>
+                      ) : (
+                        <span className="shrink-0 text-xs text-ink-soft">Exemplo</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           </section>
