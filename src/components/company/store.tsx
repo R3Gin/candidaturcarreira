@@ -83,6 +83,17 @@ export type Interview = {
   link: string;
 };
 
+export type CompanyDoc = {
+  id: string;
+  name: string;
+  category: "Política de RH" | "Código de conduta" | "Benefícios" | "Processo seletivo" | "Outros";
+  description: string;
+  fileName: string;
+  size: number;
+  url: string;
+  updatedAt: string;
+};
+
 export type CompanyProfile = {
   name: string;
   segment: string;
@@ -106,6 +117,13 @@ export type CompanyProfile = {
   responseTime: string;
   processSteps: string[];
   diversity: string;
+  /* Identidade visual e dados de contato */
+  logoUrl: string;
+  hrPhotoUrl: string;
+  hrRole: string;
+  hrPhone: string;
+  hrLinkedin: string;
+  documents: CompanyDoc[];
 };
 
 
