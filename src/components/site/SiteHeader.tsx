@@ -138,6 +138,14 @@ export function SiteHeader() {
             >
               Freelas
             </Link>
+            <Link
+              to="/freelance/conta"
+              onClick={() => setOpen(false)}
+              className="block py-2.5 text-sm font-semibold text-ink-soft"
+            >
+              Conta freela
+            </Link>
+
 
             <div className="mt-2 flex gap-2 border-t border-border pt-3">
               <Link
