@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { AppShell, type View } from "@/components/app/AppShell";
 import { AppStoreProvider, useAppStore } from "@/components/app/store";
