@@ -33,7 +33,7 @@ export function Visao({ onNavigate }: { onNavigate: (v: CompanyView) => void }) 
         </p>
       </header>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         {cards.map((c) => (
           <div key={c.label} className="rounded-2xl border border-border bg-card p-5 shadow-card">
             <div className="flex items-center justify-between">
