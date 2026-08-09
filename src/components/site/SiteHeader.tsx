@@ -123,6 +123,14 @@ export function SiteHeader() {
                 {item.label}
               </a>
             ))}
+            <Link
+              to="/freelance"
+              onClick={() => setOpen(false)}
+              className="block py-2.5 text-sm font-semibold text-ink-soft"
+            >
+              Freelas
+            </Link>
+
             <div className="mt-2 flex gap-2 border-t border-border pt-3">
               <Link
                 to="/painel"
