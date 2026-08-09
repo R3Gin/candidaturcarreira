@@ -16,6 +16,7 @@ type Form = {
   inicio: string;
   duracaoMin: string;
   participantes: string;
+  candidatos: string[];
   link: string;
   status: string;
 };
@@ -33,6 +34,7 @@ const vazio = (): Form => ({
   inicio: toLocalInput(new Date().toISOString()),
   duracaoMin: "30",
   participantes: "",
+  candidatos: [],
   link: "",
   status: "agendada",
 });
