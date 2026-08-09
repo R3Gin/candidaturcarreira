@@ -815,7 +815,6 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
             `${m.titulo} em ${quando} (${m.duracaoMin} min).`,
           );
           autoStageMessage(candidateId, "reuniao", {
-            role: cand?.role,
             detail: `${m.titulo} em ${quando} · ${m.duracaoMin} min${m.pauta ? ` · Pauta: ${m.pauta}` : ""}${m.link ? ` · Link: ${m.link}` : ""}`,
             author,
           });
@@ -846,7 +845,6 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
             `${merged.titulo} em ${quando}.`,
           );
           autoStageMessage(candidateId, "reuniao", {
-            role: cand?.role,
             detail: `Atualizamos a reunião "${merged.titulo}": ${quando} · ${merged.duracaoMin} min${merged.link ? ` · Link: ${merged.link}` : ""}`,
             author,
           });
