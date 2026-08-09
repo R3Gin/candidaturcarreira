@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ChevronRight, Menu, Phone, ShieldCheck, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useAuthModal } from "@/components/auth/AuthModal";
 
 const nav = [
   { label: "Vagas", href: "#vagas" },
@@ -10,6 +11,7 @@ const nav = [
 ];
 
 export function SiteHeader() {
+  const { openAuthModal } = useAuthModal();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
