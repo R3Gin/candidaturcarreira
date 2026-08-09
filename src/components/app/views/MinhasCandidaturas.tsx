@@ -28,7 +28,7 @@ export function MinhasCandidaturas({ onGoToJobs }: { onGoToJobs: () => void }) {
         subtitle="Cada card mostra a etapa atual, o próximo passo com data e o retorno que a empresa registrou."
       />
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <Metric
           label="Candidaturas ativas"
           value={String(applications.filter((a) => a.stage < 4).length)}
