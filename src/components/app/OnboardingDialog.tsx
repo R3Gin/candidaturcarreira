@@ -3,7 +3,6 @@ import { ArrowRight, Camera, Minus } from "lucide-react";
 import { z } from "zod";
 import { useAppStore, type Account } from "@/components/app/store";
 
-const KEY = "candidatu-onboarding";
 const TOTAL = 6;
 
 const nameSchema = z
@@ -123,11 +122,6 @@ export function OnboardingDialog({ onFinish, onGoToProfile, onExit }: Props) {
   const complete = () => {
     const at = new Date().toISOString();
     persist({ onboardedAt: at, termsAcceptedAt: account.termsAcceptedAt ?? at });
-    try {
-      localStorage.setItem(KEY, JSON.stringify({ done: true, at }));
-    } catch {
-      /* ignore */
-    }
     logActivity(
       "perfil",
       "Registro inicial concluído",
@@ -420,10 +414,4 @@ function Field({
   );
 }
 
-export function shouldShowOnboarding() {
-  try {
-    return !localStorage.getItem(KEY);
-  } catch {
-    return false;
-  }
-}
+

@@ -6,7 +6,7 @@ import { Chip, EmptyState, PageHead } from "./ui";
 const filters = ["Todas", "Deram procedência", "Aguardando", "Finalizadas"] as const;
 
 export function MinhasCandidaturas({ onGoToJobs }: { onGoToJobs: () => void }) {
-  const { applications, advance, withdraw } = useAppStore();
+  const { applications, withdraw } = useAppStore();
   const [filter, setFilter] = useState<(typeof filters)[number]>("Todas");
   const [openId, setOpenId] = useState<string | null>(null);
 
@@ -129,15 +129,6 @@ export function MinhasCandidaturas({ onGoToJobs }: { onGoToJobs: () => void }) {
                     >
                       {open ? "Ocultar processo" : "Ver processo"}
                     </button>
-                    {a.stage < stageNames.length - 1 && (
-                      <button
-                        type="button"
-                        onClick={() => advance(a.id)}
-                        className="text-xs font-semibold text-ink-soft hover:text-accent"
-                      >
-                        Registrar avanço
-                      </button>
-                    )}
                     <button
                       type="button"
                       onClick={() => withdraw(a.id)}

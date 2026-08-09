@@ -20,7 +20,7 @@ import {
   Zap,
 } from "lucide-react";
 import { toast } from "sonner";
-import { companyFromJob, jobPool, useAppStore, type Job } from "../store";
+import { companyFromJob, useAppStore, type Job } from "../store";
 import { jobContact } from "@/lib/companyJobs";
 
 function initials(name: string) {
@@ -71,16 +71,16 @@ export function VagaDetalhe({
   onOpenJob: (jobId: string) => void;
   onGoToApplications: () => void;
 }) {
-  const { savedJobs, toggleSaved, followed, toggleFollow, applyToJob, hasApplied } = useAppStore();
+  const { jobs, savedJobs, toggleSaved, followed, toggleFollow, applyToJob, hasApplied } = useAppStore();
   const company = companyFromJob(job);
   const saved = savedJobs.includes(job.id);
   const following = followed.some((c) => c.id === company.id);
   const applied = hasApplied(job.id);
 
-  const openRoles = useMemo(() => jobPool.filter((j) => j.company === job.company), [job.company]);
+  const openRoles = useMemo(() => jobs.filter((j) => j.company === job.company), [jobs, job.company]);
   const related = useMemo(
-    () => jobPool.filter((j) => j.id !== job.id).slice(0, 3),
-    [job.id],
+    () => jobs.filter((j) => j.id !== job.id).slice(0, 3),
+    [jobs, job.id],
   );
 
   const share = async () => {

@@ -1,8 +1,9 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { AppShell, type View } from "@/components/app/AppShell";
-import { AppStoreProvider } from "@/components/app/store";
-import { OnboardingDialog, shouldShowOnboarding } from "@/components/app/OnboardingDialog";
+import { AppStoreProvider, useAppStore } from "@/components/app/store";
+import { OnboardingDialog } from "@/components/app/OnboardingDialog";
+import { useAuth } from "@/hooks/useAuth";
 import { CentralVagas } from "@/components/app/views/CentralVagas";
 import { EmpresasQueSigo } from "@/components/app/views/EmpresasQueSigo";
 import { Historico } from "@/components/app/views/Historico";
@@ -15,9 +16,6 @@ import { PreferenciasVagas } from "@/components/app/views/PreferenciasVagas";
 import { Recomendadas } from "@/components/app/views/Recomendadas";
 import { VagasSalvas } from "@/components/app/views/VagasSalvas";
 import { VagaDetalhe } from "@/components/app/views/VagaDetalhe";
-import { jobPool } from "@/components/app/store";
-import { companyJobs } from "@/lib/companyJobs";
-
 
 const title = "Painel do candidato | Candidatu";
 const description =
@@ -47,23 +45,63 @@ function PainelPage() {
 }
 
 function Painel() {
+  const { loading, authenticated } = useAppStore();
+  const { signOut } = useAuth();
   const [view, setView] = useState<View>("central");
-  const [onboarding, setOnboarding] = useState(false);
   const [openJobId, setOpenJobId] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (shouldShowOnboarding()) setOnboarding(true);
-  }, []);
-
-  const signOut = () => {
-    try {
-      sessionStorage.removeItem("candidatu-session");
-    } catch {
-      /* ignore */
-    }
-    navigate({ to: "/" });
+  const doSignOut = () => {
+    void signOut().then(() => navigate({ to: "/" }));
   };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-sand">
+        <p className="text-sm font-semibold text-ink-soft">Carregando seu painel…</p>
+      </div>
+    );
+  }
+
+  if (!authenticated) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-sand p-6">
+        <div className="max-w-sm rounded-2xl border border-border bg-card p-8 text-center shadow-card">
+          <p className="font-display text-lg font-semibold text-ink">
+            Faça login para acessar seu painel
+          </p>
+          <p className="mt-2 text-sm text-ink-soft">
+            Entre na sua conta de candidato para ver vagas, candidaturas e preferências.
+          </p>
+          <Link
+            to="/auth"
+            className="mt-5 inline-flex rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-accent-foreground"
+          >
+            Ir para o login
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return <PainelLoaded view={view} setView={setView} openJobId={openJobId} setOpenJobId={setOpenJobId} onSignOut={doSignOut} />;
+}
+
+function PainelLoaded({
+  view,
+  setView,
+  openJobId,
+  setOpenJobId,
+  onSignOut,
+}: {
+  view: View;
+  setView: (v: View) => void;
+  openJobId: string | null;
+  setOpenJobId: (id: string | null) => void;
+  onSignOut: () => void;
+}) {
+  const { account, jobs } = useAppStore();
+  const [onboarding, setOnboarding] = useState(!account.onboardedAt);
 
   const openJob = (jobId: string) => {
     setOpenJobId(jobId);
@@ -88,9 +126,7 @@ function Painel() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const activeJob = openJobId
-    ? ([...companyJobs(), ...jobPool].find((j) => j.id === openJobId) ?? null)
-    : null;
+  const activeJob = openJobId ? (jobs.find((j) => j.id === openJobId) ?? null) : null;
 
   return (
     <AppShell
@@ -99,7 +135,7 @@ function Painel() {
         setOpenJobId(null);
         setView(v);
       }}
-      onSignOut={signOut}
+      onSignOut={onSignOut}
     >
       {onboarding && (
         <OnboardingDialog
@@ -110,7 +146,7 @@ function Painel() {
           }}
           onExit={() => {
             setOnboarding(false);
-            signOut();
+            onSignOut();
           }}
         />
       )}
@@ -132,17 +168,17 @@ function Painel() {
               <CentralVagas onGoToApplications={goToApplications} onOpenJob={openJob} />
             )}
 
-        {view === "conta" && <MinhaConta onSignOut={signOut} />}
-        {view === "curriculo" && <MeuCurriculo onGoToJobs={goToJobs} />}
-        {view === "candidaturas" && <MinhasCandidaturas onGoToJobs={goToJobs} />}
-        {view === "mensagens" && <Mensagens onGoToJobs={goToJobs} />}
-        {view === "reunioes" && <Reunioes onGoToMessages={() => setView("mensagens")} />}
-        {view === "recomendadas" && (
-          <Recomendadas onGoToJobs={goToJobs} onGoToPreferences={goToPreferences} />
-        )}
-        {view === "salvas" && <VagasSalvas onGoToJobs={goToJobs} />}
-        {view === "empresas" && <EmpresasQueSigo onGoToJobs={goToJobs} />}
-        {view === "historico" && <Historico onGoToJobs={goToJobs} />}
+            {view === "conta" && <MinhaConta onSignOut={onSignOut} />}
+            {view === "curriculo" && <MeuCurriculo onGoToJobs={goToJobs} />}
+            {view === "candidaturas" && <MinhasCandidaturas onGoToJobs={goToJobs} />}
+            {view === "mensagens" && <Mensagens onGoToJobs={goToJobs} />}
+            {view === "reunioes" && <Reunioes onGoToMessages={() => setView("mensagens")} />}
+            {view === "recomendadas" && (
+              <Recomendadas onGoToJobs={goToJobs} onGoToPreferences={goToPreferences} />
+            )}
+            {view === "salvas" && <VagasSalvas onGoToJobs={goToJobs} />}
+            {view === "empresas" && <EmpresasQueSigo onGoToJobs={goToJobs} />}
+            {view === "historico" && <Historico onGoToJobs={goToJobs} />}
             {view === "preferencias" && <PreferenciasVagas onGoToJobs={goToJobs} />}
           </>
         )}
@@ -150,4 +186,3 @@ function Painel() {
     </AppShell>
   );
 }
-
