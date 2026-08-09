@@ -9,6 +9,12 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { autoStageMessage } from "@/lib/chat";
+import {
+  formatWhen,
+  removeMeetingInvites,
+  setMeetingInvitesStatus,
+  syncMeetingInvites,
+} from "@/lib/meetings";
 
 export type NotificationKind = "etapa" | "aprovado" | "reprovado" | "entrevista" | "reuniao";
 
@@ -547,6 +553,8 @@ type CompanyState = {
   addMeeting: (m: Omit<Meeting, "id">) => void;
   updateMeeting: (id: string, m: Partial<Omit<Meeting, "id">>) => void;
   setMeetingStatus: (id: string, status: string) => void;
+  rescheduleMeeting: (id: string, inicio: string, motivo?: string) => void;
+  cancelMeeting: (id: string, motivo?: string) => void;
   removeMeeting: (id: string) => void;
   addVacancy: (v: Omit<Vacancy, "id" | "published" | "status">) => void;
   setVacancyStatus: (id: string, status: Vacancy["status"]) => void;

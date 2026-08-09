@@ -1,6 +1,8 @@
 import { useRef, useState } from "react";
 import {
   CalendarDays,
+  CalendarX,
+  UserCheck,
   CheckCircle2,
   Download,
   FileText,
@@ -186,6 +188,8 @@ const stageIcon: Record<StageEvent["kind"], typeof MoveRight> = {
   reprovado: XCircle,
   entrevista: CalendarDays,
   reuniao: Video,
+  presenca: UserCheck,
+  cancelamento: CalendarX,
 };
 
 /** Histórico detalhado das mudanças de etapa dentro do chat. */
