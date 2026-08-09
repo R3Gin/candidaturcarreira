@@ -67,7 +67,15 @@ export function SiteHeader() {
                 <span className="absolute inset-x-3 -bottom-0.5 h-0.5 origin-left scale-x-0 rounded-full bg-accent transition-transform duration-300 group-hover:scale-x-100" />
               </a>
             ))}
+            <Link
+              to="/freelance"
+              className="group relative rounded-full px-3 py-2 text-sm font-semibold text-ink-soft transition-colors hover:text-accent"
+            >
+              Freelas
+              <span className="absolute inset-x-3 -bottom-0.5 h-0.5 origin-left scale-x-0 rounded-full bg-accent transition-transform duration-300 group-hover:scale-x-100" />
+            </Link>
           </nav>
+
 
           <div className="ml-auto flex items-center gap-2">
             <Link
