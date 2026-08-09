@@ -1,24 +1,54 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   BookOpen,
   Building2,
   Check,
+  Download,
+  FileText,
   Gift,
   HeartHandshake,
   Sparkles,
+  Trash2,
+  Upload,
+  User,
   Users,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useCompanyStore, type CompanyProfile } from "../store";
+import { useCompanyStore, type CompanyDoc, type CompanyProfile } from "../store";
 
-type Tab = "historia" | "cultura" | "beneficios" | "rh";
+type Tab = "perfil" | "historia" | "cultura" | "beneficios" | "rh" | "documentos";
 
 const tabs: { id: Tab; label: string; icon: typeof BookOpen }[] = [
+  { id: "perfil", label: "Perfil e dados", icon: User },
   { id: "historia", label: "História", icon: BookOpen },
   { id: "cultura", label: "Cultura", icon: Sparkles },
   { id: "beneficios", label: "Benefícios", icon: Gift },
   { id: "rh", label: "Informações de RH", icon: HeartHandshake },
+  { id: "documentos", label: "Documentos e políticas", icon: FileText },
 ];
+
+const docCategories: CompanyDoc["category"][] = [
+  "Política de RH",
+  "Código de conduta",
+  "Benefícios",
+  "Processo seletivo",
+  "Outros",
+];
+
+const formatSize = (bytes: number) =>
+  bytes >= 1024 * 1024
+    ? `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+    : `${Math.max(1, Math.round(bytes / 1024))} KB`;
+
+function readAsDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error("Falha ao ler o arquivo"));
+    reader.readAsDataURL(file);
+  });
+}
+
 
 function Field({
   label,
