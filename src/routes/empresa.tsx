@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import { Loader2 } from "lucide-react";
 
+import { useAuthModal } from "@/components/auth/AuthModal";
 import { CompanyShell, type CompanyView } from "@/components/company/CompanyShell";
 import { CompanyStoreProvider, useCompanyStore, type Permission } from "@/components/company/store";
 import { Banco } from "@/components/company/views/Banco";
@@ -53,6 +54,7 @@ function Centro({ children }: { children: ReactNode }) {
 
 function EmpresaGate() {
   const { loading, authenticated, company, createCompanyProfile } = useCompanyStore();
+  const { openAuthModal } = useAuthModal();
   const [form, setForm] = useState({ name: "", segment: "", city: "", website: "", about: "" });
   const [saving, setSaving] = useState(false);
   const [erro, setErro] = useState("");

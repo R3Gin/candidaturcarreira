@@ -4,6 +4,7 @@ import { AppShell, type View } from "@/components/app/AppShell";
 import { AppStoreProvider, useAppStore } from "@/components/app/store";
 import { OnboardingDialog } from "@/components/app/OnboardingDialog";
 import { useAuth } from "@/hooks/useAuth";
+import { useAuthModal } from "@/components/auth/AuthModal";
 import { CentralVagas } from "@/components/app/views/CentralVagas";
 import { EmpresasQueSigo } from "@/components/app/views/EmpresasQueSigo";
 import { Historico } from "@/components/app/views/Historico";
@@ -47,6 +48,7 @@ function PainelPage() {
 function Painel() {
   const { loading, authenticated } = useAppStore();
   const { signOut } = useAuth();
+  const { openAuthModal } = useAuthModal();
   const [view, setView] = useState<View>("central");
   const [openJobId, setOpenJobId] = useState<string | null>(null);
   const navigate = useNavigate();
