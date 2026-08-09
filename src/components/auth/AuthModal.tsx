@@ -273,7 +273,7 @@ function AuthDialog({
           <button
             type="submit"
             disabled={busy}
-            className="btn-primary w-full justify-center disabled:opacity-60"
+            className="inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-card transition hover:-translate-y-0.5 disabled:translate-y-0 disabled:opacity-60"
           >
             {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {mode === "entrar" ? "Entrar" : "Criar conta"}
