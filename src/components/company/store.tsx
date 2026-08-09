@@ -39,6 +39,8 @@ export const stages = [
 
 export type Stage = (typeof stages)[number];
 
+export type VacancyType = "Contratual" | "Freelance";
+
 export type Vacancy = {
   id: string;
   role: string;
@@ -52,8 +54,17 @@ export type Vacancy = {
   status: "Publicada" | "Pausada" | "Encerrada";
   openings: number;
   published: string;
+  publishedAt?: string;
   skills: string[];
   description: string;
+  /** Contratual = aparece no painel do candidato. Freelance = aparece na página de freelas. */
+  type: VacancyType;
+  /** Somente para freelas */
+  dailyRate?: number;
+  hours?: string;
+  period?: string;
+  /** Contato exibido no botão "Contato" da vaga */
+  contact?: string;
 };
 
 export type Note = { id: string; author: string; text: string; at: string };
@@ -304,6 +315,9 @@ export const seedVacancies: Vacancy[] = [
     status: "Publicada",
     openings: 2,
     published: "há 3 dias",
+    publishedAt: "2026-08-06T12:00:00Z",
+    type: "Contratual",
+    contact: "vagas@movva.com.br",
     skills: ["React", "TypeScript", "Design System", "Testes"],
     description:
       "Squad de produto responsável pela experiência de candidatura. Processo com 4 etapas e feedback em até 5 dias.",
@@ -321,6 +335,9 @@ export const seedVacancies: Vacancy[] = [
     status: "Publicada",
     openings: 1,
     published: "há 8 dias",
+    publishedAt: "2026-08-01T12:00:00Z",
+    type: "Contratual",
+    contact: "vagas@movva.com.br",
     skills: ["Recrutamento", "Employer branding", "Indicadores", "Onboarding"],
     description:
       "Conduzir processos ponta a ponta, cuidar da experiência da pessoa candidata e dos indicadores de contratação.",
@@ -338,6 +355,9 @@ export const seedVacancies: Vacancy[] = [
     status: "Publicada",
     openings: 1,
     published: "há 1 dia",
+    publishedAt: "2026-08-08T12:00:00Z",
+    type: "Contratual",
+    contact: "vagas@movva.com.br",
     skills: ["Pesquisa", "Figma", "Acessibilidade", "Product Discovery"],
     description:
       "Liderar discovery e entregar fluxos de ponta a ponta junto com engenharia e dados.",
@@ -355,8 +375,34 @@ export const seedVacancies: Vacancy[] = [
     status: "Pausada",
     openings: 1,
     published: "há 21 dias",
+    publishedAt: "2026-07-19T12:00:00Z",
+    type: "Contratual",
+    contact: "vagas@movva.com.br",
     skills: ["SQL", "Python", "Dashboards"],
     description: "Construir dashboards de funil de contratação e apoiar decisões de People Analytics.",
+  },
+  {
+    id: "v5",
+    role: "Designer para peças de campanha (freela)",
+    area: "Design",
+    city: "Remoto (Brasil)",
+    model: "Remoto",
+    contract: "PJ",
+    salaryMin: 480,
+    salaryMax: 480,
+    seniority: "Pleno",
+    status: "Publicada",
+    openings: 1,
+    published: "hoje",
+    publishedAt: "2026-08-09T09:00:00Z",
+    type: "Freelance",
+    dailyRate: 480,
+    hours: "8h",
+    period: "Horário flexível",
+    contact: "freelas@movva.com.br",
+    skills: ["Figma", "Social media"],
+    description:
+      "Adaptação de 12 peças de campanha aprovada para formatos de redes sociais, com briefing pronto.",
   },
 ];
 
@@ -608,6 +654,10 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
           return {
             ...s,
             ...parsed,
+            vacancies: (parsed.vacancies ?? s.vacancies).map((v) => ({
+              ...v,
+              type: v.type ?? "Contratual",
+            })),
             profile: { ...defaultProfile, ...(parsed.profile ?? {}) },
             meetings: parsed.meetings ?? s.meetings,
             // garante acesso de administrador ao abrir o painel
@@ -996,7 +1046,7 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
         setState((s) => ({
           ...s,
           vacancies: [
-            { ...v, id: uid(), published: "agora", status: "Publicada" },
+            { ...v, id: uid(), published: "agora", publishedAt: new Date().toISOString(), status: "Publicada" },
             ...s.vacancies,
           ],
         }));

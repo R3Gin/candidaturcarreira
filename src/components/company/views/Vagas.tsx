@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { PauseCircle, PlayCircle, Plus, Trash2, Users } from "lucide-react";
+import { Mail, PauseCircle, PlayCircle, Plus, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
-import { brl, useCompanyStore, type Vacancy } from "../store";
+import { brl, useCompanyStore, type Vacancy, type VacancyType } from "../store";
 
 const empty = {
+  type: "Contratual" as VacancyType,
   role: "",
   area: "Tecnologia",
   city: "",
@@ -12,6 +13,10 @@ const empty = {
   seniority: "Pleno" as Vacancy["seniority"],
   salaryMin: 5000,
   salaryMax: 8000,
+  dailyRate: 250,
+  hours: "8h",
+  period: "09h às 18h",
+  contact: "",
   openings: 1,
   skills: "",
   description: "",
@@ -23,25 +28,43 @@ export function Vagas({ onOpenPipeline }: { onOpenPipeline: () => void }) {
   const manage = can("gerenciar_vagas");
   const [form, setForm] = useState(empty);
   const [open, setOpen] = useState(false);
+  const isFreela = form.type === "Freelance";
+  const [tab, setTab] = useState<"Todas" | VacancyType>("Todas");
+  const freelas = vacancies.filter((v) => v.type === "Freelance").length;
+  const contratuais = vacancies.length - freelas;
+  const visiveis = tab === "Todas" ? vacancies : vacancies.filter((v) => v.type === tab);
 
   const submit = () => {
     if (form.role.trim().length < 3 || !form.city.trim()) {
       toast.error("Informe o título da vaga e a localidade");
       return;
     }
-    if (form.salaryMax < form.salaryMin) {
+    if (!isFreela && form.salaryMax < form.salaryMin) {
       toast.error("A faixa salarial máxima deve ser maior que a mínima");
       return;
     }
+    if (isFreela && Number(form.dailyRate) <= 0) {
+      toast.error("Informe o valor da diária do freela");
+      return;
+    }
     addVacancy({
+      type: form.type,
       role: form.role.trim(),
       area: form.area,
       city: form.city.trim(),
       model: form.model,
       contract: form.contract,
       seniority: form.seniority,
-      salaryMin: Number(form.salaryMin),
-      salaryMax: Number(form.salaryMax),
+      salaryMin: isFreela ? Number(form.dailyRate) : Number(form.salaryMin),
+      salaryMax: isFreela ? Number(form.dailyRate) : Number(form.salaryMax),
+      ...(isFreela
+        ? {
+            dailyRate: Number(form.dailyRate),
+            hours: form.hours.trim(),
+            period: form.period.trim(),
+          }
+        : {}),
+      ...(form.contact.trim() ? { contact: form.contact.trim() } : {}),
       openings: Number(form.openings),
       skills: form.skills
         .split(",")
@@ -51,7 +74,11 @@ export function Vagas({ onOpenPipeline }: { onOpenPipeline: () => void }) {
     });
     setForm(empty);
     setOpen(false);
-    toast.success("Vaga publicada com salário aberto");
+    toast.success(
+      isFreela
+        ? "Freela publicado — já aparece na página de Freelas"
+        : "Vaga contratual publicada — já aparece no painel dos candidatos",
+    );
   };
 
   return (
@@ -63,7 +90,8 @@ export function Vagas({ onOpenPipeline }: { onOpenPipeline: () => void }) {
             {vacancies.length} vagas no seu perfil
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-ink-soft">
-            Toda vaga publicada no Candidatu exige faixa salarial e etapas visíveis.
+            {contratuais} contratuais no painel dos candidatos · {freelas} freelas na página de
+            Freelas. Toda vaga exige faixa salarial ou diária e etapas visíveis.
           </p>
         </div>
         {manage ? (
@@ -84,6 +112,33 @@ export function Vagas({ onOpenPipeline }: { onOpenPipeline: () => void }) {
       {open && manage && (
         <section className="rounded-2xl border border-border bg-card p-5 shadow-card">
           <h2 className="font-display text-lg font-semibold text-ink">Nova vaga</h2>
+          <div className="mt-4 rounded-xl border border-border bg-secondary/50 p-3">
+            <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-ink-soft">
+              Tipo de vaga
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {(["Contratual", "Freelance"] as VacancyType[]).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  aria-pressed={form.type === t}
+                  onClick={() => setForm({ ...form, type: t })}
+                  className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                    form.type === t
+                      ? "bg-brand text-primary-foreground"
+                      : "border border-border bg-card text-ink-soft"
+                  }`}
+                >
+                  {t === "Contratual" ? "Vaga contratual" : "Freela (diária)"}
+                </button>
+              ))}
+            </div>
+            <p className="mt-2 text-xs text-ink-soft">
+              {isFreela
+                ? "Freelas aparecem na página pública de Freelas, com diária e carga horária."
+                : "Vagas contratuais aparecem no painel dos candidatos."}
+            </p>
+          </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <Field label="Título da vaga">
               <input
@@ -151,19 +206,59 @@ export function Vagas({ onOpenPipeline }: { onOpenPipeline: () => void }) {
                 ))}
               </select>
             </Field>
-            <Field label="Salário mínimo (R$)">
+            {isFreela ? (
+              <>
+                <Field label="Valor da diária (R$)">
+                  <input
+                    type="number"
+                    min={0}
+                    value={form.dailyRate}
+                    onChange={(e) => setForm({ ...form, dailyRate: Number(e.target.value) })}
+                    className={input}
+                  />
+                </Field>
+                <Field label="Carga horária">
+                  <input
+                    value={form.hours}
+                    onChange={(e) => setForm({ ...form, hours: e.target.value })}
+                    placeholder="Ex.: 8h"
+                    className={input}
+                  />
+                </Field>
+                <Field label="Período">
+                  <input
+                    value={form.period}
+                    onChange={(e) => setForm({ ...form, period: e.target.value })}
+                    placeholder="Ex.: 18h às 02h"
+                    className={input}
+                  />
+                </Field>
+              </>
+            ) : (
+              <>
+                <Field label="Salário mínimo (R$)">
+                  <input
+                    type="number"
+                    value={form.salaryMin}
+                    onChange={(e) => setForm({ ...form, salaryMin: Number(e.target.value) })}
+                    className={input}
+                  />
+                </Field>
+                <Field label="Salário máximo (R$)">
+                  <input
+                    type="number"
+                    value={form.salaryMax}
+                    onChange={(e) => setForm({ ...form, salaryMax: Number(e.target.value) })}
+                    className={input}
+                  />
+                </Field>
+              </>
+            )}
+            <Field label="Contato (e-mail ou WhatsApp)">
               <input
-                type="number"
-                value={form.salaryMin}
-                onChange={(e) => setForm({ ...form, salaryMin: Number(e.target.value) })}
-                className={input}
-              />
-            </Field>
-            <Field label="Salário máximo (R$)">
-              <input
-                type="number"
-                value={form.salaryMax}
-                onChange={(e) => setForm({ ...form, salaryMax: Number(e.target.value) })}
+                value={form.contact}
+                onChange={(e) => setForm({ ...form, contact: e.target.value })}
+                placeholder="vagas@empresa.com.br"
                 className={input}
               />
             </Field>
@@ -205,8 +300,30 @@ export function Vagas({ onOpenPipeline }: { onOpenPipeline: () => void }) {
         </section>
       )}
 
+      <div className="flex flex-wrap gap-2">
+        {(["Todas", "Contratual", "Freelance"] as const).map((t) => (
+          <button
+            key={t}
+            type="button"
+            aria-pressed={tab === t}
+            onClick={() => setTab(t)}
+            className={`rounded-full px-4 py-2 text-xs font-bold transition-colors ${
+              tab === t
+                ? "bg-brand text-primary-foreground"
+                : "border border-border text-ink-soft hover:bg-secondary"
+            }`}
+          >
+            {t === "Todas"
+              ? `Todas (${vacancies.length})`
+              : t === "Contratual"
+                ? `Contratuais (${contratuais})`
+                : `Freelas (${freelas})`}
+          </button>
+        ))}
+      </div>
+
       <ul className="space-y-3">
-        {vacancies.map((v) => {
+        {visiveis.map((v) => {
           const applicants = candidates.filter((c) => c.vacancyId === v.id);
           return (
             <li key={v.id} className="rounded-2xl border border-border bg-card p-5 shadow-card">
@@ -225,13 +342,25 @@ export function Vagas({ onOpenPipeline }: { onOpenPipeline: () => void }) {
                     >
                       {v.status}
                     </span>
+                    <span
+                      className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
+                        v.type === "Freelance"
+                          ? "bg-accent text-accent-foreground"
+                          : "bg-brand/10 text-brand"
+                      }`}
+                    >
+                      {v.type === "Freelance" ? "Freela · página de Freelas" : "Contratual · painel"}
+                    </span>
                   </div>
                   <p className="mt-1 text-sm text-ink-soft">
                     {v.area} · {v.city} · {v.model} · {v.contract} · {v.seniority}
                   </p>
                   <p className="mt-1 text-sm font-semibold text-ink">
-                    {brl(v.salaryMin)} – {brl(v.salaryMax)} · {v.openings}{" "}
-                    {v.openings === 1 ? "posição" : "posições"} · publicada {v.published}
+                    {v.type === "Freelance"
+                      ? `${brl(v.dailyRate ?? v.salaryMin)} / diária · ${v.hours ?? "8h"}${v.period ? ` · ${v.period}` : ""}`
+                      : `${brl(v.salaryMin)} – ${brl(v.salaryMax)}`}{" "}
+                    · {v.openings} {v.openings === 1 ? "posição" : "posições"} · publicada{" "}
+                    {v.published}
                   </p>
                   {v.description && (
                     <p className="mt-2 max-w-2xl text-sm text-ink-soft">{v.description}</p>
@@ -256,6 +385,18 @@ export function Vagas({ onOpenPipeline }: { onOpenPipeline: () => void }) {
                   >
                     <Users className="h-4 w-4" /> {applicants.length} candidaturas
                   </button>
+                  {v.contact && (
+                    <a
+                      href={
+                        v.contact.includes("@")
+                          ? `mailto:${v.contact}`
+                          : `https://wa.me/${v.contact.replace(/\D/g, "")}`
+                      }
+                      className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-semibold text-ink"
+                    >
+                      <Mail className="h-4 w-4" /> Contato
+                    </a>
+                  )}
                   <div className={`flex gap-2 ${manage ? "" : "hidden"}`}>
                     {v.status === "Publicada" ? (
                       <button

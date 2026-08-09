@@ -12,6 +12,7 @@ import {
   Heart,
   Info,
   Link2,
+  Mail,
   MapPin,
   Share2,
   Star,
@@ -20,6 +21,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { companyFromJob, jobPool, useAppStore, type Job } from "../store";
+import { jobContact } from "@/lib/companyJobs";
 
 function initials(name: string) {
   return name
@@ -195,6 +197,12 @@ export function VagaDetalhe({
               {job.quickApply ? "Candidatura rápida" : "Candidatar-se"}
             </button>
           )}
+          <a
+            href={jobContact(job)}
+            className="inline-flex items-center gap-2 rounded-full border border-border px-5 py-2.5 text-sm font-semibold text-ink hover:bg-secondary"
+          >
+            <Mail className="h-4 w-4" strokeWidth={1.75} /> Contato
+          </a>
           <button
             type="button"
             onClick={() => toggleSaved(job.id)}

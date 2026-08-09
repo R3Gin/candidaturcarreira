@@ -16,6 +16,7 @@ import { Recomendadas } from "@/components/app/views/Recomendadas";
 import { VagasSalvas } from "@/components/app/views/VagasSalvas";
 import { VagaDetalhe } from "@/components/app/views/VagaDetalhe";
 import { jobPool } from "@/components/app/store";
+import { companyJobs } from "@/lib/companyJobs";
 
 
 const title = "Painel do candidato | Candidatu";
@@ -87,7 +88,9 @@ function Painel() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const activeJob = openJobId ? (jobPool.find((j) => j.id === openJobId) ?? null) : null;
+  const activeJob = openJobId
+    ? ([...companyJobs(), ...jobPool].find((j) => j.id === openJobId) ?? null)
+    : null;
 
   return (
     <AppShell

@@ -11,8 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EmpresaRouteImport } from './routes/empresa'
-import { Route as FreelanceRouteImport } from './routes/freelance'
 import { Route as PainelRouteImport } from './routes/painel'
+import { Route as FreelanceIndexRouteImport } from './routes/freelance.index'
+import { Route as FreelanceIdRouteImport } from './routes/freelance.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -24,49 +25,59 @@ const EmpresaRoute = EmpresaRouteImport.update({
   path: '/empresa',
   getParentRoute: () => rootRouteImport,
 } as any)
-const FreelanceRoute = FreelanceRouteImport.update({
-  id: '/freelance',
-  path: '/freelance',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const PainelRoute = PainelRouteImport.update({
   id: '/painel',
   path: '/painel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FreelanceIndexRoute = FreelanceIndexRouteImport.update({
+  id: '/freelance/',
+  path: '/freelance/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FreelanceIdRoute = FreelanceIdRouteImport.update({
+  id: '/freelance/$id',
+  path: '/freelance/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/empresa': typeof EmpresaRoute
-  '/freelance': typeof FreelanceRoute
   '/painel': typeof PainelRoute
+  '/freelance/$id': typeof FreelanceIdRoute
+  '/freelance/': typeof FreelanceIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/empresa': typeof EmpresaRoute
-  '/freelance': typeof FreelanceRoute
   '/painel': typeof PainelRoute
+  '/freelance/$id': typeof FreelanceIdRoute
+  '/freelance': typeof FreelanceIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/empresa': typeof EmpresaRoute
-  '/freelance': typeof FreelanceRoute
   '/painel': typeof PainelRoute
+  '/freelance/$id': typeof FreelanceIdRoute
+  '/freelance/': typeof FreelanceIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/empresa' | '/freelance' | '/painel'
+  fullPaths: '/' | '/empresa' | '/painel' | '/freelance/$id' | '/freelance/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/empresa' | '/freelance' | '/painel'
-  id: '__root__' | '/' | '/empresa' | '/freelance' | '/painel'
+  to: '/' | '/empresa' | '/painel' | '/freelance/$id' | '/freelance'
+  id:
+    '__root__' | '/' | '/empresa' | '/painel' | '/freelance/$id' | '/freelance/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   EmpresaRoute: typeof EmpresaRoute
-  FreelanceRoute: typeof FreelanceRoute
   PainelRoute: typeof PainelRoute
+  FreelanceIdRoute: typeof FreelanceIdRoute
+  FreelanceIndexRoute: typeof FreelanceIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -85,18 +96,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmpresaRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/freelance': {
-      id: '/freelance'
-      path: '/freelance'
-      fullPath: '/freelance'
-      preLoaderRoute: typeof FreelanceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/painel': {
       id: '/painel'
       path: '/painel'
       fullPath: '/painel'
       preLoaderRoute: typeof PainelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/freelance/': {
+      id: '/freelance/'
+      path: '/freelance'
+      fullPath: '/freelance/'
+      preLoaderRoute: typeof FreelanceIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/freelance/$id': {
+      id: '/freelance/$id'
+      path: '/freelance/$id'
+      fullPath: '/freelance/$id'
+      preLoaderRoute: typeof FreelanceIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -105,8 +123,9 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   EmpresaRoute: EmpresaRoute,
-  FreelanceRoute: FreelanceRoute,
   PainelRoute: PainelRoute,
+  FreelanceIdRoute: FreelanceIdRoute,
+  FreelanceIndexRoute: FreelanceIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

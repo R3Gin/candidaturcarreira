@@ -1,0 +1,164 @@
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { ArrowLeft, Building2, CalendarDays, Clock, MapPin, Wallet } from "lucide-react";
+import { SiteHeader } from "@/components/site/SiteHeader";
+import { SiteFooter } from "@/components/site/SiteFooter";
+import { allFreelas, brlDiaria, contactHref, freelasBase, type Freela } from "@/lib/freelas";
+
+export const Route = createFileRoute("/freelance/$id")({
+  loader: ({ params }) => {
+    const found = freelasBase.find((f) => f.id === params.id);
+    return { id: params.id, cargo: found?.cargo ?? null, empresa: found?.empresa ?? null };
+  },
+  head: ({ loaderData }) => {
+    if (!loaderData?.cargo) {
+      return {
+        meta: [
+          { title: "Freela | Candidatu" },
+          { name: "description", content: "Detalhes da oportunidade de freelance no Candidatu." },
+        ],
+      };
+    }
+    const title = `${loaderData.cargo} — freela em ${loaderData.empresa} | Candidatu`;
+    const description = `Diária, carga horária e descrição completa do freela ${loaderData.cargo} na ${loaderData.empresa}.`;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "article" },
+        { name: "twitter:card", content: "summary_large_image" },
+      ],
+    };
+  },
+  component: FreelaDetalhe,
+  notFoundComponent: () => (
+    <main>
+      <SiteHeader />
+      <section className="mx-auto max-w-3xl px-5 py-20 text-center">
+        <h1 className="font-display text-2xl font-bold text-ink">Freela não encontrado</h1>
+        <Link to="/freelance" className="mt-4 inline-block text-sm font-semibold text-brand">
+          Voltar para os freelas
+        </Link>
+      </section>
+      <SiteFooter />
+    </main>
+  ),
+});
+
+function FreelaDetalhe() {
+  const { id } = Route.useParams();
+  const [freela, setFreela] = useState<Freela | null>(
+    () => freelasBase.find((f) => f.id === id) ?? null,
+  );
+
+  useEffect(() => {
+    const found = allFreelas().find((f) => f.id === id) ?? null;
+    setFreela(found);
+  }, [id]);
+
+  if (!freela) throw notFound();
+
+  return (
+    <main>
+      <SiteHeader />
+
+      <section className="brand-gradient text-primary-foreground">
+        <div className="mx-auto max-w-5xl px-5 py-12 md:py-16">
+          <Link
+            to="/freelance"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-foreground/70 hover:text-primary-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" /> Todos os freelas
+          </Link>
+          <h1 className="mt-4 text-2xl font-semibold md:text-4xl">{freela.cargo}</h1>
+          <p className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-primary-foreground/75">
+            <span className="inline-flex items-center gap-1.5">
+              <Building2 className="h-4 w-4" /> {freela.empresa}
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <MapPin className="h-4 w-4" /> {freela.local}
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <CalendarDays className="h-4 w-4" /> Publicado {freela.data.toLowerCase()}
+            </span>
+          </p>
+        </div>
+      </section>
+
+      <section className="mx-auto grid max-w-5xl gap-6 px-5 py-12 md:grid-cols-[minmax(0,1fr)_18rem] md:py-16">
+        <div className="space-y-6">
+          <div className="surface-card rounded-2xl p-5">
+            <h2 className="font-display text-lg font-semibold text-ink">Sobre o freela</h2>
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{freela.descricao}</p>
+            <div className="mt-4 flex flex-wrap gap-1.5">
+              {freela.tags.map((t) => (
+                <span
+                  key={t}
+                  className="rounded-md bg-secondary px-2 py-1 text-xs font-medium text-ink-soft"
+                >
+                  {t}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="surface-card rounded-2xl p-5">
+            <h2 className="font-display text-lg font-semibold text-ink">Condições</h2>
+            <dl className="mt-3 grid gap-3 sm:grid-cols-2">
+              <Info label="Valor da diária" value={`${brlDiaria(freela.diariaValor)} / dia`} />
+              <Info label="Carga horária" value={freela.carga} />
+              <Info label="Período" value={freela.periodo} />
+              <Info label="Modelo e local" value={freela.local} />
+            </dl>
+          </div>
+        </div>
+
+        <aside className="space-y-4 md:sticky md:top-24 md:self-start">
+          <div className="surface-card rounded-2xl p-5">
+            <p className="flex items-center gap-2 text-lg font-bold text-ink">
+              <Wallet className="h-5 w-5 text-accent" strokeWidth={2} />
+              {brlDiaria(freela.diariaValor)}
+            </p>
+            <p className="mt-1 flex items-center gap-2 text-sm text-ink-soft">
+              <Clock className="h-4 w-4" /> {freela.carga} · {freela.periodo}
+            </p>
+            <span
+              className={`mt-3 inline-block rounded-full px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wider ${
+                freela.aberto && freela.quando === "hoje"
+                  ? "bg-mint text-ink"
+                  : "bg-secondary text-ink-soft"
+              }`}
+            >
+              {freela.aberto && freela.quando === "hoje" ? "Aberto" : "Encerrado"}
+            </span>
+            {freela.contato ? (
+              <a
+                href={contactHref(freela.contato)}
+                className="mt-4 block rounded-full bg-accent px-4 py-2.5 text-center text-sm font-semibold text-accent-foreground"
+              >
+                Contato
+              </a>
+            ) : (
+              <p className="mt-4 text-xs text-ink-soft">
+                Esta empresa não divulgou um contato direto.
+              </p>
+            )}
+          </div>
+        </aside>
+      </section>
+
+      <SiteFooter />
+    </main>
+  );
+}
+
+function Info({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <dt className="text-xs font-bold uppercase tracking-wide text-ink-soft">{label}</dt>
+      <dd className="mt-1 text-sm font-semibold text-ink">{value}</dd>
+    </div>
+  );
+}
