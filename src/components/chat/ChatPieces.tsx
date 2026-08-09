@@ -8,6 +8,7 @@ import {
   Paperclip,
   Send,
   Sparkles,
+  Video,
   X,
   XCircle,
 } from "lucide-react";
