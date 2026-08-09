@@ -29,6 +29,10 @@ export function Vagas({ onOpenPipeline }: { onOpenPipeline: () => void }) {
   const [form, setForm] = useState(empty);
   const [open, setOpen] = useState(false);
   const isFreela = form.type === "Freelance";
+  const [tab, setTab] = useState<"Todas" | VacancyType>("Todas");
+  const freelas = vacancies.filter((v) => v.type === "Freelance").length;
+  const contratuais = vacancies.length - freelas;
+  const visiveis = tab === "Todas" ? vacancies : vacancies.filter((v) => v.type === tab);
 
   const submit = () => {
     if (form.role.trim().length < 3 || !form.city.trim()) {
