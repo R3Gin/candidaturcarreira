@@ -507,11 +507,17 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
       const raw = localStorage.getItem(KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as Partial<Persisted>;
-        setState((s) => ({
-          ...s,
-          ...parsed,
-          profile: { ...defaultProfile, ...(parsed.profile ?? {}) },
-        }));
+        setState((s) => {
+          const members = parsed.members ?? s.members;
+          const admin = members.find((m) => m.role === "Administrador");
+          return {
+            ...s,
+            ...parsed,
+            profile: { ...defaultProfile, ...(parsed.profile ?? {}) },
+            // garante acesso de administrador ao abrir o painel
+            currentMemberId: admin?.id ?? parsed.currentMemberId ?? s.currentMemberId,
+          };
+        });
       }
     } catch {
       /* ignore */
