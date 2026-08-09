@@ -409,6 +409,34 @@ const defaultProfile: CompanyProfile = {
   ],
   diversity:
     "Processos com currículo às cegas na triagem inicial, metas públicas de diversidade e vagas afirmativas sinalizadas na descrição.",
+  logoUrl: "",
+  hrPhotoUrl: "",
+  hrRole: "Head de People & Cultura",
+  hrPhone: "(11) 99999-0000",
+  hrLinkedin: "linkedin.com/company/candidatu",
+  documents: [
+    {
+      id: "d1",
+      name: "Política de RH e conduta interna",
+      category: "Política de RH",
+      description:
+        "Regras de convivência, jornada, home office, licenças e canais de denúncia da Candidatu Labs.",
+      fileName: "politica-rh-candidatu.pdf",
+      size: 482000,
+      url: "",
+      updatedAt: "2026-05-14T12:00:00.000Z",
+    },
+    {
+      id: "d2",
+      name: "Guia de benefícios 2026",
+      category: "Benefícios",
+      description: "Detalhamento de plano de saúde, VR, auxílios e day off.",
+      fileName: "guia-beneficios-2026.pdf",
+      size: 310000,
+      url: "",
+      updatedAt: "2026-03-02T12:00:00.000Z",
+    },
+  ],
 };
 
 type CompanyState = {
