@@ -7,6 +7,8 @@ import {
   type ChatSender,
   type ChatThread,
 } from "./chat";
+import { queueEmail, readEmailPrefs } from "./emailPrefs";
+import { fillTemplate, readTemplates } from "./messageTemplates";
 
 export function useChatThreads(): ChatThread[] {
   const [threads, setThreads] = useState<ChatThread[]>([]);
@@ -37,7 +39,7 @@ export function useChatUnread(side: ChatSender): number {
  */
 export function useChatMessageNotifications(
   side: ChatSender,
-  opts?: { onOpen?: (threadId: string) => void; enabled?: boolean },
+  opts?: { onOpen?: (threadId: string) => void; enabled?: boolean; fallbackEmail?: string },
 ) {
   const threads = useChatThreads();
   const seen = useRef<Map<string, string> | null>(null);
@@ -69,6 +71,33 @@ export function useChatMessageNotifications(
           ? { action: { label: "Abrir chat", onClick: () => opts.onOpen?.(t.id) } }
           : {}),
       });
+
+      const prefs = readEmailPrefs(side);
+      const to = prefs.email || opts?.fallbackEmail || "";
+      if (prefs.enabled && to) {
+        const templates = readTemplates().email;
+        if (files > 0 && prefs.attachments) {
+          const vars = {
+            remetente: who,
+            vaga: t.role,
+            arquivos: `${files} arquivo${files > 1 ? "s" : ""}`,
+          };
+          queueEmail(
+            side,
+            to,
+            fillTemplate(templates.anexo.subject, vars),
+            fillTemplate(templates.anexo.body, vars),
+          );
+        } else if (files === 0 && prefs.newMessages) {
+          const vars = { remetente: who, vaga: t.role, mensagem: last.text };
+          queueEmail(
+            side,
+            to,
+            fillTemplate(templates.novaMensagem.subject, vars),
+            fillTemplate(templates.novaMensagem.body, vars),
+          );
+        }
+      }
     }
     seen.current = lastByThread;
     // eslint-disable-next-line react-hooks/exhaustive-deps
