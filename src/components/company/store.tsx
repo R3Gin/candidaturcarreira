@@ -39,6 +39,8 @@ export const stages = [
 
 export type Stage = (typeof stages)[number];
 
+export type VacancyType = "Contratual" | "Freelance";
+
 export type Vacancy = {
   id: string;
   role: string;
@@ -52,8 +54,17 @@ export type Vacancy = {
   status: "Publicada" | "Pausada" | "Encerrada";
   openings: number;
   published: string;
+  publishedAt?: string;
   skills: string[];
   description: string;
+  /** Contratual = aparece no painel do candidato. Freelance = aparece na página de freelas. */
+  type: VacancyType;
+  /** Somente para freelas */
+  dailyRate?: number;
+  hours?: string;
+  period?: string;
+  /** Contato exibido no botão "Contato" da vaga */
+  contact?: string;
 };
 
 export type Note = { id: string; author: string; text: string; at: string };
