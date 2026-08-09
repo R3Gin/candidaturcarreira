@@ -93,7 +93,9 @@ export function readThreads(): ChatThread[] {
     const raw = window.localStorage.getItem(KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as ChatThread[];
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    // Compatibilidade com conversas salvas antes do histórico de etapas.
+    return parsed.map((t) => ({ ...t, stageHistory: t.stageHistory ?? [] }));
   } catch {
     return [];
   }
