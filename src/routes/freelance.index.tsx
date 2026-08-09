@@ -1,10 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Building2, Clock, MapPin, Search, Wallet } from "lucide-react";
+import { Building2, Clock, MapPin, MessageCircle, Search, Trash2, Wallet } from "lucide-react";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { Reveal } from "@/components/site/Reveal";
 import { allFreelas, brlDiaria, contactHref, freelasBase, type Freela } from "@/lib/freelas";
+import {
+  readFreelaContacts,
+  removeFreelaContact,
+  subscribeFreelaContacts,
+  type FreelaContact,
+} from "@/lib/freelaContacts";
 
 const title = "Freelas do dia | Candidatu";
 const description =
@@ -47,8 +53,13 @@ function FreelancePage() {
   const [query, setQuery] = useState("");
   const [minDiaria, setMinDiaria] = useState(0);
 
+  const [contatos, setContatos] = useState<FreelaContact[]>([]);
+
   useEffect(() => {
     setLista(allFreelas());
+    const sync = () => setContatos(readFreelaContacts());
+    sync();
+    return subscribeFreelaContacts(sync);
   }, []);
 
   const resultado = useMemo(() => {
@@ -174,6 +185,8 @@ function FreelancePage() {
           </p>
         </div>
 
+        <ContatosPanel contatos={contatos} />
+
         <ul className="mt-8 grid gap-4 md:grid-cols-2">
           {resultado.map((f, i) => (
             <Reveal
@@ -266,5 +279,58 @@ function FreelancePage() {
 
       <SiteFooter />
     </main>
+  );
+}
+
+function ContatosPanel({ contatos }: { contatos: FreelaContact[] }) {
+  if (contatos.length === 0) return null;
+  return (
+    <section className="surface-card mt-6 rounded-2xl p-5">
+      <header className="flex flex-wrap items-end justify-between gap-2">
+        <div>
+          <p className="eyebrow">Painel de contatos</p>
+          <h2 className="mt-1 font-display text-lg font-semibold text-ink">
+            {contatos.length} {contatos.length === 1 ? "solicitação enviada" : "solicitações enviadas"}
+          </h2>
+        </div>
+        <Link to="/painel" className="text-xs font-semibold text-brand hover:underline">
+          Abrir chats no painel
+        </Link>
+      </header>
+      <ul className="mt-4 space-y-2">
+        {contatos.map((c) => (
+          <li
+            key={c.id}
+            className="rounded-xl bg-secondary p-3"
+          >
+            <div className="flex items-start gap-2">
+              <MessageCircle className="mt-0.5 h-4 w-4 shrink-0 text-accent" strokeWidth={2} />
+              <p className="min-w-0 flex-1 text-sm font-semibold leading-snug text-ink">
+                <Link to="/freelance/$id" params={{ id: c.freelaId }} className="hover:underline">
+                  {c.cargo}
+                </Link>{" "}
+                · {c.empresa}
+              </p>
+            </div>
+            <p className="mt-1 text-xs text-ink-soft">
+              Enviada em {new Date(c.at).toLocaleString("pt-BR")} · resposta em {c.contato}
+            </p>
+            <div className="mt-2 flex items-center gap-2">
+              <span className="rounded-full bg-mint px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-wider text-ink">
+                Chat aberto
+              </span>
+              <button
+                type="button"
+                aria-label={`Remover solicitação de ${c.cargo}`}
+                onClick={() => removeFreelaContact(c.id)}
+                className="ml-auto inline-flex h-8 w-8 items-center justify-center rounded-full text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
