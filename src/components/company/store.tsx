@@ -725,6 +725,24 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
         setState((s) => ({ ...s, profile: { ...s.profile, ...p } }));
         log("Perfil da empresa", "Informações atualizadas.");
       },
+      addDocument: (d) => {
+        setState((s) => ({
+          ...s,
+          profile: {
+            ...s.profile,
+            documents: [{ ...d, id: uid(), updatedAt: now() }, ...s.profile.documents],
+          },
+        }));
+        log("Documento publicado", `${d.name} disponível para download.`);
+      },
+      removeDocument: (id) =>
+        setState((s) => ({
+          ...s,
+          profile: {
+            ...s.profile,
+            documents: s.profile.documents.filter((d) => d.id !== id),
+          },
+        })),
     };
   }, [state, patchCandidate, log, notify]);
 
