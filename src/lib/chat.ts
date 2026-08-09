@@ -20,7 +20,10 @@ export type ChatMessage = {
   from: ChatSender;
   kind: "auto" | "texto";
   text: string;
+  /** título da mensagem automática (definido pelos modelos da empresa) */
+  title?: string;
   at: string;
+
   author?: string;
   stage?: string;
   attachments?: ChatAttachment[];
