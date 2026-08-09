@@ -107,6 +107,33 @@ export function Vagas({ onOpenPipeline }: { onOpenPipeline: () => void }) {
       {open && manage && (
         <section className="rounded-2xl border border-border bg-card p-5 shadow-card">
           <h2 className="font-display text-lg font-semibold text-ink">Nova vaga</h2>
+          <div className="mt-4 rounded-xl border border-border bg-secondary/50 p-3">
+            <span className="mb-2 block text-xs font-bold uppercase tracking-wide text-ink-soft">
+              Tipo de vaga
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {(["Contratual", "Freelance"] as VacancyType[]).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  aria-pressed={form.type === t}
+                  onClick={() => setForm({ ...form, type: t })}
+                  className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                    form.type === t
+                      ? "bg-brand text-primary-foreground"
+                      : "border border-border bg-card text-ink-soft"
+                  }`}
+                >
+                  {t === "Contratual" ? "Vaga contratual" : "Freela (diária)"}
+                </button>
+              ))}
+            </div>
+            <p className="mt-2 text-xs text-ink-soft">
+              {isFreela
+                ? "Freelas aparecem na página pública de Freelas, com diária e carga horária."
+                : "Vagas contratuais aparecem no painel dos candidatos."}
+            </p>
+          </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             <Field label="Título da vaga">
               <input
