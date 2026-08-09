@@ -56,6 +56,7 @@ export function AuthModalProvider({ children }: { children: ReactNode }) {
   return (
     <AuthModalContext.Provider value={value}>
       {children}
+      <PostOAuthRedirect />
       <AuthDialog
         open={open}
         onOpenChange={setOpen}
@@ -66,6 +67,32 @@ export function AuthModalProvider({ children }: { children: ReactNode }) {
       />
     </AuthModalContext.Provider>
   );
+}
+
+/**
+ * Após o retorno do login com Google, aplica o tipo de conta escolhido no popup
+ * e leva a pessoa para a área certa. Só age quando existe uma escolha pendente.
+ */
+function PostOAuthRedirect() {
+  const navigate = useNavigate();
+  const { user, profile } = useAuth();
+
+  useEffect(() => {
+    if (!user || !profile) return;
+    const wanted = window.localStorage.getItem("candidatu-account-type") as AccountType | null;
+    if (!wanted) return;
+    window.localStorage.removeItem("candidatu-account-type");
+    void (async () => {
+      let type = profile.account_type;
+      if (wanted !== profile.account_type && !profile.onboarded_at) {
+        await supabase.from("profiles").update({ account_type: wanted }).eq("id", user.id);
+        type = wanted;
+      }
+      navigate({ to: homeForAccount(type) });
+    })();
+  }, [user, profile, navigate]);
+
+  return null;
 }
 
 const accountOptions: { value: AccountType; label: string }[] = [
