@@ -144,27 +144,29 @@ export function Equipe() {
         {members.map((m) => (
           <li
             key={m.id}
-            className="flex flex-wrap items-center gap-4 rounded-2xl border border-border bg-card p-4 shadow-card"
+            className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-3 rounded-2xl border border-border bg-card p-4 shadow-card sm:flex sm:flex-wrap sm:gap-4"
           >
-            <span className="brand-gradient inline-flex h-11 w-11 items-center justify-center rounded-full text-xs font-bold text-primary-foreground">
+            <span className="brand-gradient inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-xs font-bold text-primary-foreground">
               {initials(m.name)}
             </span>
-            <div className="min-w-0 flex-1">
-              <p className="font-display text-base font-semibold text-ink">
-                {m.name}
+            <div className="min-w-0 sm:flex-1">
+              <p className="flex min-w-0 flex-wrap items-center gap-x-2 font-display text-base font-semibold text-ink">
+                <span className="truncate">{m.name}</span>
                 {m.id === currentMember.id && (
-                  <span className="ml-2 rounded-full bg-mint px-2 py-0.5 text-[10px] font-bold text-ink">
+                  <span className="shrink-0 rounded-full bg-mint px-2 py-0.5 text-[10px] font-bold text-ink">
                     você
                   </span>
                 )}
               </p>
-              <p className="flex flex-wrap items-center gap-2 text-xs text-ink-soft">
-                <Mail className="h-3.5 w-3.5" /> {m.email} ·{" "}
-                {m.status === "Ativo" ? "Acesso ativo" : "Convite pendente"}
+              <p className="flex min-w-0 flex-wrap items-center gap-x-1.5 text-xs text-ink-soft">
+                <Mail className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">{m.email}</span>
+                <span>· {m.status === "Ativo" ? "Acesso ativo" : "Convite pendente"}</span>
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="col-span-2 flex flex-wrap items-center gap-2 sm:col-auto">
+
               {manage ? (
                 <select
                   value={m.role}
