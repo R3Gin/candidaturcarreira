@@ -654,6 +654,10 @@ export function CompanyStoreProvider({ children }: { children: ReactNode }) {
           return {
             ...s,
             ...parsed,
+            vacancies: (parsed.vacancies ?? s.vacancies).map((v) => ({
+              ...v,
+              type: v.type ?? "Contratual",
+            })),
             profile: { ...defaultProfile, ...(parsed.profile ?? {}) },
             meetings: parsed.meetings ?? s.meetings,
             // garante acesso de administrador ao abrir o painel
