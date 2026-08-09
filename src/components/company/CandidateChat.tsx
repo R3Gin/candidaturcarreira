@@ -3,6 +3,8 @@ import { MessageSquare, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { acceptCandidate, markRead, setAutoEnabled, type ChatThread } from "@/lib/chat";
 import { AttachmentList, ChatComposer, StageHistory } from "@/components/chat/ChatPieces";
+import { EmailNotificationPrefs } from "@/components/chat/EmailNotificationPrefs";
+
 import { useChatThreadByCandidate } from "@/lib/useChat";
 import { useCompanyStore, type Candidate } from "./store";
 
