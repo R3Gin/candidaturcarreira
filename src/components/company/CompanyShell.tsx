@@ -295,6 +295,10 @@ export function CompanyShell({
               Sair
             </Link>
           </nav>
+
+          <div className="mt-4 hidden lg:block">
+            <AdSlotVertical />
+          </div>
         </aside>
 
         <main className="min-w-0 flex-1">{children}</main>

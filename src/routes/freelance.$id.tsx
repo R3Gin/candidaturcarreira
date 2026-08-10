@@ -187,6 +187,8 @@ function FreelaDetalhe() {
               </a>
             )}
           </div>
+
+          <AdSlotVertical className="hidden md:block" />
         </aside>
       </section>
 
