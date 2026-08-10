@@ -366,6 +366,13 @@ function FreelancePage() {
                   : "Nenhum freela encontrado com esses filtros."}
               </p>
             )}
+              </div>
+              <aside className="hidden lg:block">
+                <div className="sticky top-24 space-y-4">
+                  <AdSlotVertical />
+                </div>
+              </aside>
+            </div>
 
           </>
         )}
