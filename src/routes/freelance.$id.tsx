@@ -23,6 +23,7 @@ import {
   type FreelaContact,
 } from "@/lib/freelaContacts";
 import { AdSlotVertical } from "@/components/ads/AdSlotVertical";
+import { AdSlotAuto } from "@/components/ads/AdSlotAuto";
 
 export const Route = createFileRoute("/freelance/$id")({
   loader: ({ params }) => ({
@@ -192,7 +193,8 @@ function FreelaDetalhe() {
         </aside>
       </section>
 
-      <AdSlot className="pb-10" slot="5555555555" />
+      <AdSlot className="pb-8" slot="5555555555" />
+      <AdSlotAuto className="pb-10" />
 
       <SiteFooter />
 
