@@ -29,6 +29,7 @@ import {
   StatsRow,
 } from "@/components/freela/FreelaPanels";
 import { AdSlot } from "@/components/ads/AdSlot";
+import { AdSlotVertical } from "@/components/ads/AdSlotVertical";
 
 const title = "Freelas do dia | Candidatu";
 const description =
@@ -265,9 +266,11 @@ function FreelancePage() {
               </p>
             </div>
 
-            <MinhaContaCard acc={acc} onOpen={() => setMenuOpen(true)} />
+            <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_300px]">
+              <div>
+                <MinhaContaCard acc={acc} onOpen={() => setMenuOpen(true)} />
 
-            <ul className="mt-8 grid gap-4 md:grid-cols-2">
+                <ul className="mt-8 grid gap-4 md:grid-cols-2">
               {resultado.map((f, i) => (
                 <Reveal
                   as="li"
