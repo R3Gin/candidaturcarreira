@@ -24,6 +24,7 @@ import { useMeetingReminders } from "@/lib/useMeetings";
 import { labelOf, REUNIAO_TIPOS } from "./store";
 import { MessageSquare } from "lucide-react";
 import { AdSlotVertical } from "@/components/ads/AdSlotVertical";
+import { AdSlotAuto } from "@/components/ads/AdSlotAuto";
 
 const notifIcon: Record<NotificationKind, typeof Bell> = {
   etapa: MoveRight,
@@ -301,7 +302,10 @@ export function CompanyShell({
           </div>
         </aside>
 
-        <main className="min-w-0 flex-1">{children}</main>
+        <main className="min-w-0 flex-1">
+          {children}
+          <AdSlotAuto className="pt-10" />
+        </main>
       </div>
     </div>
   );
