@@ -289,3 +289,85 @@
     transition-duration: 0.001ms !important;
   }
 }
+
+@keyframes cd-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes cd-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.15;
+  }
+}
+
+@keyframes cd-slide-cards {
+  0%,
+  18% {
+    transform: translateY(0);
+  }
+  33%,
+  51% {
+    transform: translateY(-33.333%);
+  }
+  66%,
+  84% {
+    transform: translateY(-66.666%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes cd-shimmer {
+  from {
+    background-position: -160% 0;
+  }
+  to {
+    background-position: 260% 0;
+  }
+}
+
+@keyframes cd-bar-fill {
+  from {
+    width: 0%;
+  }
+}
+
+@utility animate-marquee {
+  animation: cd-marquee 32s linear infinite;
+}
+
+@utility animate-blink {
+  animation: cd-blink 1.3s ease-in-out infinite;
+}
+
+@utility animate-slide-cards {
+  animation: cd-slide-cards 9s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+@utility animate-bar-fill {
+  animation: cd-bar-fill 1.4s cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+@utility shimmer-text {
+  background-image: linear-gradient(
+    100deg,
+    var(--brand-cyan) 0%,
+    var(--primary-foreground) 45%,
+    var(--brand-cyan) 90%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: cd-shimmer 4.5s linear infinite;
+}
