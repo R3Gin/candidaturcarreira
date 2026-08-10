@@ -41,7 +41,7 @@ export function AdSlot({
   );
 }
 
-function AdSenseIns({ slot, format }: { slot?: string; format?: string }) {
+function AdSenseIns({ slot, format }: { slot?: string | undefined; format?: string | undefined }) {
   const ref = useRef<HTMLModElement>(null);
   const pushed = useRef(false);
   const [ready, setReady] = useState(false);
