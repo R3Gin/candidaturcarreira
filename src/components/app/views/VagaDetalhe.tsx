@@ -22,6 +22,7 @@ import {
 import { toast } from "sonner";
 import { companyFromJob, useAppStore, type Job } from "../store";
 import { jobContact } from "@/lib/companyJobs";
+import { AdSlotVertical } from "@/components/ads/AdSlotVertical";
 
 function initials(name: string) {
   return name
@@ -283,11 +284,13 @@ export function VagaDetalhe({
                   : "bg-accent text-accent-foreground"
               }`}
             >
-              <Heart className={`h-4 w-4 ${following ? "fill-accent" : ""}`} strokeWidth={2} />
+            <Heart className={`h-4 w-4 ${following ? "fill-accent" : ""}`} strokeWidth={2} />
               {following ? "Seguindo empresa" : "Seguir empresa"}
             </button>
           </div>
         </div>
+
+        <AdSlotVertical className="hidden lg:block" />
 
         {openRoles.length > 1 && (
           <div className="rounded-2xl border border-border bg-card p-4 shadow-card">

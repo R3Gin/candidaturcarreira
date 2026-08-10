@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { ClientOnly } from "@tanstack/react-router";
 
 export const ADSENSE_CLIENT = "ca-pub-1242374726754221";
 
@@ -13,6 +14,9 @@ type AdSlotProps = {
 /**
  * Bloco de anúncio do Google AdSense.
  * O script global é carregado em src/routes/__root.tsx.
+ *
+ * O <ins> só é montado após a hidratação (ClientOnly) para evitar
+ * hydration mismatch causado pelo script do AdSense reescrever o DOM.
  */
 export function AdSlot({
   slot,
@@ -20,26 +24,6 @@ export function AdSlot({
   className = "",
   label = "Publicidade",
 }: AdSlotProps) {
-  const ref = useRef<HTMLModElement>(null);
-  const pushed = useRef(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!mounted || pushed.current) return;
-    pushed.current = true;
-    try {
-      const w = window as unknown as { adsbygoogle?: unknown[] };
-      w.adsbygoogle = w.adsbygoogle || [];
-      w.adsbygoogle.push({});
-    } catch {
-      /* adsense indisponível (bloqueador ou dev) */
-    }
-  }, [mounted]);
-
   return (
     <aside
       aria-label={label}
@@ -49,18 +33,44 @@ export function AdSlot({
         <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
           {label}
         </p>
-        {mounted && (
-        <ins
-          ref={ref}
-          className="adsbygoogle block min-h-[90px] w-full"
-          style={{ display: "block" }}
-          data-ad-client={ADSENSE_CLIENT}
-          {...(slot ? { "data-ad-slot": slot } : {})}
-          data-ad-format={format}
-          data-full-width-responsive="true"
-        />
-        )}
+        <ClientOnly fallback={<div className="min-h-[90px] w-full animate-pulse rounded-xl bg-muted" />}>
+          <AdSenseIns slot={slot} format={format} />
+        </ClientOnly>
       </div>
     </aside>
+  );
+}
+
+function AdSenseIns({ slot, format }: { slot?: string | undefined; format?: string | undefined }) {
+  const ref = useRef<HTMLModElement>(null);
+  const pushed = useRef(false);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    setReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!ready || pushed.current) return;
+    pushed.current = true;
+    try {
+      const w = window as unknown as { adsbygoogle?: unknown[] };
+      w.adsbygoogle = w.adsbygoogle || [];
+      w.adsbygoogle.push({});
+    } catch {
+      /* adsense indisponível (bloqueador ou dev) */
+    }
+  }, [ready]);
+
+  return (
+    <ins
+      ref={ref}
+      className="adsbygoogle block min-h-[90px] w-full"
+      style={{ display: "block" }}
+      data-ad-client={ADSENSE_CLIENT}
+      {...(slot ? { "data-ad-slot": slot } : {})}
+      data-ad-format={format}
+      data-full-width-responsive="true"
+    />
   );
 }

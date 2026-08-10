@@ -21,6 +21,7 @@ import {
   type JobFilterState,
 } from "./JobFilters";
 import { jobContact } from "@/lib/companyJobs";
+import { AdSlotVertical } from "@/components/ads/AdSlotVertical";
 
 const flowSteps = ["Qualificações", "Dados", "Mensagem", "Revisão"];
 
@@ -247,6 +248,9 @@ function JobDetail({
 
   return (
     <article className="max-h-[70vh] overflow-y-auto rounded-2xl border border-border bg-card p-5 shadow-card">
+      <div className="mb-4 hidden lg:block">
+        <AdSlotVertical />
+      </div>
       <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-3 gap-y-3 sm:flex sm:flex-nowrap">
         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary font-display text-sm font-bold text-ink">
           {job.company.slice(0, 2).toUpperCase()}

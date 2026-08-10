@@ -23,6 +23,7 @@ import { useChatMessageNotifications, useChatUnread } from "@/lib/useChat";
 import { useMeetingReminders } from "@/lib/useMeetings";
 import { labelOf, REUNIAO_TIPOS } from "./store";
 import { MessageSquare } from "lucide-react";
+import { AdSlotVertical } from "@/components/ads/AdSlotVertical";
 
 const notifIcon: Record<NotificationKind, typeof Bell> = {
   etapa: MoveRight,
@@ -294,6 +295,10 @@ export function CompanyShell({
               Sair
             </Link>
           </nav>
+
+          <div className="mt-4 hidden lg:block">
+            <AdSlotVertical />
+          </div>
         </aside>
 
         <main className="min-w-0 flex-1">{children}</main>
