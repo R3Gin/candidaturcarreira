@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export const ADSENSE_CLIENT = "ca-pub-1242374726754221";
 
@@ -38,7 +38,7 @@ export function AdSlot({
     } catch {
       /* adsense indisponível (bloqueador ou dev) */
     }
-  }, []);
+  }, [mounted]);
 
   return (
     <aside
@@ -49,6 +49,7 @@ export function AdSlot({
         <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
           {label}
         </p>
+        {mounted && (
         <ins
           ref={ref}
           className="adsbygoogle block min-h-[90px] w-full"
@@ -58,6 +59,7 @@ export function AdSlot({
           data-ad-format={format}
           data-full-width-responsive="true"
         />
+        )}
       </div>
     </aside>
   );
