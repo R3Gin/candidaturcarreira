@@ -22,6 +22,7 @@ import {
   subscribeFreelaContacts,
   type FreelaContact,
 } from "@/lib/freelaContacts";
+import { AdSlotVertical } from "@/components/ads/AdSlotVertical";
 
 export const Route = createFileRoute("/freelance/$id")({
   loader: ({ params }) => ({

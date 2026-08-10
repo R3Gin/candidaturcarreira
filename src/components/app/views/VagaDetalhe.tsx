@@ -22,6 +22,7 @@ import {
 import { toast } from "sonner";
 import { companyFromJob, useAppStore, type Job } from "../store";
 import { jobContact } from "@/lib/companyJobs";
+import { AdSlotVertical } from "@/components/ads/AdSlotVertical";
 
 function initials(name: string) {
   return name
