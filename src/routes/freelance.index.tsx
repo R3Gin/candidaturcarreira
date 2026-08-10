@@ -28,6 +28,7 @@ import {
   RankingPanel,
   StatsRow,
 } from "@/components/freela/FreelaPanels";
+import { AdSlot } from "@/components/ads/AdSlot";
 
 const title = "Freelas do dia | Candidatu";
 const description =
