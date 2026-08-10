@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export const ADSENSE_CLIENT = "ca-pub-1242374726754221";
 
@@ -22,9 +22,14 @@ export function AdSlot({
 }: AdSlotProps) {
   const ref = useRef<HTMLModElement>(null);
   const pushed = useRef(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (pushed.current) return;
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted || pushed.current) return;
     pushed.current = true;
     try {
       const w = window as unknown as { adsbygoogle?: unknown[] };
@@ -33,7 +38,7 @@ export function AdSlot({
     } catch {
       /* adsense indisponível (bloqueador ou dev) */
     }
-  }, []);
+  }, [mounted]);
 
   return (
     <aside
@@ -44,6 +49,7 @@ export function AdSlot({
         <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
           {label}
         </p>
+        {mounted && (
         <ins
           ref={ref}
           className="adsbygoogle block min-h-[90px] w-full"
@@ -53,6 +59,7 @@ export function AdSlot({
           data-ad-format={format}
           data-full-width-responsive="true"
         />
+        )}
       </div>
     </aside>
   );
