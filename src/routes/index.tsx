@@ -27,10 +27,13 @@ function Index() {
     <main>
       <SiteHeader />
       <Hero />
+      <AdSlot className="py-8" slot="1111111111" />
       <Vagas />
       <Empresas />
+      <AdSlot className="py-8" slot="2222222222" />
       <Processo />
       <Empregadores />
+      <AdSlot className="pb-12" slot="3333333333" />
       <SiteFooter />
     </main>
   );
