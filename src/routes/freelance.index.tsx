@@ -368,6 +368,8 @@ function FreelancePage() {
         )}
       </section>
 
+      <AdSlot className="pb-10" slot="4444444444" />
+
       {menuOpen && acc && (
         <FreelaMenu
           acc={acc}
