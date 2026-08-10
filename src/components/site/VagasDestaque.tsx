@@ -20,9 +20,9 @@ export function VagasDestaque() {
 
   const destaque = jobs.slice(0, 6);
 
-  function apply(jobId: string) {
+  function apply() {
     if (user && (!profile || profile.account_type === "candidato")) {
-      navigate({ to: "/painel", search: { vaga: jobId } as never });
+      navigate({ to: "/painel" });
       return;
     }
     openAuthModal({ mode: "entrar", accountType: "candidato" });
@@ -77,8 +77,8 @@ export function VagasDestaque() {
 
           {!isLoading &&
             destaque.map((job, i) => (
-              <Reveal key={job.id} delay={i * 80}>
-                <li className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-border bg-card p-5 shadow-card transition-transform duration-300 hover:-translate-y-1">
+              <Reveal key={job.id} delay={i * 80} as="li" className="h-full">
+                <div className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-border bg-card p-5 shadow-card transition-transform duration-300 hover:-translate-y-1">
                   <span
                     aria-hidden
                     className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary to-accent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
@@ -135,14 +135,14 @@ export function VagasDestaque() {
                     )}
                     <button
                       type="button"
-                      onClick={() => apply(job.id)}
+                      onClick={apply}
                       className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-bold text-primary-foreground transition-transform active:scale-[0.96]"
                     >
                       Candidatar-se
                       <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.25} />
                     </button>
                   </div>
-                </li>
+                </div>
               </Reveal>
             ))}
 
