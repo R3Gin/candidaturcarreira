@@ -119,35 +119,141 @@ export function EmpresasMarquee() {
 }
 
 /* ------------------------------------------------------------------ */
-/* 2. Números                                                          */
+/* 2. Números — cards interativos com anel animado                    */
 /* ------------------------------------------------------------------ */
 
 const numeros = [
-  { valor: 62, suffix: "%", texto: "menos tempo para fechar uma vaga" },
-  { valor: 3, suffix: "x", texto: "mais candidaturas concluídas com o currículo por IA" },
-  { valor: 94, suffix: "%", texto: "dos candidatos recebem retorno com prazo combinado" },
-  { valor: 12, suffix: " mil", texto: "vagas e freelas publicados por mês" },
+  {
+    valor: 62,
+    suffix: "%",
+    progresso: 62,
+    icon: Zap,
+    titulo: "menos tempo para fechar uma vaga",
+    detalhe: "De 41 para 16 dias em média nas empresas que usam a triagem por IA.",
+  },
+  {
+    valor: 3,
+    suffix: "x",
+    progresso: 75,
+    icon: FileText,
+    titulo: "mais candidaturas concluídas",
+    detalhe: "O currículo gerado por IA elimina o abandono no meio do formulário.",
+  },
+  {
+    valor: 94,
+    suffix: "%",
+    progresso: 94,
+    icon: MessageSquareText,
+    titulo: "dos candidatos recebem retorno",
+    detalhe: "Prazo combinado na publicação e aviso automático em cada etapa.",
+  },
+  {
+    valor: 12,
+    suffix: " mil",
+    progresso: 88,
+    icon: BarChart3,
+    titulo: "vagas e freelas por mês",
+    detalhe: "Contratações CLT, PJ e diárias de freela publicadas na plataforma.",
+  },
 ];
+
+function StatRing({ progresso, children }: { progresso: number; children: ReactNode }) {
+  const { ref, inView } = useInView<HTMLDivElement>();
+  const r = 34;
+  const c = 2 * Math.PI * r;
+
+  return (
+    <div ref={ref} className="relative h-24 w-24 shrink-0">
+      <svg viewBox="0 0 80 80" className="h-full w-full -rotate-90">
+        <circle
+          cx="40"
+          cy="40"
+          r={r}
+          fill="none"
+          strokeWidth="5"
+          className="stroke-primary-foreground/15"
+        />
+        <circle
+          cx="40"
+          cy="40"
+          r={r}
+          fill="none"
+          strokeWidth="5"
+          strokeLinecap="round"
+          className="stroke-brand-cyan"
+          style={{
+            strokeDasharray: c,
+            strokeDashoffset: inView ? c - (c * progresso) / 100 : c,
+            transition: "stroke-dashoffset 1.5s cubic-bezier(0.2, 0, 0, 1)",
+          }}
+        />
+      </svg>
+      <span className="absolute inset-0 flex items-center justify-center">{children}</span>
+    </div>
+  );
+}
 
 export function Numeros() {
   return (
-    <section id="resultados" className="bg-primary text-primary-foreground">
-      <div className="mx-auto max-w-6xl px-5 py-20 md:py-24">
-        <p className="eyebrow text-primary-foreground/60">Resultados reais</p>
-        <h2 className="mt-2 max-w-2xl text-3xl font-semibold md:text-4xl">
-          Um processo <span className="shimmer-text">inteligente de ponta a ponta</span>, para quem
-          contrata e para quem se candidata
-        </h2>
+    <section
+      id="resultados"
+      className="brand-gradient relative overflow-hidden text-primary-foreground"
+    >
+      <span className="animate-float pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full bg-brand-cyan/20 blur-3xl" />
+      <span
+        className="animate-float pointer-events-none absolute -right-20 bottom-0 h-80 w-80 rounded-full bg-primary-foreground/10 blur-3xl"
+        style={{ animationDelay: "2s" }}
+      />
 
-        <dl className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          {numeros.map((n, i) => (
-            <Reveal key={n.texto} delay={i * 110}>
-              <dt className="font-display text-4xl font-bold text-brand-cyan md:text-5xl">
-                <CountUp to={n.valor} suffix={n.suffix} />
-              </dt>
-              <dd className="mt-3 text-sm leading-relaxed text-primary-foreground/70">{n.texto}</dd>
-            </Reveal>
-          ))}
+      <div className="relative mx-auto max-w-6xl px-5 py-20 md:py-28">
+        <div className="flex flex-wrap items-end justify-between gap-6">
+          <div className="max-w-2xl">
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/25 bg-primary-foreground/10 px-3 py-1.5 text-[0.65rem] font-bold uppercase tracking-[0.16em]">
+              <Sparkles className="h-3.5 w-3.5 text-brand-cyan" strokeWidth={2} />
+              Resultados reais
+            </span>
+            <h2 className="mt-4 text-3xl font-semibold md:text-4xl">
+              Um processo <span className="shimmer-text">inteligente de ponta a ponta</span>, para
+              quem contrata e para quem se candidata
+            </h2>
+          </div>
+          <p className="inline-flex items-center gap-2 rounded-full bg-primary-foreground/10 px-4 py-2 text-xs font-semibold text-primary-foreground/80">
+            <i className="animate-blink h-2 w-2 rounded-full bg-brand-cyan" />
+            dados atualizados em tempo real
+          </p>
+        </div>
+
+        <dl className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {numeros.map((n, i) => {
+            const Icon = n.icon;
+            return (
+              <Reveal
+                key={n.titulo}
+                delay={i * 120}
+                className="group relative overflow-hidden rounded-3xl border border-primary-foreground/15 bg-primary-foreground/[0.07] p-6 transition-all duration-300 hover:-translate-y-1.5 hover:border-brand-cyan/50 hover:bg-primary-foreground/[0.12]"
+              >
+                <span className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-brand-cyan/0 blur-2xl transition-colors duration-500 group-hover:bg-brand-cyan/30" />
+
+                <div className="relative flex items-center gap-4">
+                  <StatRing progresso={n.progresso}>
+                    <dt className="font-display text-xl font-bold text-brand-cyan">
+                      <CountUp to={n.valor} suffix={n.suffix} />
+                    </dt>
+                  </StatRing>
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-foreground/10 transition-transform duration-300 group-hover:scale-110">
+                    <Icon className="h-5 w-5 text-brand-cyan" strokeWidth={1.75} />
+                  </span>
+                </div>
+
+                <dd className="relative mt-5">
+                  <p className="font-display text-base font-semibold leading-snug">{n.titulo}</p>
+                  <p className="mt-2 text-xs leading-relaxed text-primary-foreground/60">
+                    {n.detalhe}
+                  </p>
+                </dd>
+              </Reveal>
+            );
+          })}
         </dl>
       </div>
     </section>
