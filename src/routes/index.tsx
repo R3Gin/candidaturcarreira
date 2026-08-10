@@ -11,7 +11,6 @@ import {
   Numeros,
   Showcase,
 } from "@/components/site/HomeSections";
-import { AdSlot } from "@/components/ads/AdSlot";
 import { AdSlotAuto } from "@/components/ads/AdSlotAuto";
 
 const title = "Candidatu | Recrutamento com IA, vagas e freelas";
