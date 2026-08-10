@@ -83,6 +83,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Lovable App" },
       { name: "description", content: "Candidatu connects job seekers with career opportunities and employers with talent." },
       { name: "author", content: "Lovable" },
+      { name: "google-adsense-account", content: "ca-pub-1242374726754221" },
       { property: "og:title", content: "Lovable App" },
       { property: "og:description", content: "Candidatu connects job seekers with career opportunities and employers with talent." },
       { property: "og:type", content: "website" },
