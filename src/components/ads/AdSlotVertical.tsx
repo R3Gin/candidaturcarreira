@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ClientOnly } from "@tanstack/react-router";
+import { useHydrated } from "@tanstack/react-router";
 
 export const ADSENSE_CLIENT = "ca-pub-1242374726754221";
 
@@ -21,6 +21,8 @@ export function AdSlotVertical({
   label = "Publicidade",
   minHeight = 280,
 }: AdSlotVerticalProps) {
+  const hydrated = useHydrated();
+
   return (
     <aside
       aria-label={label}
@@ -29,16 +31,14 @@ export function AdSlotVertical({
       <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
         {label}
       </p>
-      <ClientOnly
-        fallback={
-          <div
-            className="w-full animate-pulse rounded-xl bg-muted"
-            style={{ minHeight }}
-          />
-        }
-      >
+      {hydrated ? (
         <AdSenseVerticalIns minHeight={minHeight} />
-      </ClientOnly>
+      ) : (
+        <div
+          className="w-full animate-pulse rounded-xl bg-muted"
+          style={{ minHeight }}
+        />
+      )}
     </aside>
   );
 }

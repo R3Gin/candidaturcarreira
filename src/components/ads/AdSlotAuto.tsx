@@ -3,27 +3,31 @@ import { useHydrated } from "@tanstack/react-router";
 
 export const ADSENSE_CLIENT = "ca-pub-1242374726754221";
 
-type AdSlotProps = {
-  /** ID do bloco de anúncio criado no painel do AdSense */
-  slot?: string;
-  format?: string;
+const AUTO_SLOT = "3491620037";
+
+type AdSlotAutoProps = {
   className?: string;
   label?: string;
+  /** Altura mínima do bloco antes do anúncio carregar */
+  minHeight?: number;
 };
 
 /**
- * Bloco de anúncio do Google AdSense.
- * O script global é carregado em src/routes/__root.tsx.
- *
- * O <ins> só é montado após a hidratação (useHydrated) para evitar
- * hydration mismatch causado pelo script do AdSense reescrever o DOM.
+ * Bloco de anúncio AdSense responsivo (formato auto, full width).
+ * Equivalente ao snippet:
+ * <!-- adsense 2 -->
+ * <ins class="adsbygoogle"
+ *      style="display:block"
+ *      data-ad-client="ca-pub-1242374726754221"
+ *      data-ad-slot="3491620037"
+ *      data-ad-format="auto"
+ *      data-full-width-responsive="true"></ins>
  */
-export function AdSlot({
-  slot,
-  format = "auto",
+export function AdSlotAuto({
   className = "",
   label = "Publicidade",
-}: AdSlotProps) {
+  minHeight = 90,
+}: AdSlotAutoProps) {
   const hydrated = useHydrated();
 
   return (
@@ -36,16 +40,19 @@ export function AdSlot({
           {label}
         </p>
         {hydrated ? (
-          <AdSenseIns slot={slot} format={format} />
+          <AdSenseAutoIns minHeight={minHeight} />
         ) : (
-          <div className="min-h-[90px] w-full animate-pulse rounded-xl bg-muted" />
+          <div
+            className="w-full animate-pulse rounded-xl bg-muted"
+            style={{ minHeight }}
+          />
         )}
       </div>
     </aside>
   );
 }
 
-function AdSenseIns({ slot, format }: { slot?: string | undefined; format?: string | undefined }) {
+function AdSenseAutoIns({ minHeight }: { minHeight: number }) {
   const ref = useRef<HTMLModElement>(null);
   const pushed = useRef(false);
   const [ready, setReady] = useState(false);
@@ -69,11 +76,11 @@ function AdSenseIns({ slot, format }: { slot?: string | undefined; format?: stri
   return (
     <ins
       ref={ref}
-      className="adsbygoogle block min-h-[90px] w-full"
-      style={{ display: "block" }}
+      className="adsbygoogle block w-full"
+      style={{ display: "block", minHeight }}
       data-ad-client={ADSENSE_CLIENT}
-      {...(slot ? { "data-ad-slot": slot } : {})}
-      data-ad-format={format}
+      data-ad-slot={AUTO_SLOT}
+      data-ad-format="auto"
       data-full-width-responsive="true"
     />
   );
