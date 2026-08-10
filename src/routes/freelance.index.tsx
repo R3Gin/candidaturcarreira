@@ -28,6 +28,7 @@ import {
   RankingPanel,
   StatsRow,
 } from "@/components/freela/FreelaPanels";
+import { AdSlot } from "@/components/ads/AdSlot";
 
 const title = "Freelas do dia | Candidatu";
 const description =
@@ -366,6 +367,8 @@ function FreelancePage() {
           </>
         )}
       </section>
+
+      <AdSlot className="pb-10" slot="4444444444" />
 
       {menuOpen && acc && (
         <FreelaMenu

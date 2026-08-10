@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { allFreelas, brlDiaria, contactHref, type Freela } from "@/lib/freelas";
+import { AdSlot } from "@/components/ads/AdSlot";
 import {
   candidateDefaults,
   contactForFreela,
@@ -188,7 +189,10 @@ function FreelaDetalhe() {
         </aside>
       </section>
 
+      <AdSlot className="pb-10" slot="5555555555" />
+
       <SiteFooter />
+
     </main>
   );
 }

@@ -3,6 +3,7 @@ import { SiteHeader } from "@/components/site/SiteHeader";
 import { Hero } from "@/components/site/Hero";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { Vagas, Empresas, Processo, Empregadores } from "@/components/site/Sections";
+import { AdSlot } from "@/components/ads/AdSlot";
 
 const title = "Candidatu | Vagas com salário e etapas à vista";
 const description =
@@ -27,10 +28,13 @@ function Index() {
     <main>
       <SiteHeader />
       <Hero />
+      <AdSlot className="py-8" slot="1111111111" />
       <Vagas />
       <Empresas />
+      <AdSlot className="py-8" slot="2222222222" />
       <Processo />
       <Empregadores />
+      <AdSlot className="pb-12" slot="3333333333" />
       <SiteFooter />
     </main>
   );
