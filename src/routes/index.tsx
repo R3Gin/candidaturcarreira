@@ -3,6 +3,7 @@ import { SiteHeader } from "@/components/site/SiteHeader";
 import { Hero } from "@/components/site/Hero";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { Vagas, Empresas, Processo, Empregadores } from "@/components/site/Sections";
+import { AdSlot } from "@/components/ads/AdSlot";
 
 const title = "Candidatu | Vagas com salário e etapas à vista";
 const description =
