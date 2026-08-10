@@ -38,15 +38,12 @@ function Index() {
       <SiteHeader />
       <Hero />
       <EmpresasMarquee />
-      <AdSlot className="py-8" slot="1111111111" />
       <Numeros />
       <Showcase />
-      <AdSlot className="py-8" slot="2222222222" />
       <Jornada />
       <Depoimentos />
       <Faq />
       <CtaFinal />
-      <AdSlot className="pb-8" slot="3333333333" />
       <AdSlotAuto className="pb-12" />
       <SiteFooter />
     </main>
