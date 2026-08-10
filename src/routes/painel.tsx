@@ -17,6 +17,7 @@ import { PreferenciasVagas } from "@/components/app/views/PreferenciasVagas";
 import { Recomendadas } from "@/components/app/views/Recomendadas";
 import { VagasSalvas } from "@/components/app/views/VagasSalvas";
 import { VagaDetalhe } from "@/components/app/views/VagaDetalhe";
+import { AdSlotAuto } from "@/components/ads/AdSlotAuto";
 
 const title = "Painel do candidato | Candidatu";
 const description =
@@ -154,7 +155,7 @@ function PainelLoaded({
         />
       )}
       <main
-        className={`mx-auto px-5 pb-20 pt-8 ${
+        className={`mx-auto px-5 pb-12 pt-8 ${
           activeJob || view === "central" || view === "curriculo" ? "max-w-6xl" : "max-w-4xl"
         }`}
       >
@@ -186,6 +187,7 @@ function PainelLoaded({
           </>
         )}
       </main>
+      <AdSlotAuto className="pb-12" />
     </AppShell>
   );
 }

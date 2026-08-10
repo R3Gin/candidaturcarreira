@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from "react";
 
 export const ADSENSE_CLIENT = "ca-pub-1242374726754221";
 
-const VERTICAL_SLOT = "4645487824";
+const AUTO_SLOT = "3491620037";
 
-type AdSlotVerticalProps = {
+type AdSlotAutoProps = {
   className?: string;
   label?: string;
   /** Altura mínima do bloco antes do anúncio carregar */
@@ -12,37 +12,46 @@ type AdSlotVerticalProps = {
 };
 
 /**
- * Anúncio vertical AdSense (formato autorelaxed).
- * Ideal para sidebars e colunas laterais sem atrapalhar o fluxo principal.
+ * Bloco de anúncio AdSense responsivo (formato auto, full width).
+ * Equivalente ao snippet:
+ * <!-- adsense 2 -->
+ * <ins class="adsbygoogle"
+ *      style="display:block"
+ *      data-ad-client="ca-pub-1242374726754221"
+ *      data-ad-slot="3491620037"
+ *      data-ad-format="auto"
+ *      data-full-width-responsive="true"></ins>
  */
-export function AdSlotVertical({
+export function AdSlotAuto({
   className = "",
   label = "Publicidade",
-  minHeight = 280,
-}: AdSlotVerticalProps) {
+  minHeight = 90,
+}: AdSlotAutoProps) {
   const mounted = useMounted();
 
   return (
     <aside
       aria-label={label}
-      className={`rounded-2xl border border-border bg-card/60 p-3 ${className}`}
+      className={`mx-auto w-full max-w-6xl px-5 ${className}`}
     >
-      <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-        {label}
-      </p>
-      {mounted ? (
-        <AdSenseVerticalIns minHeight={minHeight} />
-      ) : (
-        <div
-          className="w-full animate-pulse rounded-xl bg-muted"
-          style={{ minHeight }}
-        />
-      )}
+      <div className="overflow-hidden rounded-2xl border border-border bg-card/60 p-3">
+        <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          {label}
+        </p>
+        {mounted ? (
+          <AdSenseAutoIns minHeight={minHeight} />
+        ) : (
+          <div
+            className="w-full animate-pulse rounded-xl bg-muted"
+            style={{ minHeight }}
+          />
+        )}
+      </div>
     </aside>
   );
 }
 
-function AdSenseVerticalIns({ minHeight }: { minHeight: number }) {
+function AdSenseAutoIns({ minHeight }: { minHeight: number }) {
   const ref = useRef<HTMLModElement>(null);
   const pushed = useRef(false);
   const [ready, setReady] = useState(false);
@@ -69,9 +78,9 @@ function AdSenseVerticalIns({ minHeight }: { minHeight: number }) {
       className="adsbygoogle block w-full"
       style={{ display: "block", minHeight }}
       data-ad-client={ADSENSE_CLIENT}
-      data-ad-slot={VERTICAL_SLOT}
-      data-ad-format="autorelaxed"
-      data-full-width-responsive="false"
+      data-ad-slot={AUTO_SLOT}
+      data-ad-format="auto"
+      data-full-width-responsive="true"
     />
   );
 }
