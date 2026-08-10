@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { useHydrated } from "@tanstack/react-router";
 
 export const ADSENSE_CLIENT = "ca-pub-1242374726754221";
 
@@ -28,7 +27,7 @@ export function AdSlotAuto({
   label = "Publicidade",
   minHeight = 90,
 }: AdSlotAutoProps) {
-  const hydrated = useHydrated();
+  const mounted = useMounted();
 
   return (
     <aside
@@ -39,7 +38,7 @@ export function AdSlotAuto({
         <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
           {label}
         </p>
-        {hydrated ? (
+        {mounted ? (
           <AdSenseAutoIns minHeight={minHeight} />
         ) : (
           <div
@@ -84,4 +83,12 @@ function AdSenseAutoIns({ minHeight }: { minHeight: number }) {
       data-full-width-responsive="true"
     />
   );
+}
+
+function useMounted() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  return mounted;
 }

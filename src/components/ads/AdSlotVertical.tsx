@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { useHydrated } from "@tanstack/react-router";
 
 export const ADSENSE_CLIENT = "ca-pub-1242374726754221";
 
@@ -21,7 +20,7 @@ export function AdSlotVertical({
   label = "Publicidade",
   minHeight = 280,
 }: AdSlotVerticalProps) {
-  const hydrated = useHydrated();
+  const mounted = useMounted();
 
   return (
     <aside
@@ -31,7 +30,7 @@ export function AdSlotVertical({
       <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
         {label}
       </p>
-      {hydrated ? (
+      {mounted ? (
         <AdSenseVerticalIns minHeight={minHeight} />
       ) : (
         <div
@@ -75,4 +74,12 @@ function AdSenseVerticalIns({ minHeight }: { minHeight: number }) {
       data-full-width-responsive="false"
     />
   );
+}
+
+function useMounted() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  return mounted;
 }

@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { useHydrated } from "@tanstack/react-router";
 
 export const ADSENSE_CLIENT = "ca-pub-1242374726754221";
 
@@ -15,7 +14,7 @@ type AdSlotProps = {
  * Bloco de anúncio do Google AdSense.
  * O script global é carregado em src/routes/__root.tsx.
  *
- * O <ins> só é montado após a hidratação (useHydrated) para evitar
+ * O <ins> só é montado após o primeiro commit do React para evitar
  * hydration mismatch causado pelo script do AdSense reescrever o DOM.
  */
 export function AdSlot({
@@ -24,7 +23,7 @@ export function AdSlot({
   className = "",
   label = "Publicidade",
 }: AdSlotProps) {
-  const hydrated = useHydrated();
+  const mounted = useMounted();
 
   return (
     <aside
@@ -35,7 +34,7 @@ export function AdSlot({
         <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
           {label}
         </p>
-        {hydrated ? (
+        {mounted ? (
           <AdSenseIns slot={slot} format={format} />
         ) : (
           <div className="min-h-[90px] w-full animate-pulse rounded-xl bg-muted" />
@@ -77,4 +76,12 @@ function AdSenseIns({ slot, format }: { slot?: string | undefined; format?: stri
       data-full-width-responsive="true"
     />
   );
+}
+
+function useMounted() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  return mounted;
 }
