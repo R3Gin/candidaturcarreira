@@ -188,7 +188,10 @@ function FreelaDetalhe() {
         </aside>
       </section>
 
+      <AdSlot className="pb-10" slot="5555555555" />
+
       <SiteFooter />
+
     </main>
   );
 }
