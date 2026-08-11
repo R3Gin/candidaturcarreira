@@ -54,13 +54,16 @@ export function SiteHeader() {
       >
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-8 px-5">
           <a href="#top" className="flex items-center gap-2.5">
-            <span className="brand-gradient flex h-9 w-9 items-center justify-center rounded-xl font-display text-base font-bold text-primary-foreground shadow-card">
-              C
-            </span>
-            <span className="font-display text-lg font-semibold tracking-tight text-ink">
-              Candidatu
-              <span className="text-accent">.</span>
-            </span>
+            <img
+              src={LOGO_ICON_URL}
+              alt="Candidatu"
+              className="h-9 w-9 shrink-0 rounded-xl object-contain md:hidden"
+            />
+            <img
+              src={LOGO_URL}
+              alt="Candidatu"
+              className="hidden h-8 w-auto md:block"
+            />
           </a>
 
           <nav className="hidden items-center gap-1 md:flex">

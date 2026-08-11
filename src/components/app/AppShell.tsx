@@ -133,12 +133,16 @@ export function AppShell({
       <header className="sticky top-0 z-50 border-b border-border/70 bg-background/90 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:gap-4 sm:px-5">
           <Link to="/" className="flex min-w-0 shrink items-center gap-2">
-            <span className="brand-gradient flex h-9 w-9 shrink-0 items-center justify-center rounded-xl font-display text-base font-bold text-primary-foreground shadow-card">
-              C
-            </span>
-            <span className="truncate font-display text-base font-semibold tracking-tight text-ink sm:text-lg">
-              Candidatu<span className="text-accent">.</span>
-            </span>
+            <img
+              src={LOGO_ICON_URL}
+              alt="Candidatu"
+              className="h-9 w-9 shrink-0 rounded-xl object-contain sm:hidden"
+            />
+            <img
+              src={LOGO_URL}
+              alt="Candidatu"
+              className="hidden h-8 w-auto sm:block"
+            />
           </Link>
 
 
