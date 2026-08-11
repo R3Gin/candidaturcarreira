@@ -1,5 +1,16 @@
 import { Link } from "@tanstack/react-router";
-import { ChevronRight, Menu, Phone, ShieldCheck, X } from "lucide-react";
+import {
+  Briefcase,
+  Building2,
+  ChevronRight,
+  Handshake,
+  HelpCircle,
+  Menu,
+  Phone,
+  ShieldCheck,
+  Sparkles,
+  X,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuthModal } from "@/components/auth/AuthModal";
 import logoAsset from "@/assets/candidatu-logo.png.asset.json";
@@ -9,10 +20,10 @@ const LOGO_URL = logoAsset.url;
 const LOGO_ICON_URL = logoIconAsset.url;
 
 const nav = [
-  { label: "Vagas", href: "#vagas" },
-  { label: "Empresas", href: "#empresas" },
-  { label: "Como funciona", href: "#processo" },
-  { label: "Para recrutar", href: "#empregadores" },
+  { label: "Vagas", href: "#vagas", icon: Briefcase },
+  { label: "Empresas", href: "#empresas", icon: Building2 },
+  { label: "Como funciona", href: "#processo", icon: HelpCircle },
+  { label: "Para recrutar", href: "#empregadores", icon: Handshake },
 ];
 
 export function SiteHeader() {
