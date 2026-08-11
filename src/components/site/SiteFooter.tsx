@@ -1,5 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { Instagram, Linkedin, Mail, MapPin, Youtube } from "lucide-react";
+import logoIconTransparentAsset from "@/assets/candidatu-icon-transparent.png.asset.json";
+
+const LOGO_ICON_TRANSPARENT_URL = logoIconTransparentAsset.url;
 
 const colunas = [
   {
@@ -49,9 +52,11 @@ export function SiteFooter() {
         <div className="grid gap-10 md:grid-cols-[1.2fr_repeat(3,0.8fr)]">
           <div>
             <p className="flex items-center gap-2.5">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-foreground font-display text-base font-bold text-primary">
-                C
-              </span>
+              <img
+                src={LOGO_ICON_TRANSPARENT_URL}
+                alt="Candidatu"
+                className="h-9 w-9 shrink-0 object-contain"
+              />
               <span className="font-display text-lg font-semibold tracking-tight">
                 Candidatu<span className="text-brand-cyan">.</span>
               </span>
