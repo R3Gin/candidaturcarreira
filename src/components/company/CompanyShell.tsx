@@ -208,12 +208,18 @@ export function CompanyShell({
           </button>
 
           <Link to="/" className="flex min-w-0 shrink items-center gap-2">
-            <span className="brand-gradient inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl font-display text-sm font-bold text-primary-foreground">
-              C
-            </span>
-            <span className="truncate font-display text-base font-bold leading-none text-ink sm:text-lg">
-              Candidatu
-              <span className="hidden text-brand-cyan sm:inline"> Empresas</span>
+            <img
+              src={LOGO_ICON_URL}
+              alt="Candidatu"
+              className="h-10 w-10 shrink-0 rounded-xl object-contain sm:hidden"
+            />
+            <img
+              src={LOGO_URL}
+              alt="Candidatu"
+              className="hidden h-10 w-auto sm:block"
+            />
+            <span className="hidden font-display text-base font-bold leading-none text-ink sm:inline sm:text-lg">
+              <span className="text-brand-cyan"> Empresas</span>
             </span>
           </Link>
 
