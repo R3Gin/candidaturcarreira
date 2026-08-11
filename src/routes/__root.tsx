@@ -139,6 +139,7 @@ function RootComponent() {
         <Outlet />
       </AuthModalProvider>
       <Toaster position="top-right" richColors />
+      <AdSenseScript />
     </QueryClientProvider>
   );
 
