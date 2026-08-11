@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthModalProvider } from "@/components/auth/AuthModal";
+import { AdSenseScript } from "@/components/ads/AdSenseScript";
 
 
 function NotFoundComponent() {
@@ -107,13 +108,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { rel: "icon", href: "/favicon.png", type: "image/png" },
     ],
-    scripts: [
-      {
-        async: true,
-        src: "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1242374726754221",
-        crossOrigin: "anonymous",
-      },
-    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
@@ -145,6 +139,7 @@ function RootComponent() {
         <Outlet />
       </AuthModalProvider>
       <Toaster position="top-right" richColors />
+      <AdSenseScript />
     </QueryClientProvider>
   );
 
