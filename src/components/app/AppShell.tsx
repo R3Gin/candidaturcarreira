@@ -20,6 +20,11 @@ import { toast } from "sonner";
 import { useAppStore } from "./store";
 import { useChatMessageNotifications, useChatUnread } from "@/lib/useChat";
 import { useMeetingInvites, useMeetingReminders } from "@/lib/useMeetings";
+import logoAsset from "@/assets/candidatu-logo.png.asset.json";
+import logoIconAsset from "@/assets/candidatu-icon.png.asset.json";
+
+const LOGO_URL = logoAsset.url;
+const LOGO_ICON_URL = logoIconAsset.url;
 
 
 export type View =

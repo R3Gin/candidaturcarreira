@@ -2,6 +2,11 @@ import { Link } from "@tanstack/react-router";
 import { ChevronRight, Menu, Phone, ShieldCheck, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuthModal } from "@/components/auth/AuthModal";
+import logoAsset from "@/assets/candidatu-logo.png.asset.json";
+import logoIconAsset from "@/assets/candidatu-icon.png.asset.json";
+
+const LOGO_URL = logoAsset.url;
+const LOGO_ICON_URL = logoIconAsset.url;
 
 const nav = [
   { label: "Vagas", href: "#vagas" },
