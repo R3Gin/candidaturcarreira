@@ -137,34 +137,46 @@ export function SiteHeader() {
         </div>
 
         {open && (
-          <nav className="animate-fade-up border-t border-border bg-background px-5 py-3 md:hidden">
-            {nav.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className="block py-2.5 text-sm font-semibold text-ink-soft"
-              >
-                {item.label}
-              </a>
-            ))}
+          <nav className="animate-fade-up border-t border-border bg-background px-4 py-4 md:hidden">
+            <div className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink-faint">
+              <Sparkles className="h-3.5 w-3.5" strokeWidth={2} />
+              Menu
+            </div>
+            {nav.map((item) => {
+              const Icon = item.icon;
+              return (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  className="group flex items-center gap-3 rounded-xl px-3 py-3.5 text-sm font-semibold text-ink-soft transition-colors hover:bg-secondary hover:text-ink active:scale-[0.99]"
+                >
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-secondary text-ink group-hover:bg-background">
+                    <Icon className="h-4 w-4" strokeWidth={1.9} />
+                  </span>
+                  {item.label}
+                </a>
+              );
+            })}
             <Link
               to="/freelance"
               onClick={() => setOpen(false)}
-              className="block py-2.5 text-sm font-semibold text-ink-soft"
+              className="group flex items-center gap-3 rounded-xl px-3 py-3.5 text-sm font-semibold text-ink-soft transition-colors hover:bg-secondary hover:text-ink active:scale-[0.99]"
             >
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-secondary text-ink group-hover:bg-background">
+                <Sparkles className="h-4 w-4" strokeWidth={1.9} />
+              </span>
               Freelas
             </Link>
 
-
-            <div className="mt-2 flex gap-2 border-t border-border pt-3">
+            <div className="mt-4 flex flex-col gap-2 border-t border-border pt-4">
               <button
                 type="button"
                 onClick={() => {
                   setOpen(false);
                   openAuthModal({ mode: "entrar" });
                 }}
-                className="flex-1 rounded-full border border-border py-2.5 text-center text-sm font-semibold text-ink"
+                className="w-full rounded-full border border-border py-3 text-center text-sm font-semibold text-ink transition-transform active:scale-[0.98]"
               >
                 Entrar
               </button>
@@ -174,9 +186,13 @@ export function SiteHeader() {
                   setOpen(false);
                   openAuthModal({ mode: "criar" });
                 }}
-                className="flex-1 rounded-full bg-primary py-2.5 text-center text-sm font-semibold text-primary-foreground"
+                className="group flex w-full items-center justify-center gap-1.5 rounded-full bg-primary py-3 text-sm font-semibold text-primary-foreground shadow-card transition-transform active:scale-[0.98]"
               >
-                Criar perfil
+                Criar perfil grátis
+                <ChevronRight
+                  className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5"
+                  strokeWidth={2}
+                />
               </button>
             </div>
           </nav>
