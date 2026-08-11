@@ -25,6 +25,11 @@ import { labelOf, REUNIAO_TIPOS } from "./store";
 import { MessageSquare } from "lucide-react";
 import { AdSlotVertical } from "@/components/ads/AdSlotVertical";
 import { AdSlotAuto } from "@/components/ads/AdSlotAuto";
+import logoAsset from "@/assets/candidatu-logo.png.asset.json";
+import logoIconAsset from "@/assets/candidatu-icon.png.asset.json";
+
+const LOGO_URL = logoAsset.url;
+const LOGO_ICON_URL = logoIconAsset.url;
 
 const notifIcon: Record<NotificationKind, typeof Bell> = {
   etapa: MoveRight,
