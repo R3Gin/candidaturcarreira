@@ -136,12 +136,12 @@ export function AppShell({
             <img
               src={LOGO_ICON_URL}
               alt="Candidatu"
-              className="h-9 w-9 shrink-0 rounded-xl object-contain sm:hidden"
+              className="h-10 w-10 shrink-0 rounded-xl object-contain sm:hidden"
             />
             <img
               src={LOGO_URL}
               alt="Candidatu"
-              className="hidden h-8 w-auto sm:block"
+              className="hidden h-10 w-auto sm:block"
             />
           </Link>
 
