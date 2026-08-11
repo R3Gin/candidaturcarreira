@@ -41,10 +41,11 @@ export function SiteHeader() {
   return (
     <div className="sticky top-0 z-50">
       <div className="brand-gradient text-primary-foreground">
-        <div className="mx-auto flex h-9 max-w-6xl items-center justify-between gap-4 px-5 text-xs">
+        <div className="mx-auto flex h-9 max-w-6xl items-center justify-between gap-4 px-4 text-xs sm:px-5">
           <p className="flex items-center gap-1.5 font-medium">
-            <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2} />
-            Vagas verificadas com salário e etapas à vista
+            <ShieldCheck className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
+            <span className="hidden sm:inline">Vagas verificadas com salário e etapas à vista</span>
+            <span className="sm:hidden">Vagas verificadas</span>
           </p>
           <div className="hidden items-center gap-5 sm:flex">
             <Link to="/empresa" className="font-medium hover:underline">
